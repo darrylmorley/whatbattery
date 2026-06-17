@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }} · {{ site.tagline }}{% endif %}</title>
+    <meta name="description" content="{{ description or site.tagline }}" />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">{{ site.name }}</a>
+      <nav>
+        <a href="/faq/">FAQ</a>
+        <a href="{{ site.releases }}">Download</a>
+        <a href="{{ site.repo }}">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      {{ content | safe }}
+    </main>
+
+    <footer class="site-footer">
+      <p>{{ site.name }} &middot; <a href="{{ site.repo }}">Source on GitHub</a> &middot; Read-only: it never changes how your devices charge.</p>
+    </footer>
+  </body>
+</html>

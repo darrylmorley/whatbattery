@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FAQ · WhatBattery</title>
+    <meta name="description" content="How to connect a device over Wi-Fi, what battery health means, and how WhatBattery reads your battery." />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/">WhatBattery</a>
+      <nav>
+        <a href="/faq/">FAQ</a>
+        <a href="https://github.com/darrylmorley/whatbattery-app/releases">Download</a>
+        <a href="https://github.com/darrylmorley/whatbattery-app">GitHub</a>
+      </nav>
+    </header>
+
+    <main>
+      
+<section class="page">
+  <h1>FAQ</h1>
+
+  <h2 id="wifi">How do I connect an iPhone or iPad over Wi-Fi?</h2>
+  <p>A device shows up automatically once macOS can reach it. The setup is a one-time thing:</p>
+  <ol>
+    <li><strong>Trust the Mac once over a cable.</strong> Connect the device with a cable, unlock it, and tap <em>Trust</em> (enter the passcode). The first pairing can't be done wirelessly.</li>
+    <li><strong>Turn on Wi-Fi sync.</strong> In Finder, select the device in the sidebar, open the <em>General</em> tab, tick <em>"Show this iPhone when on Wi-Fi"</em>, then click <em>Apply</em>.</li>
+    <li><strong>Same network, awake.</strong> Keep the Mac and the device on the same Wi-Fi network with the device awake, then unplug. It appears in WhatBattery's iPhone / iPad tab.</li>
+  </ol>
+  <p>Not showing up? Make sure Finder &rsaquo; Settings &rsaquo; Sidebar has "CDs, DVDs and iOS Devices" ticked, try a different cable or port, and confirm you tapped Trust. Wi-Fi discovery can be slow; reconnecting the cable briefly wakes the link.</p>
+
+  <h2 id="genuine">Can WhatBattery tell if my battery is genuine?</h2>
+  <p>Not reliably, so it doesn't claim to. macOS only flags a non-genuine battery through a system process, and there's no public signal to check a genuine battery against, so any "genuine / fake" badge would be a guess. Instead WhatBattery shows the battery <strong>condition</strong> (below), which is the trustworthy "is my battery OK or does it need service" answer.</p>
+
+  <h2 id="health">Why does WhatBattery's health differ from coconutBattery?</h2>
+  <p>WhatBattery computes health the same way <strong>Apple's own Settings</strong> does, from the nominal charge capacity. Some tools read a slightly different capacity field and land a couple of points lower. Neither is wrong; WhatBattery matches the number you see elsewhere in macOS.</p>
+
+  <h2 id="condition">What do the battery conditions mean?</h2>
+  <ul>
+    <li><strong>Normal</strong> &mdash; healthy, no action needed.</li>
+    <li><strong>Service Recommended</strong> &mdash; worn but working; plan a replacement.</li>
+    <li><strong>Service Battery</strong> &mdash; a fault macOS flags for service.</li>
+  </ul>
+  <p>This is read from macOS, so it matches what System Settings reports.</p>
+
+  <h2 id="safe">Is it safe? Does it change how my Mac charges?</h2>
+  <p>WhatBattery is strictly read-only. It reads battery and power data through Apple's own interfaces and never writes to the battery or changes charging behaviour.</p>
+
+  <h2 id="requirements">What does it need?</h2>
+  <p>An Apple Silicon Mac running macOS 14 or later. Reading an iPhone or iPad uses the same connection Finder uses; no app is needed on the device.</p>
+</section>
+
+    </main>
+
+    <footer class="site-footer">
+      <p>WhatBattery &middot; <a href="https://github.com/darrylmorley/whatbattery-app">Source on GitHub</a> &middot; Read-only: it never changes how your devices charge.</p>
+    </footer>
+  </body>
+</html>

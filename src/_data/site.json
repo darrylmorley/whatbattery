@@ -1,0 +1,8 @@
+{
+  "name": "WhatBattery",
+  "tagline": "Battery health and live power for your Mac, iPhone, and iPad.",
+  "domain": "whatbattery.app",
+  "url": "https://whatbattery.app",
+  "repo": "https://github.com/darrylmorley/whatbattery-app",
+  "releases": "https://github.com/darrylmorley/whatbattery-app/releases"
+}

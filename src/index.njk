@@ -1,0 +1,43 @@
+---
+layout: base.njk
+---
+
+<section class="hero">
+  <h1>{{ site.name }}</h1>
+  <p class="lede">{{ site.tagline }}</p>
+  <p class="cta">
+    <a class="button" href="{{ site.releases }}">Download for macOS</a>
+  </p>
+  <p class="fineprint">Apple Silicon Macs, macOS 14 or later.</p>
+</section>
+
+<section class="features">
+  <div class="feature">
+    <h2>True battery health</h2>
+    <p>The real maximum capacity and cycle count, computed from the raw mAh figures, not the rounded number macOS shows. Health to one decimal so a worn battery can't hide as "100%".</p>
+  </div>
+  <div class="feature">
+    <h2>Live power</h2>
+    <p>Watts in and out in real time, the charger it negotiated, voltage, and temperature, in the menu bar and the main window.</p>
+  </div>
+  <div class="feature">
+    <h2>iPhone &amp; iPad</h2>
+    <p>Read a connected iPhone or iPad's battery health and cycle count straight from your Mac, over a cable or Wi-Fi. <a href="/faq/#wifi">How to connect over Wi-Fi.</a></p>
+  </div>
+  <div class="feature">
+    <h2>Lifetime history</h2>
+    <p>A long-term, per-device health record: monthly health and cycles over months and years, for your Mac and every device you connect, with backup and export.</p>
+  </div>
+  <div class="feature">
+    <h2>Reports &amp; export</h2>
+    <p>A one-page battery report as PDF or print, and CSV/JSON export of your logged history.</p>
+  </div>
+  <div class="feature">
+    <h2>Service condition</h2>
+    <p>The same Normal / Service Recommended condition macOS uses, so you know when a battery actually needs attention.</p>
+  </div>
+</section>
+
+<section class="reassure">
+  <p>WhatBattery only reads. It never changes charging behaviour or writes to your battery.</p>
+</section>

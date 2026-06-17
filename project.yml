@@ -1,0 +1,52 @@
+name: WhatBatteryWidget
+options:
+  bundleIdPrefix: uk.whatbattery
+  deploymentTarget:
+    macOS: "14.0"
+  generateEmptyDirectories: false
+  groupSortPosition: none
+
+# This Xcode project builds ONLY the widget extension. The app and CLI build
+# via `swift build` (Package.swift).
+#
+# WidgetKit extensions must be .appex bundles, which SPM can't produce. The
+# build scripts compile the widget with `xcodebuild`, then embed the resulting
+# .appex into the app bundle at Contents/PlugIns/.
+#
+# Regenerate after changes: `xcodegen generate` (the .xcodeproj is gitignored).
+
+packages:
+  WhatBattery:
+    path: .
+
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  WhatBatteryWidget:
+    type: app-extension
+    platform: macOS
+    sources:
+      - path: Sources/WhatBatteryWidget
+    dependencies:
+      - package: WhatBattery
+        product: WhatBatteryCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.whatbattery.whatbattery.widget
+        PRODUCT_NAME: WhatBatteryWidget
+        GENERATE_INFOPLIST_FILE: true
+        INFOPLIST_FILE: Sources/WhatBatteryWidget/Info.plist
+        INFOPLIST_KEY_CFBundleDisplayName: WhatBattery Widget
+        CODE_SIGN_ENTITLEMENTS: scripts/WhatBatteryWidget.entitlements
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: ""
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        ARCHS: arm64
+        ONLY_ACTIVE_ARCH: false
+        SWIFT_EMIT_LOC_STRINGS: true
+        LD_RUNPATH_SEARCH_PATHS:
+          - "@executable_path/../Frameworks"
+          - "@executable_path/../../../../Frameworks"

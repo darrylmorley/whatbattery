@@ -1,0 +1,12 @@
+{
+  "name": "whatbattery-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "site:build": "eleventy",
+    "site:serve": "eleventy --serve"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0"
+  }
+}
