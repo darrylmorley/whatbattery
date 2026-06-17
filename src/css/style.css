@@ -7,9 +7,9 @@
   --line-soft: #eef2f7;
   --bg: #fafbfc;
   --panel: #ffffff;
-  --accent: #16a34a;
-  --accent-strong: #15803d;
-  --accent-soft: #f0fdf4;
+  --accent: #1a6bf2;
+  --accent-strong: #1148b0;
+  --accent-soft: #eef4ff;
   --good: #0b8a5a;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 6px 16px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
@@ -69,11 +69,7 @@ h1, h2, h3, p { margin: 0; }
 .mark {
   width: 28px;
   height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: 7px;
-  background: var(--accent);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+  display: block;
 }
 
 .nav-links {
@@ -136,8 +132,8 @@ h1, h2, h3, p { margin: 0; }
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 60% 50% at 80% 0%, rgba(22, 163, 74, 0.08), transparent 60%),
-    radial-gradient(ellipse 50% 40% at 20% 100%, rgba(22, 163, 74, 0.05), transparent 60%);
+    radial-gradient(ellipse 60% 50% at 80% 0%, rgba(26, 107, 242, 0.10), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 20% 100%, rgba(26, 107, 242, 0.06), transparent 60%);
   pointer-events: none;
 }
 
@@ -220,7 +216,7 @@ h1 .accent { color: var(--accent); }
   position: absolute;
   inset: -40px;
   z-index: -1;
-  background: radial-gradient(ellipse at center, rgba(22, 163, 74, 0.12), transparent 65%);
+  background: radial-gradient(ellipse at center, rgba(26, 107, 242, 0.14), transparent 65%);
   filter: blur(20px);
 }
 
@@ -288,7 +284,7 @@ h2 {
   letter-spacing: 0.02em;
 }
 
-.problem-card .label.health { background: #d6f3e0; color: #0b6b34; }
+.problem-card .label.health { background: #cfeaf2; color: #0e7490; }
 .problem-card .label.power { background: #fef3cd; color: #856404; }
 .problem-card .label.device { background: #dbeafe; color: #1e40af; }
 
@@ -483,7 +479,7 @@ h2 {
 
 /* Install (dark) */
 .install { background: #0c1219; color: #fff; }
-.install .section-tag { color: #4ade80; }
+.install .section-tag { color: #7da7ff; }
 .install h2 { color: #fff; }
 .install .section-head p { color: rgba(255, 255, 255, 0.7); }
 
@@ -511,7 +507,7 @@ h2 {
   font-weight: 500;
 }
 
-.install-card-label svg { color: #4ade80; }
+.install-card-label svg { color: #7da7ff; }
 .install-card p { color: rgba(255, 255, 255, 0.7); font-size: 14.5px; margin-bottom: 18px; line-height: 1.55; }
 .install-card code {
   background: rgba(255, 255, 255, 0.08);
@@ -528,16 +524,16 @@ h2 {
   border-radius: 8px;
   font-family: ui-monospace, "SF Mono", Menlo, monospace;
   font-size: 13.5px;
-  color: #d7f5e1;
+  color: #dbe7ff;
   overflow-x: auto;
   line-height: 1.7;
 }
 
 .install-card .button.primary { background: #fff; color: #0c1219; width: 100%; }
-.install-card .button.primary:hover { background: #e8f5ee; }
+.install-card .button.primary:hover { background: #e8efff; }
 
 .install .meta-row { color: rgba(255, 255, 255, 0.65); margin-top: 24px; }
-.install .meta-row svg { color: #4ade80; }
+.install .meta-row svg { color: #7da7ff; }
 
 /* Standalone content pages (faq, success) */
 .page { padding: 72px 0; }
