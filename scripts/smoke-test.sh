@@ -35,6 +35,7 @@ CLI_PRODUCT="whatbattery-cli"
 CLI_BIN_NAME="whatbattery"
 
 DEVELOPER_ID="${DEVELOPER_ID:-}"
+NOTARY_PROFILE="${NOTARY_PROFILE:-}"
 
 DIST_DIR="dist"
 APP_DIR="${DIST_DIR}/${APP_NAME}.app"
