@@ -213,6 +213,48 @@ echo "    CLI --json runs cleanly"
 echo "==> Creating zip"
 ( cd "${DIST_DIR}" && ditto --norsrc -c -k --keepParent "${APP_NAME}.app" "${APP_NAME}.zip" )
 
+if [[ -n "${DEVELOPER_ID}" && -n "${NOTARY_PROFILE}" ]]; then
+    echo "==> Submitting to Apple notarisation (this can take a few minutes)"
+    xcrun notarytool submit "${DIST_DIR}/${APP_NAME}.zip" \
+        --keychain-profile "${NOTARY_PROFILE}" \
+        --wait
+
+    echo "==> Stapling notarisation ticket"
+    xcrun stapler staple "${APP_DIR}"
+
+    # macOS may drop AppleDouble / .DS_Store sidecars while the bundle sits on
+    # disk during notarisation; any file added between sign and zip would fail a
+    # later `codesign --verify --deep --strict` (which the updater runs).
+    echo "==> Stripping macOS metadata sidecars (post-staple)"
+    find "${APP_DIR}" -name "._*" -delete 2>/dev/null || true
+    find "${APP_DIR}" -name ".DS_Store" -delete 2>/dev/null || true
+
+    echo "==> Re-creating zip with stapled ticket"
+    rm -f "${DIST_DIR}/${APP_NAME}.zip"
+    ( cd "${DIST_DIR}" && ditto --norsrc -c -k --keepParent "${APP_NAME}.app" "${APP_NAME}.zip" )
+
+    # Extract the final zip and verify, the exact failure mode a downstream
+    # install would hit if cruft got zipped but not signed.
+    echo "==> Verifying signed bundle in final zip (unzip, to match an install)"
+    _VERIFY_DIR=$(mktemp -d)
+    unzip -q "${DIST_DIR}/${APP_NAME}.zip" -d "${_VERIFY_DIR}"
+    if codesign --verify --deep --strict --verbose=2 "${_VERIFY_DIR}/${APP_NAME}.app" 2>&1 | sed 's/^/    /'; then
+        echo "    Signed bundle in zip verifies clean."
+    else
+        echo "ERROR: codesign --verify --deep --strict failed on the final zip." >&2
+        rm -rf "${_VERIFY_DIR}"
+        exit 1
+    fi
+    rm -rf "${_VERIFY_DIR}"
+
+    echo "==> Verifying Gatekeeper acceptance"
+    spctl --assess --type execute --verbose "${APP_DIR}" 2>&1 | sed 's/^/    /'
+elif [[ -n "${DEVELOPER_ID}" ]]; then
+    echo "==> NOTARY_PROFILE not set, skipping notarisation"
+    echo "    Set it in .env once you've run:"
+    echo "      xcrun notarytool store-credentials \"WhatBattery-notary\" --apple-id ... --team-id ... --password ..."
+fi
+
 echo
 echo "Done."
 echo "  App:     ${APP_DIR}"

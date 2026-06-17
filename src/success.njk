@@ -1,0 +1,60 @@
+---
+layout: base.njk
+title: Thanks
+permalink: /success/
+description: Your WhatBattery Pro purchase is complete.
+---
+
+<section class="page" id="success">
+  <h1>Thank you</h1>
+  <p id="status">Confirming your purchase…</p>
+  <div id="next" hidden>
+    <p>Your licence key has been emailed to you. Open WhatBattery, click the gear in the menu bar dropdown to open Settings, and paste the key into the Licence field to unlock Pro.</p>
+    <p class="fineprint">No email after a few minutes? Check spam, or reach us from the support link on the site.</p>
+  </div>
+  <p id="failed" hidden>We couldn't confirm the payment automatically. If you completed checkout, your key will still arrive by email. Otherwise, <a href="/#pricing">try again</a>.</p>
+</section>
+
+<script>
+  (async () => {
+    const statusEl = document.getElementById("status");
+    const nextEl = document.getElementById("next");
+    const failedEl = document.getElementById("failed");
+
+    const sessionId = new URLSearchParams(window.location.search).get("session_id");
+    if (!sessionId) {
+      statusEl.hidden = true;
+      failedEl.hidden = false;
+      return;
+    }
+
+    const check = async () => {
+      try {
+        const response = await fetch("{{ site.worker }}/api/session-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId }),
+        });
+        if (!response.ok) return null;
+        return await response.json();
+      } catch {
+        return null;
+      }
+    };
+
+    // Poll briefly: the key is minted by the webhook moments after payment.
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const result = await check();
+      if (result && (result.licenceIssued || result.status === "paid")) {
+        statusEl.hidden = true;
+        nextEl.hidden = false;
+        return;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+
+    // Still nothing: payment may be genuine but the email is the source of truth.
+    statusEl.hidden = true;
+    nextEl.hidden = false;
+  })();
+</script>

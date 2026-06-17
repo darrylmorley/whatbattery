@@ -77,7 +77,30 @@ main,
 .feature h2 { font-size: 1.15rem; margin: 0 0 6px; }
 .feature p { margin: 0; color: var(--muted); font-size: 0.97rem; }
 
-.reassure { text-align: center; color: var(--muted); padding: 16px 0 56px; }
+.reassure { text-align: center; color: var(--muted); padding: 16px 0 40px; }
+
+.pricing {
+  text-align: center;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  margin: 0 0 56px;
+}
+.pricing h2 { font-size: 1.6rem; margin: 0 0 6px; }
+.pro-list {
+  list-style: none;
+  padding: 0;
+  margin: 18px auto;
+  max-width: 28ch;
+  text-align: left;
+  color: var(--muted);
+}
+.pro-list li { padding: 4px 0 4px 24px; position: relative; }
+.pro-list li::before { content: "✓"; color: var(--accent); position: absolute; left: 0; }
+.buy-error { color: #d6453d; font-size: 0.9rem; }
+button.button { border: 0; cursor: pointer; font: inherit; }
+button.button:disabled { opacity: 0.6; cursor: default; }
 
 .page { padding: 32px 0 56px; max-width: 70ch; }
 .page h1 { letter-spacing: -0.02em; }

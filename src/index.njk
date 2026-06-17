@@ -41,3 +41,41 @@ layout: base.njk
 <section class="reassure">
   <p>WhatBattery only reads. It never changes charging behaviour or writes to your battery.</p>
 </section>
+
+<section id="pricing" class="pricing">
+  <h2>WhatBattery Pro</h2>
+  <p class="lede">A one-time purchase. Works on up to 2 Macs.</p>
+  <ul class="pro-list">
+    <li>Lifetime history + Lifetime Analyzer</li>
+    <li>iPhone / iPad battery</li>
+    <li>Reports (PDF / print) and CSV / JSON export</li>
+    <li>Threshold notifications</li>
+  </ul>
+  <p class="cta">
+    <button id="buy" class="button">Buy WhatBattery Pro</button>
+  </p>
+  <p id="buy-error" class="buy-error" hidden></p>
+  <p class="fineprint">The free app shows battery health and live power. Pro is delivered as a licence key by email.</p>
+</section>
+
+<script>
+  document.getElementById("buy").addEventListener("click", async (event) => {
+    const button = event.currentTarget;
+    const error = document.getElementById("buy-error");
+    button.disabled = true;
+    button.textContent = "Starting checkout…";
+    error.hidden = true;
+    try {
+      const response = await fetch("{{ site.worker }}/api/checkout", { method: "POST" });
+      if (!response.ok) throw new Error("Checkout is unavailable right now.");
+      const { url } = await response.json();
+      if (!url) throw new Error("Checkout is unavailable right now.");
+      window.location.href = url;
+    } catch (err) {
+      error.textContent = (err && err.message) || "Something went wrong. Please try again.";
+      error.hidden = false;
+      button.disabled = false;
+      button.textContent = "Buy WhatBattery Pro";
+    }
+  });
+</script>
