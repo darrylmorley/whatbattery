@@ -27,7 +27,13 @@ body {
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
+
+/* Pin the footer to the bottom on short pages (success, faq). */
+footer.site-footer { margin-top: auto; }
 
 a { color: inherit; text-decoration: none; }
 img { display: block; max-width: 100%; }
