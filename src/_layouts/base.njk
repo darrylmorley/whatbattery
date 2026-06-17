@@ -3,26 +3,90 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }} · {{ site.tagline }}{% endif %}</title>
+    <title>{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}: battery health and live power for Mac, iPhone, and iPad{% endif %}</title>
     <meta name="description" content="{{ description or site.tagline }}" />
+    <link rel="canonical" href="{{ site.url }}{{ page.url }}" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="{{ site.url }}{{ page.url }}" />
+    <meta property="og:title" content="{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}: battery health and live power for Mac, iPhone, and iPad{% endif %}" />
+    <meta property="og:description" content="{{ description or site.tagline }}" />
+    <meta property="og:image" content="{{ site.url }}/img/screenshot-mac.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="{{ site.name }}" />
+    <meta name="twitter:description" content="{{ description or site.tagline }}" />
+    <meta name="twitter:image" content="{{ site.url }}/img/screenshot-mac.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="/">{{ site.name }}</a>
-      <nav>
-        <a href="/faq/">FAQ</a>
-        <a href="{{ site.releases }}">Download</a>
-        <a href="{{ site.repo }}">GitHub</a>
-      </nav>
-    </header>
+    <nav class="nav" aria-label="Primary">
+      <div class="wrap nav-inner">
+        <a class="brand" href="/">
+          <span class="mark" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="8" width="16" height="8" rx="2" /><line x1="20" y1="11" x2="20" y2="13" /><path d="M9 9.5 7 12.5h3l-1 2.5" />
+            </svg>
+          </span>
+          <span>{{ site.name }}</span>
+        </a>
+        <div class="nav-links">
+          <a href="/#features">Features</a>
+          <a href="/#pro">Pro</a>
+          <a href="/faq/">FAQ</a>
+          <a class="button secondary" href="{{ site.repo }}">GitHub</a>
+        </div>
+      </div>
+    </nav>
 
-    <main>
-      {{ content | safe }}
-    </main>
+    {{ content | safe }}
 
     <footer class="site-footer">
-      <p>{{ site.name }} &middot; <a href="{{ site.repo }}">Source on GitHub</a> &middot; Read-only: it never changes how your devices charge.</p>
+      <div class="wrap">
+        <span>Built by <a href="https://github.com/darrylmorley">Darryl Morley</a>, maker of <a href="https://www.whatcable.uk">WhatCable</a> and <a href="https://www.whatport.app">WhatPort</a>. MIT licensed. Read-only: it never changes how your devices charge.</span>
+        <span>
+          <a href="{{ site.repo }}">Source</a>
+          &nbsp;&middot;&nbsp;
+          <a href="{{ site.releases }}">Releases</a>
+          &nbsp;&middot;&nbsp;
+          <a href="/faq/">FAQ</a>
+        </span>
+      </div>
     </footer>
+
+    <script>
+      (function () {
+        var errorSlot = document.getElementById("buy-error");
+        function wireBuyButton(button) {
+          if (!button) return;
+          var originalHTML = button.innerHTML;
+          button.addEventListener("click", async function () {
+            button.disabled = true;
+            button.textContent = "Starting checkout...";
+            if (errorSlot) { errorSlot.hidden = true; errorSlot.textContent = ""; }
+            try {
+              var res = await fetch("{{ site.worker }}/api/checkout", { method: "POST" });
+              var data = await res.json();
+              if (res.ok && data.url) {
+                window.location.href = data.url;
+              } else {
+                throw new Error(data.error || "Could not start checkout. Please try again.");
+              }
+            } catch (err) {
+              var msg = err.message || "Could not start checkout. Please try again.";
+              if (errorSlot) { errorSlot.textContent = msg; errorSlot.hidden = false; }
+              button.disabled = false;
+              button.innerHTML = originalHTML;
+            }
+          });
+        }
+        wireBuyButton(document.getElementById("buy-pro"));
+        wireBuyButton(document.getElementById("buy-pro-hero"));
+      })();
+    </script>
   </body>
 </html>

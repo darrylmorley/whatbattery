@@ -5,57 +5,141 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>FAQ · WhatBattery</title>
     <meta name="description" content="How to connect a device over Wi-Fi, what battery health means, and how WhatBattery reads your battery." />
+    <link rel="canonical" href="https://www.whatbattery.app/faq/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.whatbattery.app/faq/" />
+    <meta property="og:title" content="FAQ · WhatBattery" />
+    <meta property="og:description" content="How to connect a device over Wi-Fi, what battery health means, and how WhatBattery reads your battery." />
+    <meta property="og:image" content="https://www.whatbattery.app/img/screenshot-mac.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="WhatBattery" />
+    <meta name="twitter:description" content="How to connect a device over Wi-Fi, what battery health means, and how WhatBattery reads your battery." />
+    <meta name="twitter:image" content="https://www.whatbattery.app/img/screenshot-mac.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="/">WhatBattery</a>
-      <nav>
-        <a href="/faq/">FAQ</a>
-        <a href="https://github.com/darrylmorley/whatbattery/releases">Download</a>
-        <a href="https://github.com/darrylmorley/whatbattery">GitHub</a>
-      </nav>
-    </header>
+    <nav class="nav" aria-label="Primary">
+      <div class="wrap nav-inner">
+        <a class="brand" href="/">
+          <span class="mark" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="8" width="16" height="8" rx="2" /><line x1="20" y1="11" x2="20" y2="13" /><path d="M9 9.5 7 12.5h3l-1 2.5" />
+            </svg>
+          </span>
+          <span>WhatBattery</span>
+        </a>
+        <div class="nav-links">
+          <a href="/#features">Features</a>
+          <a href="/#pro">Pro</a>
+          <a href="/faq/">FAQ</a>
+          <a class="button secondary" href="https://github.com/darrylmorley/whatbattery">GitHub</a>
+        </div>
+      </div>
+    </nav>
 
-    <main>
-      
-<section class="page">
-  <h1>FAQ</h1>
+    
+<section class="page faq">
+  <div class="wrap">
+    <div class="section-head page-head">
+      <span class="section-tag">Help</span>
+      <h1>Frequently asked questions</h1>
+      <p class="lede">Connecting a device, what the health number means, and how WhatBattery reads your battery.</p>
+    </div>
 
-  <h2 id="wifi">How do I connect an iPhone or iPad over Wi-Fi?</h2>
-  <p>A device shows up automatically once macOS can reach it. The setup is a one-time thing:</p>
-  <ol>
-    <li><strong>Trust the Mac once over a cable.</strong> Connect the device with a cable, unlock it, and tap <em>Trust</em> (enter the passcode). The first pairing can't be done wirelessly.</li>
-    <li><strong>Turn on Wi-Fi sync.</strong> In Finder, select the device in the sidebar, open the <em>General</em> tab, tick <em>"Show this iPhone when on Wi-Fi"</em>, then click <em>Apply</em>.</li>
-    <li><strong>Same network, awake.</strong> Keep the Mac and the device on the same Wi-Fi network with the device awake, then unplug. It appears in WhatBattery's iPhone / iPad tab.</li>
-  </ol>
-  <p>Not showing up? Make sure Finder &rsaquo; Settings &rsaquo; Sidebar has "CDs, DVDs and iOS Devices" ticked, try a different cable or port, and confirm you tapped Trust. Wi-Fi discovery can be slow; reconnecting the cable briefly wakes the link.</p>
+    <div class="faq-list">
+      <div class="faq-item" id="wifi">
+        <h3>How do I connect an iPhone or iPad over Wi-Fi?</h3>
+        <p>A device shows up automatically once macOS can reach it. The setup is a one-time thing:</p>
+        <ol>
+          <li><strong>Trust the Mac once over a cable.</strong> Connect the device with a cable, unlock it, and tap <em>Trust</em> (enter the passcode). The first pairing can't be done wirelessly.</li>
+          <li><strong>Turn on Wi-Fi sync.</strong> In Finder, select the device in the sidebar, open the <em>General</em> tab, tick <em>"Show this iPhone when on Wi-Fi"</em>, then click <em>Apply</em>.</li>
+          <li><strong>Same network, awake.</strong> Keep the Mac and the device on the same Wi-Fi network with the device awake, then unplug. It appears in WhatBattery's iPhone / iPad tab.</li>
+        </ol>
+        <p>Not showing up? Make sure Finder &rsaquo; Settings &rsaquo; Sidebar has "CDs, DVDs and iOS Devices" ticked, try a different cable or port, and confirm you tapped Trust. Wi-Fi discovery can be slow; reconnecting the cable briefly wakes the link.</p>
+      </div>
 
-  <h2 id="genuine">Can WhatBattery tell if my battery is genuine?</h2>
-  <p>Not reliably, so it doesn't claim to. macOS only flags a non-genuine battery through a system process, and there's no public signal to check a genuine battery against, so any "genuine / fake" badge would be a guess. Instead WhatBattery shows the battery <strong>condition</strong> (below), which is the trustworthy "is my battery OK or does it need service" answer.</p>
+      <div class="faq-item" id="genuine">
+        <h3>Can WhatBattery tell if my battery is genuine?</h3>
+        <p>Not reliably, so it doesn't claim to. macOS only flags a non-genuine battery through a system process, and there's no public signal to check a genuine battery against, so any "genuine / fake" badge would be a guess. Instead WhatBattery shows the battery <strong>condition</strong> (below), which is the trustworthy "is my battery OK or does it need service" answer.</p>
+      </div>
 
-  <h2 id="health">Why does WhatBattery's health differ from coconutBattery?</h2>
-  <p>WhatBattery computes health the same way <strong>Apple's own Settings</strong> does, from the nominal charge capacity. Some tools read a slightly different capacity field and land a couple of points lower. Neither is wrong; WhatBattery matches the number you see elsewhere in macOS.</p>
+      <div class="faq-item" id="health">
+        <h3>Why does WhatBattery's health differ from coconutBattery?</h3>
+        <p>WhatBattery computes health the same way <strong>Apple's own Settings</strong> does, from the nominal charge capacity. Some tools read a slightly different capacity field and land a couple of points lower. Neither is wrong; WhatBattery matches the number you see elsewhere in macOS.</p>
+      </div>
 
-  <h2 id="condition">What do the battery conditions mean?</h2>
-  <ul>
-    <li><strong>Normal</strong> &mdash; healthy, no action needed.</li>
-    <li><strong>Service Recommended</strong> &mdash; worn but working; plan a replacement.</li>
-    <li><strong>Service Battery</strong> &mdash; a fault macOS flags for service.</li>
-  </ul>
-  <p>This is read from macOS, so it matches what System Settings reports.</p>
+      <div class="faq-item" id="condition">
+        <h3>What do the battery conditions mean?</h3>
+        <ul>
+          <li><strong>Normal</strong>: healthy, no action needed.</li>
+          <li><strong>Service Recommended</strong>: worn but working; plan a replacement.</li>
+          <li><strong>Service Battery</strong>: a fault macOS flags for service.</li>
+        </ul>
+        <p>This is read from macOS, so it matches what System Settings reports.</p>
+      </div>
 
-  <h2 id="safe">Is it safe? Does it change how my Mac charges?</h2>
-  <p>WhatBattery is strictly read-only. It reads battery and power data through Apple's own interfaces and never writes to the battery or changes charging behaviour.</p>
+      <div class="faq-item" id="safe">
+        <h3>Is it safe? Does it change how my Mac charges?</h3>
+        <p>WhatBattery is strictly read-only. It reads battery and power data through Apple's own interfaces and never writes to the battery or changes charging behaviour.</p>
+      </div>
 
-  <h2 id="requirements">What does it need?</h2>
-  <p>An Apple Silicon Mac running macOS 14 or later. Reading an iPhone or iPad uses the same connection Finder uses; no app is needed on the device.</p>
+      <div class="faq-item" id="requirements">
+        <h3>What does it need?</h3>
+        <p>An Apple Silicon Mac running macOS 14 or later. Reading an iPhone or iPad uses the same connection Finder uses; no app is needed on the device.</p>
+      </div>
+    </div>
+  </div>
 </section>
 
-    </main>
 
     <footer class="site-footer">
-      <p>WhatBattery &middot; <a href="https://github.com/darrylmorley/whatbattery">Source on GitHub</a> &middot; Read-only: it never changes how your devices charge.</p>
+      <div class="wrap">
+        <span>Built by <a href="https://github.com/darrylmorley">Darryl Morley</a>, maker of <a href="https://www.whatcable.uk">WhatCable</a> and <a href="https://www.whatport.app">WhatPort</a>. MIT licensed. Read-only: it never changes how your devices charge.</span>
+        <span>
+          <a href="https://github.com/darrylmorley/whatbattery">Source</a>
+          &nbsp;&middot;&nbsp;
+          <a href="https://github.com/darrylmorley/whatbattery/releases">Releases</a>
+          &nbsp;&middot;&nbsp;
+          <a href="/faq/">FAQ</a>
+        </span>
+      </div>
     </footer>
+
+    <script>
+      (function () {
+        var errorSlot = document.getElementById("buy-error");
+        function wireBuyButton(button) {
+          if (!button) return;
+          var originalHTML = button.innerHTML;
+          button.addEventListener("click", async function () {
+            button.disabled = true;
+            button.textContent = "Starting checkout...";
+            if (errorSlot) { errorSlot.hidden = true; errorSlot.textContent = ""; }
+            try {
+              var res = await fetch("https://www.whatbattery.app/api/checkout", { method: "POST" });
+              var data = await res.json();
+              if (res.ok && data.url) {
+                window.location.href = data.url;
+              } else {
+                throw new Error(data.error || "Could not start checkout. Please try again.");
+              }
+            } catch (err) {
+              var msg = err.message || "Could not start checkout. Please try again.";
+              if (errorSlot) { errorSlot.textContent = msg; errorSlot.hidden = false; }
+              button.disabled = false;
+              button.innerHTML = originalHTML;
+            }
+          });
+        }
+        wireBuyButton(document.getElementById("buy-pro"));
+        wireBuyButton(document.getElementById("buy-pro-hero"));
+      })();
+    </script>
   </body>
 </html>

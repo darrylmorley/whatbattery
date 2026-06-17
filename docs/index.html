@@ -3,104 +3,410 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>WhatBattery · Battery health and live power for your Mac, iPhone, and iPad.</title>
+    <title>WhatBattery: battery health and live power for Mac, iPhone, and iPad</title>
     <meta name="description" content="Battery health and live power for your Mac, iPhone, and iPad." />
+    <link rel="canonical" href="https://www.whatbattery.app/" />
+    <link rel="icon" href="/img/icon.svg" type="image/svg+xml" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.whatbattery.app/" />
+    <meta property="og:title" content="WhatBattery: battery health and live power for Mac, iPhone, and iPad" />
+    <meta property="og:description" content="Battery health and live power for your Mac, iPhone, and iPad." />
+    <meta property="og:image" content="https://www.whatbattery.app/img/screenshot-mac.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="WhatBattery" />
+    <meta name="twitter:description" content="Battery health and live power for your Mac, iPhone, and iPad." />
+    <meta name="twitter:image" content="https://www.whatbattery.app/img/screenshot-mac.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
-    <header class="site-header">
-      <a class="brand" href="/">WhatBattery</a>
-      <nav>
-        <a href="/faq/">FAQ</a>
-        <a href="https://github.com/darrylmorley/whatbattery/releases">Download</a>
-        <a href="https://github.com/darrylmorley/whatbattery">GitHub</a>
-      </nav>
-    </header>
+    <nav class="nav" aria-label="Primary">
+      <div class="wrap nav-inner">
+        <a class="brand" href="/">
+          <span class="mark" aria-hidden="true">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="8" width="16" height="8" rx="2" /><line x1="20" y1="11" x2="20" y2="13" /><path d="M9 9.5 7 12.5h3l-1 2.5" />
+            </svg>
+          </span>
+          <span>WhatBattery</span>
+        </a>
+        <div class="nav-links">
+          <a href="/#features">Features</a>
+          <a href="/#pro">Pro</a>
+          <a href="/faq/">FAQ</a>
+          <a class="button secondary" href="https://github.com/darrylmorley/whatbattery">GitHub</a>
+        </div>
+      </div>
+    </nav>
 
-    <main>
-      
-<section class="hero">
-  <h1>WhatBattery</h1>
-  <p class="lede">Battery health and live power for your Mac, iPhone, and iPad.</p>
-  <p class="cta">
-    <a class="button" href="https://github.com/darrylmorley/whatbattery/releases">Download for macOS</a>
-  </p>
-  <p class="fineprint">Apple Silicon Macs, macOS 14 or later.</p>
+    
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <span class="dot-accent" aria-hidden="true"></span>
+        macOS menu bar app
+      </span>
+      <h1>See what your battery is <span class="accent">actually doing.</span></h1>
+      <p class="lede">
+        WhatBattery shows the real health, live power in and out, and the service
+        condition for your Mac, iPhone, and iPad. Right from the menu bar. No rounding,
+        no guessing.
+      </p>
+      <div class="actions">
+        <a class="button primary" href="https://github.com/darrylmorley/whatbattery/releases">
+          Download for macOS
+          <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+        <button class="button buy" id="buy-pro-hero" type="button">
+          Buy Pro &middot; £9.99
+          <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <p class="hero-pro-line">
+        The app is free and open source. Pro adds <a href="#pro">history, device reading, reports, and alerts</a> &middot; <a href="https://github.com/darrylmorley/whatbattery">View source</a>
+      </p>
+      <div class="meta-row">
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          Free and open source
+        </span>
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          Apple Silicon, macOS 14+
+        </span>
+        <span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          Signed and notarised
+        </span>
+      </div>
+    </div>
+    <div class="hero-shot">
+      <img src="/img/screenshot-menubar.png" alt="WhatBattery menu bar dropdown showing 99.6% battery health, charge, cycles, temperature, and power" width="320" />
+    </div>
+  </div>
+</header>
+
+<section class="problem">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">The problem</span>
+      <h2>macOS rounds the truth about your battery.</h2>
+      <p>System Settings shows a rounded health figure and not much else. It won't tell you the real maximum capacity, the live watts going in and out, or whether the iPhone on your desk is quietly wearing out. WhatBattery does.</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <span class="label health">Is 100% really 100%?</span>
+        <div class="ask">Rounded up from 99.5%?</div>
+        <p>macOS rounds health to a whole number, so a worn battery can still read 100%. WhatBattery computes it from the raw mAh and shows it to one decimal.</p>
+      </div>
+      <div class="problem-card">
+        <span class="label power">How much power, right now?</span>
+        <div class="ask">Watts in, and watts out?</div>
+        <p>See the live charge and discharge wattage, the charger your Mac negotiated, the voltage, and the temperature, updating in real time.</p>
+      </div>
+      <div class="problem-card">
+        <span class="label device">What about my iPhone?</span>
+        <div class="ask">Is the phone battery worn too?</div>
+        <p>Read a connected iPhone or iPad's health and cycle count straight from your Mac, over a cable or Wi-Fi. No app on the device.</p>
+      </div>
+    </div>
+  </div>
 </section>
 
-<section class="features">
-  <div class="feature">
-    <h2>True battery health</h2>
-    <p>The real maximum capacity and cycle count, computed from the raw mAh figures, not the rounded number macOS shows. Health to one decimal so a worn battery can't hide as "100%".</p>
-  </div>
-  <div class="feature">
-    <h2>Live power</h2>
-    <p>Watts in and out in real time, the charger it negotiated, voltage, and temperature, in the menu bar and the main window.</p>
-  </div>
-  <div class="feature">
-    <h2>iPhone &amp; iPad</h2>
-    <p>Read a connected iPhone or iPad's battery health and cycle count straight from your Mac, over a cable or Wi-Fi. <a href="/faq/#wifi">How to connect over Wi-Fi.</a></p>
-  </div>
-  <div class="feature">
-    <h2>Lifetime history</h2>
-    <p>A long-term, per-device health record: monthly health and cycles over months and years, for your Mac and every device you connect, with backup and export.</p>
-  </div>
-  <div class="feature">
-    <h2>Reports &amp; export</h2>
-    <p>A one-page battery report as PDF or print, and CSV/JSON export of your logged history.</p>
-  </div>
-  <div class="feature">
-    <h2>Service condition</h2>
-    <p>The same Normal / Service Recommended condition macOS uses, so you know when a battery actually needs attention.</p>
+<section class="features" id="features">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">Features</span>
+      <h2>Everything your battery knows, now you know too.</h2>
+      <p>WhatBattery reads from Apple's own battery and power interfaces and turns the raw numbers into something you can actually read. No terminal needed.</p>
+    </div>
+    <div class="feature-grid">
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3>True battery health</h3>
+        <p>The real maximum capacity and cycle count, computed from the raw mAh figures, not the rounded number macOS shows. Health to one decimal, so a worn battery can't hide as "100%".</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        </div>
+        <h3>Live power</h3>
+        <p>Watts in and out in real time, the charger it negotiated, voltage, and temperature. In the menu bar and the main window.</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+        </div>
+        <h3>iPhone &amp; iPad</h3>
+        <p>Read a connected iPhone or iPad's battery health and cycle count straight from your Mac, over a cable or Wi-Fi. The same data, the same health math.</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
+        </div>
+        <h3>Lifetime history</h3>
+        <p>A long-term, per-device health record: monthly health and cycles over months and years, for your Mac and every device you connect, with backup and export.</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+        </div>
+        <h3>Reports &amp; export</h3>
+        <p>A one-page battery report as PDF or print, and CSV / JSON export of your logged history, for warranty claims, resale, or your own records.</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Service condition</h3>
+        <p>The same Normal / Service Recommended condition macOS uses, read from the system, so you know when a battery actually needs attention.</p>
+      </article>
+    </div>
   </div>
 </section>
 
-<section class="reassure">
-  <p>WhatBattery only reads. It never changes charging behaviour or writes to your battery.</p>
+<section class="screenshots">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">In the app</span>
+      <h2>Every battery you own, in one window.</h2>
+      <p>Your Mac, any iPhone or iPad you connect, and a long-term record of them all. Switch between them in a tab.</p>
+    </div>
+    <div class="screenshot-grid">
+      <figure>
+        <img src="/img/screenshot-mac.png" alt="WhatBattery This Mac tab showing health, condition, live power, and the Lifetime Analyzer charts" width="320" loading="lazy" />
+        <figcaption>This Mac: health, condition, and the Lifetime Analyzer</figcaption>
+      </figure>
+      <figure>
+        <img src="/img/screenshot-idevice.png" alt="WhatBattery iPhone tab showing 82.4% battery health, cycles, and a live graph" width="320" loading="lazy" />
+        <figcaption>iPhone &amp; iPad: health and live graph over the cable or Wi-Fi</figcaption>
+      </figure>
+      <figure>
+        <img src="/img/screenshot-history.png" alt="WhatBattery History tab listing Mac and iPhone with monthly health and cycle counts" width="320" loading="lazy" />
+        <figcaption>History: monthly health and cycles, per device, for years</figcaption>
+      </figure>
+    </div>
+  </div>
 </section>
 
-<section id="pricing" class="pricing">
-  <h2>WhatBattery Pro</h2>
-  <p class="lede">A one-time purchase. Works on up to 2 Macs.</p>
-  <ul class="pro-list">
-    <li>Lifetime history + Lifetime Analyzer</li>
-    <li>iPhone / iPad battery</li>
-    <li>Reports (PDF / print) and CSV / JSON export</li>
-    <li>Threshold notifications</li>
-  </ul>
-  <p class="cta">
-    <button id="buy" class="button">Buy WhatBattery Pro</button>
-  </p>
-  <p id="buy-error" class="buy-error" hidden></p>
-  <p class="fineprint">The free app shows battery health and live power. Pro is delivered as a licence key by email.</p>
+<section class="pro" id="pro">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">WhatBattery Pro</span>
+      <h2>Track every battery you own, for years.</h2>
+      <p>The free app shows health and live power right now. Pro keeps a long-term, per-device record, reads your iPhone and iPad, and turns it all into reports you can hand to a warranty claim or a buyer.</p>
+    </div>
+    <div class="pro-showcase">
+      <figure>
+        <img src="/img/screenshot-report.png" alt="A WhatBattery battery report PDF with current and lifetime sections" width="720" loading="lazy" />
+        <figcaption>A one-page battery report, exported to PDF or printed</figcaption>
+      </figure>
+    </div>
+    <div class="pro-card-wrap">
+      <div class="pricing-card">
+        <span class="card-label">One-time purchase</span>
+        <p class="card-title">WhatBattery Pro</p>
+        <span class="price">£9.99</span>
+        <span class="price-period">one-time &nbsp;&middot;&nbsp; works on 2 Macs</span>
+        <ul class="pro-checklist">
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            Lifetime history and Lifetime Analyzer, per device
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            iPhone and iPad battery health, read from your Mac
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            One-page battery reports as PDF or print
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            CSV and JSON export of your logged history
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            Threshold notifications for charge, temperature, and health
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            Works on up to 2 Macs with one key
+          </li>
+        </ul>
+        <button class="button buy" id="buy-pro" type="button" style="width:100%;">
+          Buy WhatBattery Pro
+          <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </button>
+        <p class="buy-reassure"><strong>14-day money-back guarantee, no questions asked.</strong> Apple Silicon only (M1 and later).</p>
+        <p class="buy-stripe-note">Secure checkout via Stripe. Your licence key is emailed instantly.</p>
+        <p class="buy-error" id="buy-error" role="alert" hidden></p>
+      </div>
+      <p class="pro-existing">Already bought? Your key is in your email. Open Settings in the menu bar dropdown and paste it into the Licence field.</p>
+    </div>
+  </div>
 </section>
 
-<script>
-  document.getElementById("buy").addEventListener("click", async (event) => {
-    const button = event.currentTarget;
-    const error = document.getElementById("buy-error");
-    button.disabled = true;
-    button.textContent = "Starting checkout…";
-    error.hidden = true;
-    try {
-      const response = await fetch("https://www.whatbattery.app/api/checkout", { method: "POST" });
-      if (!response.ok) throw new Error("Checkout is unavailable right now.");
-      const { url } = await response.json();
-      if (!url) throw new Error("Checkout is unavailable right now.");
-      window.location.href = url;
-    } catch (err) {
-      error.textContent = (err && err.message) || "Something went wrong. Please try again.";
-      error.hidden = false;
-      button.disabled = false;
-      button.textContent = "Buy WhatBattery Pro";
-    }
-  });
-</script>
+<section id="how">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">How it works</span>
+      <h2>Unprivileged reads. The real numbers.</h2>
+      <p>WhatBattery reads from Apple's own battery and power interfaces. Everything is read-only and unprivileged: no root, no kernel extension, no background daemon. It never changes how anything charges.</p>
+    </div>
+    <div class="how-grid">
+      <div class="how-card">
+        <div class="step">1</div>
+        <h3>AppleSmartBattery</h3>
+        <p>Reads the raw charge capacity, design capacity, and cycle count over IOKit, then computes health the same way Apple's own Settings does.</p>
+      </div>
+      <div class="how-card">
+        <div class="step">2</div>
+        <h3>SMC power rails</h3>
+        <p>Live power in and out: watts, voltage, current, and temperature, read from the System Management Controller and polled every second.</p>
+      </div>
+      <div class="how-card">
+        <div class="step">3</div>
+        <h3>Device diagnostics relay</h3>
+        <p>For a connected iPhone or iPad, it reads the same battery node Finder uses, over USB or Wi-Fi, with no app installed on the device.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-    </main>
+<section class="faq" id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">FAQ</span>
+      <h2>Common questions.</h2>
+    </div>
+    <div class="faq-list">
+      <div class="faq-item">
+        <h3>Why does it show a different health number than coconutBattery?</h3>
+        <p>WhatBattery computes health the same way Apple's own Settings does, from the nominal charge capacity. Some tools read a slightly different capacity field and land a couple of points lower. Neither is wrong; WhatBattery matches the number you see elsewhere in macOS.</p>
+      </div>
+      <div class="faq-item">
+        <h3>How do I read an iPhone or iPad's battery?</h3>
+        <p>Connect it with a cable and tap Trust the first time, or set it up over Wi-Fi. It then appears in the iPhone / iPad tab with the same health, cycles, and live power as a Mac. <a href="/faq/#wifi">Full Wi-Fi setup steps.</a></p>
+      </div>
+      <div class="faq-item">
+        <h3>Does it change how my Mac charges?</h3>
+        <p>No. WhatBattery is strictly read-only. It reads battery and power data through Apple's own interfaces and never writes to the battery or changes charging behaviour.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Does it work on Intel Macs?</h3>
+        <p>Not yet. WhatBattery targets Apple Silicon (M1 and later) on macOS 14 or later. Intel support is feasible later, but it is out of scope for now.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Does it phone home?</h3>
+        <p>No analytics, no telemetry. It reads local battery data and nothing else. The only network call is a one-time licence check when you activate Pro. The source is on GitHub if you want to verify.</p>
+      </div>
+      <div class="faq-item">
+        <h3>How does the two-Mac licence work?</h3>
+        <p>One key activates Pro on up to two Macs. Paste the same key into Settings on each machine. Replacing a Mac? Email support and we'll free up a slot.</p>
+      </div>
+      <div class="faq-item">
+        <h3>How is this different from WhatCable and WhatPort?</h3>
+        <p><a href="https://www.whatcable.uk">WhatCable</a> is about cables, <a href="https://www.whatport.app">WhatPort</a> is about USB-C ports. WhatBattery is about battery health and power, for your Mac and the iPhones and iPads you connect to it.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="install" id="install">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="section-tag">Install</span>
+      <h2>Download and go.</h2>
+      <p>WhatBattery is signed, notarised, and ready to run. Requires macOS 14 (Sonoma) or later on Apple Silicon.</p>
+    </div>
+    <div class="install-grid">
+      <div class="install-card">
+        <div class="install-card-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          Download
+        </div>
+        <p>Grab the latest <code>.zip</code> from GitHub Releases. Unzip and drag <strong style="color:#fff;">WhatBattery.app</strong> into Applications.</p>
+        <a class="button primary" href="https://github.com/darrylmorley/whatbattery/releases">Get the latest release</a>
+      </div>
+      <div class="install-card">
+        <div class="install-card-label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+          Homebrew
+        </div>
+        <p>Prefer the terminal? Install with <strong style="color:#fff;">brew</strong> and get upgrades for free.</p>
+        <pre>brew install --cask \
+  darrylmorley/whatbattery/whatbattery</pre>
+        <a class="button primary" href="https://github.com/darrylmorley/homebrew-whatbattery">View the tap</a>
+      </div>
+    </div>
+    <div class="meta-row">
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        Read-only, never writes to your battery
+      </span>
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        No kernel extension, no root
+      </span>
+      <span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+        MIT licensed
+      </span>
+    </div>
+  </div>
+</section>
+
 
     <footer class="site-footer">
-      <p>WhatBattery &middot; <a href="https://github.com/darrylmorley/whatbattery">Source on GitHub</a> &middot; Read-only: it never changes how your devices charge.</p>
+      <div class="wrap">
+        <span>Built by <a href="https://github.com/darrylmorley">Darryl Morley</a>, maker of <a href="https://www.whatcable.uk">WhatCable</a> and <a href="https://www.whatport.app">WhatPort</a>. MIT licensed. Read-only: it never changes how your devices charge.</span>
+        <span>
+          <a href="https://github.com/darrylmorley/whatbattery">Source</a>
+          &nbsp;&middot;&nbsp;
+          <a href="https://github.com/darrylmorley/whatbattery/releases">Releases</a>
+          &nbsp;&middot;&nbsp;
+          <a href="/faq/">FAQ</a>
+        </span>
+      </div>
     </footer>
+
+    <script>
+      (function () {
+        var errorSlot = document.getElementById("buy-error");
+        function wireBuyButton(button) {
+          if (!button) return;
+          var originalHTML = button.innerHTML;
+          button.addEventListener("click", async function () {
+            button.disabled = true;
+            button.textContent = "Starting checkout...";
+            if (errorSlot) { errorSlot.hidden = true; errorSlot.textContent = ""; }
+            try {
+              var res = await fetch("https://www.whatbattery.app/api/checkout", { method: "POST" });
+              var data = await res.json();
+              if (res.ok && data.url) {
+                window.location.href = data.url;
+              } else {
+                throw new Error(data.error || "Could not start checkout. Please try again.");
+              }
+            } catch (err) {
+              var msg = err.message || "Could not start checkout. Please try again.";
+              if (errorSlot) { errorSlot.textContent = msg; errorSlot.hidden = false; }
+              button.disabled = false;
+              button.innerHTML = originalHTML;
+            }
+          });
+        }
+        wireBuyButton(document.getElementById("buy-pro"));
+        wireBuyButton(document.getElementById("buy-pro-hero"));
+      })();
+    </script>
   </body>
 </html>
