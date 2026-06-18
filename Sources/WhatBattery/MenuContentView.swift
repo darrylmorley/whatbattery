@@ -88,11 +88,10 @@ struct MenuContentView: View {
     private var settingsPane: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
-                Button { showMain() } label: {
-                    Image(systemName: "chevron.left")
-                }
-                .buttonStyle(.borderless)
-                .help("Back")
+                Button("Back", systemImage: "chevron.left", action: showMain)
+                    .labelStyle(.iconOnly)
+                    .buttonStyle(.borderless)
+                    .help("Back")
                 Text("Settings").font(.headline)
                 Spacer()
             }
@@ -140,7 +139,9 @@ struct MenuContentView: View {
 
         if let health = snapshot.healthPercent {
             ProgressView(value: min(health, 100), total: 100)
-                .tint(healthColor(health))
+                .tint(Theme.health(health))
+                .accessibilityLabel("Battery health")
+                .accessibilityValue("\(Int(health.rounded())) percent")
         }
     }
 
@@ -225,15 +226,17 @@ struct MenuContentView: View {
         return URL(string: "\(base)/tag/v\(appVersion)")!
     }
 
+    // The `help` string is both the tooltip and the VoiceOver label: the button
+    // stays visually icon-only via `.labelStyle(.iconOnly)` while keeping a real
+    // text label for assistive tech.
     private func iconButton(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Image(systemName: symbol)
-                .font(.system(size: 15))
-                .frame(width: 30, height: 24)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.borderless)
-        .help(help)
+        Button(help, systemImage: symbol, action: action)
+            .labelStyle(.iconOnly)
+            .font(.system(size: 15))
+            .frame(width: 30, height: 24)
+            .contentShape(.rect)
+            .buttonStyle(.borderless)
+            .help(help)
     }
 
     // MARK: - Row helper
@@ -260,11 +263,4 @@ struct MenuContentView: View {
         return text
     }
 
-    private func healthColor(_ health: Double) -> Color {
-        switch health {
-        case ..<60: return .red
-        case ..<80: return .orange
-        default: return .green
-        }
-    }
 }

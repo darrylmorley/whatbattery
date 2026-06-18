@@ -41,9 +41,9 @@ public enum BatteryFormatter {
     public static func temperature(_ celsius: Double, unit: TemperatureUnit = .celsius) -> String {
         switch unit {
         case .celsius:
-            return String(format: "%.1f C", celsius)
+            return String(format: "%.1f°C", celsius)
         case .fahrenheit:
-            return String(format: "%.1f F", celsius * 9 / 5 + 32)
+            return String(format: "%.1f°F", celsius * 9 / 5 + 32)
         }
     }
 

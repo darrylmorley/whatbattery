@@ -71,7 +71,11 @@ struct MainWindowView: View {
         if proStatus.isUnlocked, let build = PluginRegistry.shared.historySectionBuilder {
             build()
         } else {
-            ProUpsellCard()
+            UpsellCard(
+                title: "WhatBattery Pro",
+                systemImage: "lock.fill",
+                message: "Unlock lifetime history and the Battery Lifetime Analyzer, threshold notifications, and data export."
+            )
         }
     }
 
@@ -119,7 +123,11 @@ struct MainWindowView: View {
         if proStatus.isUnlocked, let build = PluginRegistry.shared.accessoriesSectionBuilder {
             build()
         } else {
-            AccessoriesUpsellCard()
+            UpsellCard(
+                title: "Accessory history and alerts",
+                systemImage: "lock.fill",
+                message: "Track each accessory's battery over time and get a low-battery alert before your keyboard, mouse, or AirPods die. A WhatBattery Pro feature."
+            )
         }
     }
 
@@ -142,7 +150,11 @@ struct MainWindowView: View {
         if proStatus.isUnlocked, let build = PluginRegistry.shared.healthHistorySectionBuilder {
             build()
         } else {
-            HealthHistoryUpsellCard()
+            UpsellCard(
+                title: "Battery Health History",
+                systemImage: "lock.fill",
+                message: "Track how your battery health and cycles change over months and years, for this Mac and any iPhone or iPad you connect. A WhatBattery Pro feature."
+            )
         }
     }
 
@@ -156,7 +168,11 @@ struct MainWindowView: View {
             build()
                 .environment(\.iDeviceTabActive, selectedTab == .iDevice)
         } else {
-            IDeviceUpsellCard()
+            UpsellCard(
+                title: "iPhone / iPad battery",
+                systemImage: "lock.fill",
+                message: "Check the battery health, cycle count, and live charge of a connected iPhone or iPad, right from your Mac. A WhatBattery Pro feature."
+            )
         }
     }
 }
@@ -178,7 +194,9 @@ private struct OverviewCard: View {
 
             if let health = snapshot.healthPercent {
                 ProgressView(value: min(health, 100), total: 100)
-                    .tint(healthColor(health))
+                    .tint(Theme.health(health))
+                    .accessibilityLabel("Battery health")
+                    .accessibilityValue("\(Int(health.rounded())) percent")
             }
 
             grid
@@ -279,14 +297,6 @@ private struct OverviewCard: View {
             Text(value)
         }
     }
-
-    private func healthColor(_ health: Double) -> Color {
-        switch health {
-        case ..<60: return .red
-        case ..<80: return .orange
-        default: return .green
-        }
-    }
 }
 
 /// Session-fixed Mac identity, read once from `SystemInfo` + `ProcessInfo`.
@@ -370,92 +380,15 @@ private struct AccessoriesCard: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("\(lowest)%")
                         .font(.title3).monospacedDigit()
-                        .foregroundStyle(levelColor(lowest))
+                        .foregroundStyle(Theme.level(lowest))
                     ProgressView(value: Double(lowest), total: 100)
-                        .tint(levelColor(lowest))
+                        .tint(Theme.level(lowest))
                         .frame(width: 80)
+                        // The "%" text above already states the level; labelling the
+                        // bar too would make VoiceOver announce the number twice.
+                        .accessibilityHidden(true)
                 }
             }
         }
-    }
-
-    private func levelColor(_ percent: Int) -> Color {
-        switch percent {
-        case ..<15: return .red
-        case ..<30: return .orange
-        default: return .green
-        }
-    }
-}
-
-// MARK: - Accessories Pro (locked: upsell)
-
-private struct AccessoriesUpsellCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("Accessory history and alerts", systemImage: "lock.fill").font(.headline)
-            Text("Track each accessory's battery over time and get a low-battery alert before your keyboard, mouse, or AirPods die. A WhatBattery Pro feature.")
-                .foregroundStyle(.secondary)
-            Link("Get WhatBattery Pro", destination: URL(string: "https://www.whatbattery.app")!)
-                .font(.callout)
-            Text("Already have a key? Add it in Settings.")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-// MARK: - History (locked: upsell)
-
-private struct ProUpsellCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("WhatBattery Pro", systemImage: "lock.fill").font(.headline)
-            Text("Unlock lifetime history and the Battery Lifetime Analyzer, threshold notifications, and data export.")
-                .foregroundStyle(.secondary)
-            Link("Get WhatBattery Pro", destination: URL(string: "https://www.whatbattery.app")!)
-                .font(.callout)
-            Text("Already have a key? Add it in Settings.")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-// MARK: - History (locked: upsell)
-
-private struct HealthHistoryUpsellCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("Battery Health History", systemImage: "lock.fill").font(.headline)
-            Text("Track how your battery health and cycles change over months and years, for this Mac and any iPhone or iPad you connect. A WhatBattery Pro feature.")
-                .foregroundStyle(.secondary)
-            Link("Get WhatBattery Pro", destination: URL(string: "https://www.whatbattery.app")!)
-                .font(.callout)
-            Text("Already have a key? Add it in Settings.")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
-// MARK: - iDevice (locked: upsell)
-
-private struct IDeviceUpsellCard: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("iPhone / iPad battery", systemImage: "lock.fill").font(.headline)
-            Text("Check the battery health, cycle count, and live charge of a connected iPhone or iPad, right from your Mac. A WhatBattery Pro feature.")
-                .foregroundStyle(.secondary)
-            Link("Get WhatBattery Pro", destination: URL(string: "https://www.whatbattery.app")!)
-                .font(.callout)
-            Text("Already have a key? Add it in Settings.")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
