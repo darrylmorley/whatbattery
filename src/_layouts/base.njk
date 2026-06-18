@@ -20,6 +20,27 @@
     <meta name="twitter:description" content="{{ description or site.tagline }}" />
     <meta name="twitter:image" content="{{ site.url }}/img/screenshot-mac.png" />
 
+    {% if page.url == '/' %}
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "WhatBattery",
+      "operatingSystem": "macOS 14 or later, Apple Silicon",
+      "applicationCategory": "UtilitiesApplication",
+      "url": "{{ site.url }}/",
+      "downloadUrl": "{{ site.releases }}",
+      "description": "{{ site.tagline | safe }}",
+      "image": "{{ site.url }}/img/screenshot-mac.png",
+      "author": { "@type": "Person", "name": "Darryl Morley" },
+      "offers": [
+        { "@type": "Offer", "name": "WhatBattery", "price": "0", "priceCurrency": "GBP" },
+        { "@type": "Offer", "name": "WhatBattery Pro", "price": "9.99", "priceCurrency": "GBP", "url": "{{ site.url }}/#pro" }
+      ]
+    }
+    </script>
+    {% endif %}
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />

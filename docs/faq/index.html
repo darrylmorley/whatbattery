@@ -20,6 +20,8 @@
     <meta name="twitter:description" content="How to connect a device over Wi-Fi, what battery health means, and how WhatBattery reads your battery." />
     <meta name="twitter:image" content="https://www.whatbattery.app/img/screenshot-mac.png" />
 
+    
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -87,6 +89,11 @@
         <p>WhatBattery is strictly read-only. It reads battery and power data through Apple's own interfaces and never writes to the battery or changes charging behaviour.</p>
       </div>
 
+      <div class="faq-item" id="charging">
+        <h3>How does the charger verdict work?</h3>
+        <p>When you charge your Mac, <a href="/#pro">Pro</a> records the session and compares what the charger actually delivered against what your Mac is rated to fast-charge at, for example <em>"58W of 96W"</em>. A charger that falls clearly short gets flagged as underpowered, the slow-charger warning macOS never gives you. It only judges a real charge that started from a low battery, where your Mac genuinely pulls full power, so a quick top-up from a nearly full battery is never wrongly called weak. Each session also records how fast the charge ran, how hot the battery got, and any thermal throttling.</p>
+      </div>
+
       <div class="faq-item" id="accessories">
         <h3>What about my keyboard, mouse, and AirPods?</h3>
         <p>WhatBattery shows the live battery level of connected Bluetooth accessories, a keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case. Many third-party devices don't report a level over Bluetooth, so those show <em>"Battery unavailable"</em>. Showing the levels is free; <a href="/#pro">Pro</a> adds a per-device history, a time-till-empty estimate, a low-battery alert, and the option to show an accessory's level in the menu bar.</p>
@@ -100,6 +107,50 @@
     </div>
   </div>
 </section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How do I connect an iPhone or iPad over Wi-Fi?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Trust the Mac once over a cable (connect, unlock, tap Trust), then in Finder select the device, open the General tab, tick \"Show this iPhone when on Wi-Fi\" and click Apply. Keep both on the same Wi-Fi network with the device awake, and it appears in WhatBattery's iPhone / iPad tab." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can WhatBattery tell if my battery is genuine?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Not reliably, so it doesn't claim to. macOS only flags a non-genuine battery through a system process and there is no public signal to verify a genuine one, so any genuine/fake badge would be a guess. WhatBattery shows the battery condition instead, which is the trustworthy answer to whether a battery needs service." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does WhatBattery's health differ from coconutBattery?",
+      "acceptedAnswer": { "@type": "Answer", "text": "WhatBattery computes health the same way Apple's own Settings does, from the nominal charge capacity. Some tools read a slightly different capacity field and land a couple of points lower. WhatBattery matches the number you see elsewhere in macOS." }
+    },
+    {
+      "@type": "Question",
+      "name": "What do the battery conditions mean?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Normal: healthy, no action needed. Service Recommended: worn but working, plan a replacement. Service Battery: a fault macOS flags for service. The condition is read from macOS, so it matches System Settings." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is it safe? Does it change how my Mac charges?",
+      "acceptedAnswer": { "@type": "Answer", "text": "WhatBattery is strictly read-only. It reads battery and power data through Apple's own interfaces and never writes to the battery or changes charging behaviour." }
+    },
+    {
+      "@type": "Question",
+      "name": "How does the charger verdict work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "When you charge your Mac, Pro records the session and compares what the charger actually delivered against what your Mac is rated to fast-charge at, for example 58W of 96W. A charger that falls clearly short gets flagged as underpowered. It only judges a real charge that started from a low battery, so a quick top-up is never wrongly called weak. Each session also records how fast the charge ran, how hot the battery got, and any thermal throttling." }
+    },
+    {
+      "@type": "Question",
+      "name": "What does WhatBattery need to run?",
+      "acceptedAnswer": { "@type": "Answer", "text": "An Apple Silicon Mac running macOS 14 or later. Reading an iPhone or iPad uses the same connection Finder uses, with no app installed on the device. Reading Bluetooth accessory levels needs Bluetooth access, which macOS prompts for when you open the Accessories tab." }
+    }
+  ]
+}
+</script>
 
 
     <footer class="site-footer">

@@ -44,6 +44,7 @@ WhatBattery is free and open source. The free app shows battery health, live pow
 - **iPhone and iPad battery:** read the health and cycle count of a connected device straight from your Mac, over USB or Wi-Fi.
 - **Battery Health History:** a long-term, per-device record of monthly health and cycles, for your Mac and every device you connect, kept for years, with backup and restore.
 - **Battery runway:** a forecast, not just today's number. The wear rate ("down 4% over the last 90 days"), the date your battery is projected to reach 80% health, and a flag when it starts ageing faster than its own trend. Built from the long-term health history, Macs first. No other battery app projects forward or names a date.
+- **Charging sessions:** every charge recorded with how fast it ran, how hot it got, and a charger verdict ("58W of 96W") that tells you whether the charger kept up with what your Mac can fast-charge at. It only judges a real charge from a low battery, so a quick top-up is never wrongly called underpowered.
 - **Reports and export:** a one-page battery report as PDF or print, and CSV / JSON export of your logged history, for warranty claims, resale, or your own records.
 - **Threshold notifications:** alerts for charge high/low, temperature, and health milestones.
 - **Accessory history and alerts:** a per-device level history for your keyboard, mouse, trackpad, and AirPods, with an estimated time-till-empty, a low-battery alert before they die, and the option to show an accessory's level right in the menu bar.
@@ -87,7 +88,7 @@ Model         MacBook Pro (14-inch, M5)
 Health        99.6% (6,225 / 6,249 mAh)
 Charge        100%, fully charged
 Cycles        42 (design 1000)
-Temperature   30.4 C
+Temperature   30.4°C
 Power         0.0 W  (100W pd charger)
 Voltage       13.21 V
 ```

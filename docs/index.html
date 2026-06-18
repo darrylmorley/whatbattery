@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>WhatBattery: battery health and live power for Mac, iPhone, and iPad</title>
-    <meta name="description" content="Battery health, live power, and a replacement forecast for your Mac, iPhone, and iPad." />
+    <meta name="description" content="See your Mac, iPhone, and iPad&#39;s true battery health, live power, charging analysis, and a replacement forecast. Read-only and open source." />
     <link rel="canonical" href="https://www.whatbattery.app/" />
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
     <link rel="icon" href="/img/icon.png" type="image/png" />
@@ -13,12 +13,33 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://www.whatbattery.app/" />
     <meta property="og:title" content="WhatBattery: battery health and live power for Mac, iPhone, and iPad" />
-    <meta property="og:description" content="Battery health, live power, and a replacement forecast for your Mac, iPhone, and iPad." />
+    <meta property="og:description" content="See your Mac, iPhone, and iPad&#39;s true battery health, live power, charging analysis, and a replacement forecast. Read-only and open source." />
     <meta property="og:image" content="https://www.whatbattery.app/img/screenshot-mac.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="WhatBattery" />
-    <meta name="twitter:description" content="Battery health, live power, and a replacement forecast for your Mac, iPhone, and iPad." />
+    <meta name="twitter:description" content="See your Mac, iPhone, and iPad&#39;s true battery health, live power, charging analysis, and a replacement forecast. Read-only and open source." />
     <meta name="twitter:image" content="https://www.whatbattery.app/img/screenshot-mac.png" />
+
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "WhatBattery",
+      "operatingSystem": "macOS 14 or later, Apple Silicon",
+      "applicationCategory": "UtilitiesApplication",
+      "url": "https://www.whatbattery.app/",
+      "downloadUrl": "https://github.com/darrylmorley/whatbattery/releases",
+      "description": "See your Mac, iPhone, and iPad's true battery health, live power, charging analysis, and a replacement forecast. Read-only and open source.",
+      "image": "https://www.whatbattery.app/img/screenshot-mac.png",
+      "author": { "@type": "Person", "name": "Darryl Morley" },
+      "offers": [
+        { "@type": "Offer", "name": "WhatBattery", "price": "0", "priceCurrency": "GBP" },
+        { "@type": "Offer", "name": "WhatBattery Pro", "price": "9.99", "priceCurrency": "GBP", "url": "https://www.whatbattery.app/#pro" }
+      ]
+    }
+    </script>
+    
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -140,6 +161,13 @@
       </article>
       <article class="feature">
         <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="10.5" x2="22" y2="13.5"/><polyline points="10.5 9.5 8 12.5 11 12.5 9.5 15"/></svg>
+        </div>
+        <h3>Charging sessions</h3>
+        <p>Every charge recorded: how fast it ran, how hot it got, and a verdict on the charger ("58W of 96W") that tells you whether it kept up with what your Mac can take. Spot a slow charger before it wastes your day.</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
         </div>
         <h3>iPhone &amp; iPad</h3>
@@ -217,7 +245,7 @@
     <div class="section-head">
       <span class="section-tag">Why WhatBattery</span>
       <h2>Every battery app shows you today. This one shows you tomorrow.</h2>
-      <p>coconutBattery, iStat Menus, the rest of them read the battery and stop there. WhatBattery reads the same data, then does something with it: forecasts the wear, reads the devices on your desk, and keeps the receipts for years.</p>
+      <p>coconutBattery, iStat Menus, the rest of them read the battery and stop there. WhatBattery reads the same data, then does something with it: forecasts the wear, judges your charger, reads the devices on your desk, and keeps the receipts for years.</p>
     </div>
     <div class="feature-grid">
       <article class="feature">
@@ -240,6 +268,13 @@
         </div>
         <h3>Watts in and out, live</h3>
         <p>Not a percentage and a shrug. The real power coming in from the charger and going out to your Mac, read from the SMC rail every second, not the stale fuel-gauge figure most tools show.</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="10.5" x2="22" y2="13.5"/><polyline points="10.5 9.5 8 12.5 11 12.5 9.5 15"/></svg>
+        </div>
+        <h3>It grades your charger</h3>
+        <p>Plug in and WhatBattery records the charge, then tells you what the charger actually delivered against what your Mac can fast-charge at, like "58W of 96W". The slow-charger nag macOS never gives you, with the watts to back it up.</p>
       </article>
       <article class="feature">
         <div class="icon" aria-hidden="true">
@@ -271,7 +306,7 @@
     <div class="section-head">
       <span class="section-tag">WhatBattery Pro</span>
       <h2>Track every battery you own, for years.</h2>
-      <p>The free app shows health and live power right now. Pro keeps a long-term, per-device record, forecasts when you'll need a new battery, reads your iPhone and iPad, and turns it all into reports you can hand to a warranty claim or a buyer.</p>
+      <p>The free app shows health and live power right now. Pro keeps a long-term, per-device record, forecasts when you'll need a new battery, judges your charger, reads your iPhone and iPad, and turns it all into reports you can hand to a warranty claim or a buyer.</p>
     </div>
     <div class="pro-showcase">
       <figure>
@@ -293,6 +328,10 @@
           <li>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
             Battery runway: wear rate and a projected replacement date
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            Charging sessions and a charger verdict, per charge
           </li>
           <li>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
@@ -373,6 +412,10 @@
       <div class="faq-item">
         <h3>When will I need to replace my battery?</h3>
         <p>Pro works that out for you. Its Battery runway fits a line through your long-term health history and projects when you'll reach 80%, the level Apple flags for service, alongside your wear rate and a warning if the battery starts ageing faster than its trend. It needs a couple of months of history first, and it won't invent a date before then. It just says so.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Does it tell me if my charger is too weak?</h3>
+        <p>Yes. Pro records each charge and reports what the charger delivered against what your Mac can fast-charge at, for example "58W of 96W", and flags a charger that falls clearly short. It only judges a real charge from a low battery, so a quick top-up is never wrongly called underpowered.</p>
       </div>
       <div class="faq-item">
         <h3>How do I read an iPhone or iPad's battery?</h3>
