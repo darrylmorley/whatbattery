@@ -8,6 +8,7 @@ struct MenuContentView: View {
     @ObservedObject var monitor: BatteryMonitor
     @ObservedObject private var proStatus = PluginRegistry.shared.proStatus
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
+    @AppStorage(FontScale.key) private var fontScale = FontScale.defaultValue
     // Which pane the popover shows. Settings opens here as a pane rather than a
     // separate window. Reset to the main pane whenever the popover closes.
     @State private var pane: Pane = .main
@@ -31,6 +32,7 @@ struct MenuContentView: View {
         // The height grows with the accessory list; Settings absorbs any slack
         // with its Spacer, so the two panes stay the same height.
         .frame(width: 340, height: popoverHeight)
+        .environment(\.fontScale, FontScale.clamp(fontScale))
     }
 
     /// Sized to the main pane: tight on the battery section when no accessories
@@ -52,7 +54,7 @@ struct MenuContentView: View {
     private var mainPane: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("WhatBattery")
-                .font(.headline)
+                .scaledFont(.headline)
 
             if let snapshot = monitor.snapshot {
                 header(snapshot)
@@ -69,7 +71,7 @@ struct MenuContentView: View {
             } else {
                 Divider()
                 Text("Accessories")
-                    .font(.caption)
+                    .scaledFont(.caption)
                     .foregroundStyle(.secondary)
                 // Scrolls when the list is long, so the battery header above and
                 // the footer below stay put.
@@ -92,7 +94,7 @@ struct MenuContentView: View {
                     .labelStyle(.iconOnly)
                     .buttonStyle(.borderless)
                     .help("Back")
-                Text("Settings").font(.headline)
+                Text("Settings").scaledFont(.headline)
                 Spacer()
             }
             // Fit the form to the popover height (which the accessory list sizes),
@@ -122,7 +124,7 @@ struct MenuContentView: View {
     private func header(_ snapshot: BatterySnapshot) -> some View {
         HStack(alignment: .firstTextBaseline) {
             Text(BatteryFormatter.healthPercent(snapshot.healthPercent))
-                .font(.system(size: 34, weight: .semibold, design: .rounded))
+                .scaledFont(size: 34, weight: .semibold, design: .rounded)
                 .monospacedDigit()
             VStack(alignment: .leading, spacing: 1) {
                 Text("Battery health")
@@ -130,7 +132,7 @@ struct MenuContentView: View {
                 // Capacity detail is Pro; the free dropdown shows the percentage.
                 if proStatus.isUnlocked, snapshot.fullChargeCapacitymAh > 0, snapshot.designCapacitymAh > 0 {
                     Text("\(BatteryFormatter.milliampHours(snapshot.fullChargeCapacitymAh)) of \(BatteryFormatter.milliampHours(snapshot.designCapacitymAh))")
-                        .font(.caption)
+                        .scaledFont(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -178,7 +180,7 @@ struct MenuContentView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
-                .font(.callout)
+                .scaledFont(.callout)
             }
         }
     }
@@ -204,7 +206,7 @@ struct MenuContentView: View {
             Spacer()
             // Clickable version, opens the GitHub release notes for this build.
             Link("v\(Self.appVersion)", destination: Self.releaseURL)
-                .font(.caption)
+                .scaledFont(.caption)
                 .foregroundStyle(.secondary)
                 .help("Release notes on GitHub")
         }
@@ -232,7 +234,7 @@ struct MenuContentView: View {
     private func iconButton(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
         Button(help, systemImage: symbol, action: action)
             .labelStyle(.iconOnly)
-            .font(.system(size: 15))
+            .scaledFont(size: 15)
             .frame(width: 30, height: 24)
             .contentShape(.rect)
             .buttonStyle(.borderless)
@@ -250,7 +252,7 @@ struct MenuContentView: View {
                 .multilineTextAlignment(.leading)
             Spacer(minLength: 0)
         }
-        .font(.callout)
+        .scaledFont(.callout)
     }
 
     // MARK: - Formatting

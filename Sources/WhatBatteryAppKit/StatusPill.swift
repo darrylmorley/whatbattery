@@ -14,7 +14,7 @@ public struct StatusPill: View {
 
     public var body: some View {
         Text(text)
-            .font(.caption.weight(.semibold))
+            .scaledFont(.caption, weight: .semibold)
             .padding(.horizontal, 8)
             .padding(.vertical, 3)
             .background(tint.opacity(0.2), in: .capsule)

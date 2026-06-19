@@ -10,6 +10,7 @@ struct MainWindowView: View {
     @ObservedObject var monitor: BatteryMonitor
     @ObservedObject private var proStatus = PluginRegistry.shared.proStatus
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
+    @AppStorage(FontScale.key) private var fontScale = FontScale.defaultValue
     @State private var selectedTab: Tab = .mac
 
     private enum Tab: Hashable { case mac, iDevice, accessories, history }
@@ -34,6 +35,7 @@ struct MainWindowView: View {
                 .tag(Tab.history)
         }
         .frame(minWidth: 600, minHeight: 440)
+        .environment(\.fontScale, FontScale.clamp(fontScale))
         .navigationTitle("WhatBattery")
         // Start the Bluetooth watcher (and the one-time permission prompt) only
         // when the user actually opens the Accessories tab.
@@ -213,7 +215,7 @@ private struct OverviewCard: View {
     private var header: some View {
         HStack(alignment: .firstTextBaseline, spacing: 12) {
             Text(BatteryFormatter.healthPercent(snapshot.healthPercent))
-                .font(.system(size: 48, weight: .bold, design: .rounded))
+                .scaledFont(size: 48, weight: .bold, design: .rounded)
                 .monospacedDigit()
             VStack(alignment: .leading, spacing: 2) {
                 Text("Battery health").foregroundStyle(.secondary)
@@ -221,12 +223,12 @@ private struct OverviewCard: View {
                 // percentage only.
                 if isPro, snapshot.fullChargeCapacitymAh > 0, snapshot.designCapacitymAh > 0 {
                     Text("\(BatteryFormatter.milliampHours(snapshot.fullChargeCapacitymAh)) of \(BatteryFormatter.milliampHours(snapshot.designCapacitymAh)) design")
-                        .font(.callout)
+                        .scaledFont(.callout)
                         .foregroundStyle(.secondary)
                 }
-                Text(deviceTitle).font(.caption).foregroundStyle(.tertiary)
+                Text(deviceTitle).scaledFont(.caption).foregroundStyle(.tertiary)
                 if let subtitle = deviceSubtitle {
-                    Text(subtitle).font(.caption).foregroundStyle(.tertiary)
+                    Text(subtitle).scaledFont(.caption).foregroundStyle(.tertiary)
                 }
             }
             Spacer()
@@ -255,7 +257,7 @@ private struct OverviewCard: View {
                 if let identity { row("Low Power Mode", identity.lowPowerMode ? "Enabled" : "Disabled") }
             }
         }
-        .font(.callout)
+        .scaledFont(.callout)
     }
 
     private var deviceTitle: String {
@@ -333,13 +335,13 @@ private struct AccessoriesCard: View {
             .frame(maxWidth: .infinity, minHeight: 280)
         } else {
             VStack(alignment: .leading, spacing: 14) {
-                Text("Accessories").font(.headline)
+                Text("Accessories").scaledFont(.headline)
                 ForEach(accessories) { accessory in
                     row(accessory)
                     if accessory.id != accessories.last?.id { Divider() }
                 }
                 Text("Accessories report a charge level only, not health or cycles. Levels refresh every couple of minutes.")
-                    .font(.caption)
+                    .scaledFont(.caption)
                     .foregroundStyle(.tertiary)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -350,14 +352,14 @@ private struct AccessoriesCard: View {
     private func row(_ accessory: Accessory) -> some View {
         HStack(alignment: .center, spacing: 12) {
             Image(systemName: AccessoryFormatting.symbol(for: accessory.kind))
-                .font(.title3)
+                .scaledFont(.title3)
                 .foregroundStyle(.secondary)
                 .frame(width: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(accessory.name)
                 if accessory.isAvailable {
                     Text(AccessoryFormatting.levels(accessory))
-                        .font(.caption)
+                        .scaledFont(.caption)
                         .foregroundStyle(.secondary)
                         .monospacedDigit()
                     // Pro: projected time till empty, shown only once the sampler
@@ -366,12 +368,12 @@ private struct AccessoriesCard: View {
                     // view-init, so it's never a stale snapshot of the registry.
                     if let seconds = PluginRegistry.shared.accessoryEstimateProvider?(accessory.id) {
                         Text(AccessoryFormatting.timeToEmpty(seconds))
-                            .font(.caption)
+                            .scaledFont(.caption)
                             .foregroundStyle(.tertiary)
                     }
                 } else {
                     Text("Battery unavailable")
-                        .font(.caption)
+                        .scaledFont(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -379,7 +381,7 @@ private struct AccessoriesCard: View {
             if let lowest = accessory.lowestPercent {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("\(lowest)%")
-                        .font(.title3).monospacedDigit()
+                        .scaledFont(.title3).monospacedDigit()
                         .foregroundStyle(Theme.level(lowest))
                     ProgressView(value: Double(lowest), total: 100)
                         .tint(Theme.level(lowest))
