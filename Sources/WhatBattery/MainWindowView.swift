@@ -9,6 +9,7 @@ import WhatBatteryDarwinBackend
 struct MainWindowView: View {
     @ObservedObject var monitor: BatteryMonitor
     @ObservedObject private var proStatus = PluginRegistry.shared.proStatus
+    @ObservedObject private var updates = UpdateChecker.shared
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
     @AppStorage(FontScale.key) private var fontScale = FontScale.defaultValue
     @State private var selectedTab: Tab = .mac
@@ -49,6 +50,9 @@ struct MainWindowView: View {
     private var macTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
+                if let update = updates.available {
+                    UpdateBanner(update: update)
+                }
                 if let snapshot = monitor.snapshot {
                     OverviewCard(snapshot: snapshot, tempUnit: tempUnit, isPro: proStatus.isUnlocked)
                     Divider()

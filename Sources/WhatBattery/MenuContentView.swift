@@ -7,6 +7,7 @@ import WhatBatteryAppKit
 struct MenuContentView: View {
     @ObservedObject var monitor: BatteryMonitor
     @ObservedObject private var proStatus = PluginRegistry.shared.proStatus
+    @ObservedObject private var updates = UpdateChecker.shared
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
     @AppStorage(FontScale.key) private var fontScale = FontScale.defaultValue
     // Which pane the popover shows. Settings opens here as a pane rather than a
@@ -204,29 +205,33 @@ struct MenuContentView: View {
                 NSApplication.shared.terminate(nil)
             }
             Spacer()
-            // Clickable version, opens the GitHub release notes for this build.
-            Link("v\(Self.appVersion)", destination: Self.releaseURL)
+            if let update = updates.available {
+                // An update is available: nudge to the main window, where the
+                // banner hosts the install flow (the popover is transient and
+                // would dismiss mid-install).
+                Button("Update to v\(update.version)") {
+                    MenuActions.shared.openMainWindow()
+                }
+                .buttonStyle(.borderless)
                 .scaledFont(.caption)
-                .foregroundStyle(.secondary)
-                .help("Release notes on GitHub")
+                .help("Open WhatBattery to install the update")
+            } else {
+                // Clickable version, opens the GitHub release notes for this build.
+                Link("v\(Self.appVersion)", destination: Self.releaseURL)
+                    .scaledFont(.caption)
+                    .foregroundStyle(.secondary)
+                    .help("Release notes on GitHub")
+            }
         }
         .padding(.top, 2)
     }
 
     /// The app version from the bundle, falling back to a dev string.
-    static var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.0-dev"
-    }
+    static var appVersion: String { AppInfo.version }
 
-    /// The GitHub release page for this version. A pre-release/dev build (version
-    /// with a "-" suffix) has no tag, so link to the releases list instead.
-    static var releaseURL: URL {
-        let base = "https://github.com/darrylmorley/whatbattery-app/releases"
-        if appVersion.contains("-") {
-            return URL(string: base)!
-        }
-        return URL(string: "\(base)/tag/v\(appVersion)")!
-    }
+    /// The GitHub release page for this version. A pre-release/dev build has no
+    /// tag, so this links to the releases list instead.
+    static var releaseURL: URL { AppInfo.releaseURL }
 
     // The `help` string is both the tooltip and the VoiceOver label: the button
     // stays visually icon-only via `.labelStyle(.iconOnly)` while keeping a real

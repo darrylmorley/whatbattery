@@ -56,6 +56,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        // Free in-app updater: one check at launch, then every 6h.
+        UpdateChecker.shared.start()
+
         MenuActions.shared.openMainWindow = { [weak self] in self?.showMainWindow() }
         MenuActions.shared.openSettings = { [weak self] in self?.showSettings() }
         MenuActions.shared.setPopoverSticky = { [weak self] sticky in
@@ -206,6 +209,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let menu = NSMenu()
         menu.addItem(withTitle: "Settings…", action: #selector(showSettings), keyEquivalent: ",")
         menu.addItem(.separator())
+        menu.addItem(withTitle: "Check for Updates…", action: #selector(checkForUpdates), keyEquivalent: "")
         menu.addItem(withTitle: "About WhatBattery", action: #selector(showAbout), keyEquivalent: "")
         menu.addItem(withTitle: "WhatBattery on GitHub", action: #selector(openGitHub), keyEquivalent: "")
         menu.addItem(.separator())
@@ -225,8 +229,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     @objc private func openGitHub() {
-        guard let url = URL(string: "https://github.com/darrylmorley/whatbattery") else { return }
-        NSWorkspace.shared.open(url)
+        NSWorkspace.shared.open(AppInfo.githubURL)
+    }
+
+    @objc private func checkForUpdates() {
+        UpdateChecker.shared.check(silent: false)
     }
 
     @objc private func showSettings() {
