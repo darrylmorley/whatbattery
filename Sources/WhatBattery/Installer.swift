@@ -125,12 +125,17 @@ final class Installer: ObservableObject {
                 throw InstallError("Zip contains unsafe path: \(path)")
             }
         }
-        // The long zipinfo listing prints a leading mode string per entry; a
-        // symlink shows as "lrwx...". A symlink in the archive is never something
-        // a legitimate WhatBattery release contains, so reject the whole zip.
+        // The long zipinfo listing prints a leading mode string per entry whose
+        // first character is the file type: "l" for a symlink, "-" for a regular
+        // file, "d" for a directory. Match on that type character alone, NOT on
+        // "lrwx": the rwx are permission bits the archive author chooses freely,
+        // so a crafted symlink stored without owner-execute lists as "lrw-------"
+        // and would slip past an "lrwx" prefix while still being followed during
+        // extraction. A symlink in the archive is never something a legitimate
+        // WhatBattery release contains, so reject the whole zip.
         let modes = try await run("/usr/bin/unzip", ["-Z", zip.path])
         for line in modes.split(separator: "\n") {
-            if line.trimmingCharacters(in: .whitespaces).hasPrefix("lrwx") {
+            if line.trimmingCharacters(in: .whitespaces).hasPrefix("l") {
                 throw InstallError("Zip contains a symlink; refusing to install")
             }
         }
