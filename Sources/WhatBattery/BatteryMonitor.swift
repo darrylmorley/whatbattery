@@ -113,11 +113,29 @@ final class BatteryMonitor: ObservableObject {
 
     private func updateWidget() {
         guard let snapshot else { return }
+        // Every widget-visible field belongs in the signature, or the widget
+        // shows stale values until an unrelated field moves: the old signature
+        // covered only charge/state/health, so temperature, cycles, capacities,
+        // the adapter and the time estimates could all sit frozen. Temperature
+        // is coarsened to a whole degree to keep reload pushes off the
+        // every-tick path; the snapshot itself is persisted every tick either
+        // way, so the widget's 5-minute backstop still reads exact values.
         let health = Int((snapshot.healthPercent ?? 0).rounded())
-        let signature = "\(snapshot.currentChargePercent)|\(snapshot.chargingState.rawValue)|\(health)"
-        guard signature != lastWidgetSignature else { return }
+        let signature = [
+            "\(snapshot.currentChargePercent)",
+            snapshot.chargingState.rawValue,
+            "\(health)",
+            "\(Int(snapshot.temperatureCelsius.rounded()))",
+            "\(snapshot.cycleCount)",
+            "\(snapshot.fullChargeCapacitymAh)",
+            "\(snapshot.designCapacitymAh)",
+            snapshot.adapter?.label ?? "-",
+            "\(snapshot.timeToFullMinutes ?? -1)",
+            "\(snapshot.timeToEmptyMinutes ?? -1)",
+        ].joined(separator: "|")
+        let changed = signature != lastWidgetSignature
         lastWidgetSignature = signature
-        WidgetDataWriter.update(snapshot)
+        WidgetDataWriter.update(snapshot, reload: changed)
     }
 
     private func startWatching() {

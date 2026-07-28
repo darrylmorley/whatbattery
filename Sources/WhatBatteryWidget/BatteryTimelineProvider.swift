@@ -53,6 +53,19 @@ struct BatteryTimelineProvider: TimelineProvider {
     }
 
     private func currentEntry() -> BatteryEntry {
-        BatteryEntry(date: Date(), snapshot: WidgetSharedStore.read())
+        // A snapshot only stays fresh while the app is running to rewrite it.
+        // If it stops (quit, crash, no launch-at-login), every 5-minute refresh
+        // would re-serve the same file forever, presenting hours-old charge
+        // and health as current. Past a grace of a few missed backstops, show
+        // the honest empty state instead of stale numbers.
+        let snapshot = WidgetSharedStore.read()
+        if let snapshot, Date().timeIntervalSince(snapshot.timestamp) > Self.staleAfter {
+            return BatteryEntry(date: Date(), snapshot: nil)
+        }
+        return BatteryEntry(date: Date(), snapshot: snapshot)
     }
+
+    /// Three missed 5-minute backstops: enough slack for sleep/wake and reload
+    /// throttling, short enough that dead data never masquerades as live.
+    private static let staleAfter: TimeInterval = 15 * 60
 }

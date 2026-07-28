@@ -120,9 +120,11 @@ struct BatteryEmptyView: View {
             Image(systemName: "bolt.slash")
                 .font(.largeTitle)
                 .foregroundStyle(.secondary)
-            Text("No battery data")
+            Text("No recent battery data")
                 .font(.headline)
-            Text("Open WhatBattery to start.")
+            // Covers both never-ran and stopped-running: the provider blanks
+            // stale snapshots so old numbers never masquerade as live.
+            Text("Open WhatBattery to refresh.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)

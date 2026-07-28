@@ -92,10 +92,33 @@ final class Installer: ObservableObject {
         return url
     }
 
+    /// Ceiling for the downloaded zip and for the archive's declared
+    /// uncompressed total. The real app zip is ~10 MB, so 300 MB is an order
+    /// of magnitude of slack, not a limit anyone legitimate will meet.
+    static let maxDownloadBytes: Int64 = 300 * 1_024 * 1_024
+    static let maxUncompressedBytes: Int64 = 600 * 1_024 * 1_024
+    static let maxArchiveEntries = 5_000
+
     private func download(from url: URL, into dir: URL) async throws -> URL {
         let (tmpURL, response) = try await URLSession.shared.download(from: url)
         if let http = response as? HTTPURLResponse, http.statusCode != 200 {
             throw InstallError("Download failed with HTTP \(http.statusCode)")
+        }
+        // The final URL after redirects must still be a trusted host: the
+        // allowlist was checked on the URL we started from, and GitHub's asset
+        // flow redirects.
+        if let finalURL = response.url, !UpdateChecker.isTrustedDownloadURL(finalURL) {
+            throw InstallError("Download redirected to an untrusted host")
+        }
+        // Size ceiling before anything touches the archive. This bounds what a
+        // compromised asset can cost in disk; the signature checks later are
+        // the real gate, this just keeps garbage cheap to reject.
+        let attributes = try? FileManager.default.attributesOfItem(atPath: tmpURL.path)
+        // Unreadable size on a file we just wrote is itself abnormal: reject.
+        let size = (attributes?[.size] as? Int64) ?? Int64.max
+        guard size <= Self.maxDownloadBytes else {
+            try? FileManager.default.removeItem(at: tmpURL)
+            throw InstallError("Downloaded archive is implausibly large")
         }
         let dest = dir.appendingPathComponent("update.zip")
         try FileManager.default.moveItem(at: tmpURL, to: dest)
@@ -137,6 +160,21 @@ final class Installer: ObservableObject {
         for line in modes.split(separator: "\n") {
             if line.trimmingCharacters(in: .whitespaces).hasPrefix("l") {
                 throw InstallError("Zip contains a symlink; refusing to install")
+            }
+        }
+
+        // Zip-bomb bounds: cap the entry count and the archive's own declared
+        // uncompressed total before extraction ever runs. zipinfo's summary
+        // line reads "NNN files, XXX bytes uncompressed, YYY bytes compressed".
+        let entryCount = names.split(separator: "\n").count
+        guard entryCount <= Self.maxArchiveEntries else {
+            throw InstallError("Zip contains implausibly many entries (\(entryCount))")
+        }
+        if let summary = modes.split(separator: "\n").last(where: { $0.contains("bytes uncompressed") }),
+           let match = summary.range(of: #"(\d+) bytes uncompressed"#, options: .regularExpression),
+           let declared = Int64(String(summary[match]).split(separator: " ").first ?? "") {
+            guard declared <= Self.maxUncompressedBytes else {
+                throw InstallError("Zip declares an implausibly large uncompressed size")
             }
         }
     }
@@ -301,14 +339,14 @@ final class Installer: ObservableObject {
     /// zip, the extracted bundle and this script itself all live inside that
     /// per-update folder, so one removal cleans everything we created. It must
     /// never widen to the folder's parent (the shared temp root).
-    nonisolated static func makeSwapScript(pid: Int32, newPath: String, oldPath: String, workDirPath: String) -> String {
+    nonisolated static func makeSwapScript(pid: Int32, newPath: String, oldPath: String, workDirPath: String, backupSuffix: String = UUID().uuidString) -> String {
         """
         #!/bin/bash
         set -e
         PID=\(pid)
         NEW=\(shellQuote(newPath))
         OLD=\(shellQuote(oldPath))
-        BACKUP="${OLD}.backup"
+        BACKUP="${OLD}.backup-\(backupSuffix)"
 
         # Wait up to 30s for the running app to exit
         for _ in $(seq 1 60); do
@@ -324,9 +362,14 @@ final class Installer: ObservableObject {
             exit 0
         fi
 
-        # Move old bundle to backup instead of deleting it.
-        # If the swap fails, the user can rename .backup back.
-        rm -rf "$BACKUP"
+        # Move old bundle to a backup this invocation owns. The path carries a
+        # fresh UUID, so it never collides with (and never deletes) anything a
+        # user or an earlier update left behind; if it exists anyway, something
+        # is wrong enough that touching it would be reckless, so bail intact.
+        if [ -e "$BACKUP" ]; then
+            rm -rf \(shellQuote(workDirPath))
+            exit 0
+        fi
         mv "$OLD" "$BACKUP"
 
         if mv "$NEW" "$OLD"; then
