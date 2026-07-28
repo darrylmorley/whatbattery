@@ -3,9 +3,8 @@ import Foundation
 /// Native bridge to Apple's private `MobileDevice.framework` for reading a
 /// tethered/WiFi iPhone or iPad's battery. This is the shipping path: it needs no
 /// Python (`pymobiledevice3`) and no bundled libraries. The framework is present
-/// on every Mac and is the same one Xcode/Finder use; reading a device's battery
-/// over the `com.apple.mobile.diagnostics_relay` is exactly how coconutBattery
-/// does it.
+/// on every Mac and is the same one Xcode and Finder use; the device's battery
+/// is read over the `com.apple.mobile.diagnostics_relay` service.
 ///
 /// We `dlopen` the framework and `dlsym` each function rather than link it, so a
 /// missing or renamed private symbol degrades to "no devices" instead of failing

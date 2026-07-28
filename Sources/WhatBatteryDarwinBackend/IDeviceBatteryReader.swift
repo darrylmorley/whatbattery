@@ -1,10 +1,10 @@
 import Foundation
 import WhatBatteryCore
 
-/// Reads a tethered or WiFi-paired iPhone/iPad's battery from this Mac, the
-/// coconutBattery "iPhone/iPad" model. The device's `AppleSmartBattery` node is
-/// fetched over the lockdown diagnostics relay (via `MobileDeviceBridge`) and
-/// mapped through the same Core model and health math used for the Mac.
+/// Reads a tethered or WiFi-paired iPhone/iPad's battery from this Mac. The
+/// device's `AppleSmartBattery` node is fetched over the lockdown diagnostics
+/// relay (via `MobileDeviceBridge`) and mapped through the same Core model and
+/// health math used for the Mac.
 ///
 /// The read path is native (`MobileDevice.framework`, no Python, no bundled
 /// libraries), so this is shipping-capable. The relay is a private interface, so

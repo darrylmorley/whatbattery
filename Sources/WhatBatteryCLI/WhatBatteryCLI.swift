@@ -99,8 +99,8 @@ private func runWatch(_ provider: DarwinSnapshotProvider) async {
     }
 }
 
-// SPIKE: read a tethered/paired iPhone or iPad's battery (the coconutBattery
-// "iPhone/iPad" view). Shells to pymobiledevice3; see IDeviceBatteryReader.
+// Read a tethered/paired iPhone or iPad's battery over the native
+// MobileDevice.framework path; see IDeviceBatteryReader.
 private func runIDevice(json: Bool) {
     do {
         let result = try IDeviceBatteryReader.readAll()

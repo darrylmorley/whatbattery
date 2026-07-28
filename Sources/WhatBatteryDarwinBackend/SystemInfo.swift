@@ -8,9 +8,9 @@ public enum SystemInfo {
         sysctlString("hw.model")
     }
 
-    /// The Mac's hardware serial number (the stable per-device key for health
-    /// history, the same identifier coconutBattery keys on). Empty if it can't be
-    /// read.
+    /// The Mac's hardware serial number: the stable per-device key for health
+    /// history, since it survives a battery swap (the battery's own serial does
+    /// not). Empty if it can't be read.
     public static func hardwareSerial() -> String {
         platformExpertString(kIOPlatformSerialNumberKey)
     }
@@ -26,8 +26,9 @@ public enum SystemInfo {
         registryString(path: "IODeviceTree:/product", key: "product-name")
     }
 
-    /// The regulatory model number, e.g. "A3434" (what coconutBattery shows as the
-    /// "Model"). Empty if unavailable.
+    /// The regulatory model number, e.g. "A3434": the number on the regulatory
+    /// label and in Apple's support pages, distinct from the `hw.model`
+    /// identifier. Empty if unavailable.
     public static func regulatoryModelNumber() -> String {
         platformExpertString("regulatory-model-number")
     }

@@ -125,8 +125,9 @@ public struct AppleSmartBattery: Equatable, Sendable {
     /// versions that work fine), we validate the fields: a real battery always has
     /// a positive design and full-charge capacity, and a health that lands in a
     /// plausible band. Garbage from a changed/missing key fails this and is shown
-    /// as "not readable" instead of as bogus numbers. This mirrors how
-    /// coconutBattery degrades by field rather than by version.
+    /// as "not readable" instead of as bogus numbers. Degrading by field rather
+    /// than by version is what keeps this working on iOS releases we have never
+    /// seen.
     public var isPlausible: Bool {
         guard designCapacity > 0, fullChargeCapacitymAh > 0 else { return false }
         let health = Double(fullChargeCapacitymAh) / Double(designCapacity) * 100

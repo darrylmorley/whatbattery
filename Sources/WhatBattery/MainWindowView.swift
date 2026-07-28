@@ -3,9 +3,10 @@ import WhatBatteryCore
 import WhatBatteryAppKit
 import WhatBatteryDarwinBackend
 
-/// The main window opened from the menu bar dropdown. Two tabs, the coconutBattery
-/// model: "This Mac" (a free live Overview plus the Pro history section) and
-/// "iPhone / iPad" (the Pro iDevice battery view).
+/// The main window opened from the menu bar dropdown. Four tabs: "This Mac" (a
+/// free live Overview plus the Pro history and charging sections), "iPhone /
+/// iPad" (the Pro iDevice battery view), "Accessories" (free live levels plus
+/// Pro history), and "History" (long-term per-device health, Pro).
 struct MainWindowView: View {
     @ObservedObject var monitor: BatteryMonitor
     @ObservedObject private var proStatus = PluginRegistry.shared.proStatus
