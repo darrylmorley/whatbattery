@@ -15,6 +15,14 @@ final class BatteryMonitor: ObservableObject {
     /// The current battery snapshot, or nil on a desktop Mac with no battery.
     @Published private(set) var snapshot: BatterySnapshot?
 
+    /// The most recent snapshot that actually read, kept after `snapshot` goes
+    /// transiently nil. Views that have already established this Mac has a
+    /// battery show this rather than emptying out mid-layout; a five-second-old
+    /// reading beats a blank gap above an orphaned divider. Lives here, not in a
+    /// view's `@State`, so it survives the window being created or reopened
+    /// during a nil window.
+    @Published private(set) var lastGoodSnapshot: BatterySnapshot?
+
     /// Connected Bluetooth accessories and their battery levels. Refreshed
     /// immediately on a Bluetooth connect/disconnect event, plus a slow poll to
     /// keep levels current (the reader runs a `system_profiler` subprocess).
@@ -30,8 +38,14 @@ final class BatteryMonitor: ObservableObject {
     /// The last set of widget-visible values pushed, so we only rewrite + reload
     /// the widget when something the widget shows actually changed.
     private var lastWidgetSignature: String?
+    /// Ticket for in-flight accessory reads; see `refreshAccessories`.
+    private var accessoryReadGeneration = 0
 
-    var hasBattery: Bool { snapshot != nil }
+    /// True once a battery has been seen. Latched rather than tracking
+    /// `snapshot != nil`, because a transient IOKit miss must not make the main
+    /// window announce "No battery on this Mac". A Mac does not gain or lose one
+    /// while running.
+    private(set) var hasBattery = false
 
     init() {
         refresh()
@@ -52,6 +66,10 @@ final class BatteryMonitor: ObservableObject {
 
     func refresh() {
         snapshot = provider.currentSnapshot()
+        if let snapshot {
+            hasBattery = true
+            lastGoodSnapshot = snapshot
+        }
         updateWidget()
         if let snapshot {
             for hook in PluginRegistry.shared.sampleHooks {
@@ -85,7 +103,15 @@ final class BatteryMonitor: ObservableObject {
 
     /// Read accessory levels off the main actor (the reader spawns a
     /// `system_profiler` subprocess), then publish on the main actor.
+    ///
+    /// Several reads can be in flight at once (the 300s timer, the 1.5s
+    /// Bluetooth debounce, and opening the Accessories tab), and they do not
+    /// finish in the order they started. Each read takes a ticket and only the
+    /// newest one is allowed to publish, so a slow older read cannot overwrite a
+    /// newer list.
     func refreshAccessories() {
+        accessoryReadGeneration &+= 1
+        let generation = accessoryReadGeneration
         // The detached child does the blocking read off the main actor; the
         // surrounding Task is main-actor-isolated (BatteryMonitor is @MainActor),
         // so the assignment lands back on main without capturing self off-actor.
@@ -93,7 +119,8 @@ final class BatteryMonitor: ObservableObject {
             let accessories = await Task.detached(priority: .utility) {
                 AccessoryBatteryReader.readAll()
             }.value
-            self?.accessories = accessories
+            guard let self, generation == self.accessoryReadGeneration else { return }
+            self.accessories = accessories
             for hook in PluginRegistry.shared.accessorySampleHooks {
                 hook(accessories)
             }

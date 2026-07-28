@@ -14,7 +14,7 @@ struct UpdateBanner: View {
         HStack(spacing: 10) {
             Image(systemName: "arrow.down.circle.fill")
                 .scaledFont(.title3)
-                .foregroundStyle(.tint)
+                .foregroundStyle(.blue)
             VStack(alignment: .leading, spacing: 2) {
                 Text("WhatBattery \(update.version) is available")
                     .scaledFont(.callout, weight: .bold)
@@ -27,7 +27,10 @@ struct UpdateBanner: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
-        .background(Color.accentColor.opacity(0.12))
+        // A fixed informational blue, not Color.accentColor: the accent follows
+        // the user's system colour, so a red or graphite accent made this
+        // "there's a new version" banner read as an alert.
+        .background(Color.blue.opacity(0.12))
         .clipShape(RoundedRectangle(cornerRadius: 10))
     }
 

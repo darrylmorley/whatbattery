@@ -21,6 +21,9 @@ packages:
 
 settings:
   base:
+    # Placeholders only. scripts/smoke-test.sh passes the real VERSION and
+    # BUILD_NUMBER to xcodebuild, so these apply solely to a direct Xcode build
+    # and are deliberately not kept in step with the release.
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
 

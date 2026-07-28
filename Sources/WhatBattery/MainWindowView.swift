@@ -7,13 +7,31 @@ import WhatBatteryDarwinBackend
 /// free live Overview plus the Pro history and charging sections), "iPhone /
 /// iPad" (the Pro iDevice battery view), "Accessories" (free live levels plus
 /// Pro history), and "History" (long-term per-device health, Pro).
+///
+/// Deliberately does **not** observe `monitor`. The monitor republishes every 5
+/// seconds, and this body builds the Pro sections by calling the registry's
+/// `AnyView` builders. SwiftUI cannot see inside an `AnyView` to prove its
+/// content is unchanged, so re-running this body made both Lifetime Analyzer
+/// charts, the charging cards and the health history re-evaluate on every tick.
+/// The live values are read by the small child views below, which observe the
+/// monitor themselves and so re-render alone.
 struct MainWindowView: View {
-    @ObservedObject var monitor: BatteryMonitor
+    let monitor: BatteryMonitor
     @ObservedObject private var proStatus = PluginRegistry.shared.proStatus
     @ObservedObject private var updates = UpdateChecker.shared
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
     @AppStorage(FontScale.key) private var fontScale = FontScale.defaultValue
     @State private var selectedTab: Tab = .mac
+    /// Whether to show the battery sections at all. Seeded from the monitor's
+    /// first (synchronous) read and latched on, so a transient IOKit miss cannot
+    /// collapse the tab into the desktop-Mac message. A Mac does not gain or
+    /// lose a battery while running.
+    @State private var hasBattery: Bool
+
+    init(monitor: BatteryMonitor) {
+        self.monitor = monitor
+        _hasBattery = State(initialValue: monitor.hasBattery)
+    }
 
     private enum Tab: Hashable { case mac, iDevice, accessories, history }
 
@@ -44,6 +62,20 @@ struct MainWindowView: View {
         .onChange(of: selectedTab) { _, tab in
             if tab == .accessories { monitor.startAccessoryWatchingIfNeeded() }
         }
+        // Covers the one case the seed above cannot: the first IOKit read came
+        // back empty on a Mac that does have a battery. `hasBattery` is not
+        // published (the whole point is that this view does not observe the
+        // monitor), so nothing would re-render on a later success. Polls until
+        // it latches or the window closes, rather than giving up after a fixed
+        // few tries and stranding the window on "No battery on this Mac". On a
+        // real desktop this is one Bool read every five seconds, forever, which
+        // is cheaper than the observation it replaces.
+        .task {
+            while !hasBattery, !Task.isCancelled {
+                if monitor.hasBattery { hasBattery = true; break }
+                try? await Task.sleep(for: .seconds(5))
+            }
+        }
     }
 
     // MARK: - This Mac
@@ -54,8 +86,9 @@ struct MainWindowView: View {
                 if let update = updates.available {
                     UpdateBanner(update: update)
                 }
-                if let snapshot = monitor.snapshot {
-                    OverviewCard(snapshot: snapshot, tempUnit: tempUnit, isPro: proStatus.isUnlocked)
+                if hasBattery {
+                    // The only part of this tab tied to the 5-second refresh.
+                    LiveOverviewSection(monitor: monitor, tempUnit: tempUnit, isPro: proStatus.isUnlocked)
                     Divider()
                     historySection
                     chargingSection
@@ -114,7 +147,10 @@ struct MainWindowView: View {
     private var accessoriesTab: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                AccessoriesCard(accessories: monitor.accessories)
+                // Observes the monitor on its own, for the same reason as the
+                // This Mac tab: the Pro section below must not be rebuilt every
+                // time an accessory level lands.
+                LiveAccessoriesSection(monitor: monitor)
                 Divider()
                 accessoriesProSection
             }
@@ -184,6 +220,64 @@ struct MainWindowView: View {
     }
 }
 
+// MARK: - Live sections
+//
+// These exist purely to confine observation of `BatteryMonitor`. Each one
+// re-renders when the monitor republishes; their siblings in `MainWindowView`,
+// including the expensive Pro subtrees, do not.
+
+private struct LiveOverviewSection: View {
+    @ObservedObject var monitor: BatteryMonitor
+    let tempUnit: BatteryFormatter.TemperatureUnit
+    let isPro: Bool
+    /// How long a last-good reading may stand in for a live one. The monitor
+    /// refreshes every 5 seconds, so a minute covers a run of transient misses.
+    /// Past that the card would be presenting a minutes-old temperature,
+    /// wattage and charge as current, with nothing on screen saying otherwise,
+    /// so it says it cannot read instead.
+    private static let staleAfter: TimeInterval = 60
+
+    var body: some View {
+        // The parent only renders this section once a battery has been seen, so
+        // going empty on a transient nil would leave a blank gap above an
+        // orphaned divider and the Pro sections. The fallback lives on the
+        // monitor rather than in `@State` here, so it is already populated when
+        // this view is created, including when the window is first opened
+        // during a nil.
+        if let snapshot = displaySnapshot {
+            OverviewCard(snapshot: snapshot, tempUnit: tempUnit, isPro: isPro)
+        } else {
+            ContentUnavailableView(
+                "Battery reading unavailable",
+                systemImage: "exclamationmark.triangle",
+                description: Text("WhatBattery can't read this Mac's battery right now. This usually clears on its own.")
+            )
+            .frame(maxWidth: .infinity, minHeight: 280)
+        }
+    }
+
+    private var displaySnapshot: BatterySnapshot? {
+        if let live = monitor.snapshot { return live }
+        guard let last = monitor.lastGoodSnapshot else { return nil }
+        // `Date` is not monotonic, so a negative age is reachable: move the Mac's
+        // clock back and a bare `age < staleAfter` would call an old reading
+        // fresh until wall time caught up, potentially for hours. Treating a
+        // negative age as stale fails the safe way, and costs nothing, since the
+        // next successful read replaces this within five seconds anyway.
+        let age = Date().timeIntervalSince(last.timestamp)
+        guard age >= 0, age < Self.staleAfter else { return nil }
+        return last
+    }
+}
+
+private struct LiveAccessoriesSection: View {
+    @ObservedObject var monitor: BatteryMonitor
+
+    var body: some View {
+        AccessoriesCard(accessories: monitor.accessories)
+    }
+}
+
 // MARK: - Overview (free)
 
 private struct OverviewCard: View {
@@ -238,6 +332,10 @@ private struct OverviewCard: View {
             }
             Spacer()
         }
+        // The big number, "Battery health", the capacity line and the device
+        // name are four separate VoiceOver stops otherwise, read as disconnected
+        // fragments. Combined they announce as one sentence.
+        .accessibilityElement(children: .combine)
     }
 
     private var grid: some View {
@@ -284,9 +382,7 @@ private struct OverviewCard: View {
     }
 
     private var power: String {
-        var text = BatteryFormatter.power(snapshot.powerWatts)
-        if let adapter = snapshot.adapter?.label { text += "  (\(adapter))" }
-        return text
+        BatteryFormatter.powerLine(snapshot)
     }
 
     private var conditionColor: Color {

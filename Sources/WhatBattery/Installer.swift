@@ -168,9 +168,14 @@ final class Installer: ObservableObject {
         if bundleID != Self.expectedBundleID {
             throw InstallError("Unexpected bundle identifier: \(bundleID)")
         }
-        // Verify signature structure is valid.
-        try await run("/usr/bin/codesign", ["--verify", "--deep", "--strict", new.path])
-        // Verify Gatekeeper / notarization acceptance.
+        // Verify signature structure is valid. No --deep: Apple deprecates it for
+        // verification, and it adds nothing here. Bundle verification already
+        // walks nested code (the widget appex and the CLI helper) because the
+        // top-level seal covers their hashes, and --strict rejects the sloppy
+        // structures --deep was meant to catch.
+        try await run("/usr/bin/codesign", ["--verify", "--strict", new.path])
+        // Verify Gatekeeper / notarization acceptance. This is the deep check:
+        // spctl assesses the whole bundle as Gatekeeper would on first launch.
         try await run("/usr/sbin/spctl", ["--assess", "--type", "execute", new.path])
         // Strip quarantine only after all checks pass.
         _ = try? await run("/usr/bin/xattr", ["-dr", "com.apple.quarantine", new.path])

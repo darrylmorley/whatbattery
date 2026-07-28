@@ -55,6 +55,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 await hook()
             }
         }
+        // `monitor` is a stored property, so its first read ran before the line
+        // above registered any sample hook: that snapshot went nowhere. Read
+        // again now the plugins are listening, so the samplers do not miss the
+        // launch sample and ChargingView has a snapshot to describe rather than
+        // waiting up to five seconds for the timer.
+        monitor.refresh()
 
         // Free in-app updater: one check at launch, then every 6h.
         UpdateChecker.shared.start()
@@ -191,7 +197,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // does not fire reliably for a reused hosting controller). Start transient;
         // the settings pane flips it sticky while it is open.
         popover.behavior = .transient
-        popover.contentViewController = NSHostingController(rootView: MenuContentView(monitor: monitor))
+        // Size against the display holding the status item, not NSScreen.main
+        // (the focused display), so a popover opened on a short secondary screen
+        // is bounded by that screen rather than by a taller primary one.
+        let available = sender.window?.screen?.visibleFrame.height
+        popover.contentViewController = NSHostingController(
+            rootView: MenuContentView(monitor: monitor, availableHeight: available)
+        )
         popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
         popover.contentViewController?.view.window?.makeKey()
@@ -255,7 +267,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // Open tall enough to show the full This Mac tab without scrolling;
             // still resizable, and the content scrolls if shrunk or on a short
             // display.
-            let window = makeWindow(title: "WhatBattery", width: 480, height: 880, resizable: true) {
+            // 600 matches MainWindowView's own minWidth (four tabs need it). The
+            // old 480 here was dead: the min constraint overrode it on open.
+            let window = makeWindow(title: "WhatBattery", width: 600, height: 880, resizable: true) {
                 MainWindowView(monitor: monitor)
             }
             mainWindow = window

@@ -6,6 +6,13 @@ import WhatBatteryAppKit
 /// The dropdown shown when the menu bar icon is clicked.
 struct MenuContentView: View {
     @ObservedObject var monitor: BatteryMonitor
+    /// Height available on the display the popover will actually appear on,
+    /// passed in by the delegate from the status item's own window. Cannot be
+    /// derived here: `NSScreen.main` is the focused display, which on a
+    /// multi-monitor Mac is often not the one holding the menu bar item, so
+    /// deriving it locally could size the popover for a taller screen than the
+    /// one it opens on. Nil falls back to `NSScreen.main`.
+    var availableHeight: CGFloat?
     @ObservedObject private var proStatus = PluginRegistry.shared.proStatus
     @ObservedObject private var updates = UpdateChecker.shared
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
@@ -32,7 +39,7 @@ struct MenuContentView: View {
         // the popover (NSPopover doesn't animate intrinsic SwiftUI size changes).
         // The height grows with the accessory list; Settings absorbs any slack
         // with its Spacer, so the two panes stay the same height.
-        .frame(width: 340, height: popoverHeight)
+        .frame(width: popoverWidth, height: popoverHeight)
         .environment(\.fontScale, FontScale.clamp(fontScale))
     }
 
@@ -41,13 +48,34 @@ struct MenuContentView: View {
     /// list scrolls instead of running off-screen. The Settings form fits itself
     /// to whatever height this gives (see `settingsPane`).
     private static let popoverMaxHeight: CGFloat = 560
+    private static let popoverBaseWidth: CGFloat = 340
+    private static let batteryPaneHeight: CGFloat = 330
+
+    /// Every popover dimension is measured at 100% text and multiplied by the
+    /// user's font scale. The frame used to be fixed while the slider went to
+    /// 140%, so large-text users got clipped content and truncated values in a
+    /// popover that never grew to hold them.
+    private var scale: CGFloat { CGFloat(FontScale.clamp(fontScale)) }
+
+    private var popoverWidth: CGFloat { Self.popoverBaseWidth * scale }
 
     private var popoverHeight: CGFloat {
-        let batteryPane: CGFloat = 330
         let accessories = monitor.accessories.isEmpty
             ? 0
             : 26 + CGFloat(monitor.accessories.count) * 24
-        return min(Self.popoverMaxHeight, batteryPane + accessories)
+        let wanted = min(Self.popoverMaxHeight, Self.batteryPaneHeight + accessories) * scale
+        // The 560 cap is measured at 100% text, so scaling it lets a full
+        // accessory list at 140% ask for 784pt, which overflows a short display.
+        // The screen gets the final say. Losing height is safe rather than
+        // clipping: the accessory list is the only flexible row in `mainPane`,
+        // so a shorter frame shrinks its ScrollView and the battery header and
+        // footer stay put.
+        guard let visible = availableHeight ?? NSScreen.main?.visibleFrame.height else { return wanted }
+        // No floor above the ceiling: an earlier `max(batteryPaneHeight, ...)`
+        // here re-created the very overflow it was guarding against, since 330
+        // is unscaled and beats `visible - 24` on any display shorter than
+        // 354pt. The screen bound always wins; `max(0,)` only stops a negative.
+        return min(wanted, max(0, visible - 24))
     }
 
     // MARK: - Panes
@@ -99,8 +127,9 @@ struct MenuContentView: View {
                 Spacer()
             }
             // Fit the form to the popover height (which the accessory list sizes),
-            // so the grouped form scrolls internally instead of clipping.
-            SettingsView(embedded: true, embeddedHeight: popoverHeight - 64)
+            // so the grouped form scrolls internally instead of clipping. The 64
+            // is the header row plus padding above, which scales with the text.
+            SettingsView(embedded: true, embeddedHeight: max(0, popoverHeight - 64 * scale))
         }
         .frame(maxHeight: .infinity, alignment: .top)
     }
@@ -263,11 +292,7 @@ struct MenuContentView: View {
     // MARK: - Formatting
 
     private func powerText(_ snapshot: BatterySnapshot) -> String {
-        var text = BatteryFormatter.power(snapshot.powerWatts)
-        if let adapter = snapshot.adapter?.label {
-            text += "  (\(adapter))"
-        }
-        return text
+        BatteryFormatter.powerLine(snapshot)
     }
 
 }

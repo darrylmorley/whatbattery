@@ -4,7 +4,10 @@ import WhatBatteryDarwinBackend
 import WhatBatteryAppKit
 import WhatBatteryPlugins
 
-let cliVersion = "0.1.0-dev"
+// Drives --version, the summary header and the usage text. AppInfo reads the
+// shipped Info.plist (walking up from the nested Contents/Helpers binary), so
+// this tracks the release instead of drifting from it as a literal did.
+let cliVersion = AppInfo.version
 
 @main
 struct WhatBatteryCLI {
@@ -185,9 +188,7 @@ private func renderSummary(_ snapshot: BatterySnapshot) -> String {
     lines.append(pad("Charge") + BatteryFormatter.chargeLine(snapshot))
     lines.append(pad("Cycles") + "\(snapshot.cycleCount)" + (snapshot.designCycleCount > 0 ? " (design \(snapshot.designCycleCount))" : ""))
     lines.append(pad("Temperature") + BatteryFormatter.temperature(snapshot.temperatureCelsius))
-    var powerLine = BatteryFormatter.power(snapshot.powerWatts)
-    if let adapter = snapshot.adapter?.label { powerLine += "  (\(adapter))" }
-    lines.append(pad("Power") + powerLine)
+    lines.append(pad("Power") + BatteryFormatter.powerLine(snapshot))
     lines.append(pad("Voltage") + BatteryFormatter.voltage(snapshot.voltageMillivolts))
     return lines.joined(separator: "\n")
 }
@@ -216,7 +217,7 @@ private func printUsage() {
       whatbattery            Battery summary
       whatbattery --json     Machine-readable snapshot (JSON)
       whatbattery --watch    Live-updating summary (Ctrl-C to stop)
-      whatbattery --idevice  Battery of a tethered/paired iPhone or iPad (spike)
+      whatbattery --idevice  Battery of a tethered/paired iPhone or iPad
       whatbattery --accessories  Bluetooth accessory battery levels
       whatbattery --version  Print version
       whatbattery --help     This help
