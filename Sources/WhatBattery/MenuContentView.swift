@@ -85,14 +85,31 @@ struct MenuContentView: View {
             Text("WhatBattery")
                 .scaledFont(.headline)
 
-            if let snapshot = monitor.snapshot {
+            // Same freshness-bounded fallback as the window's overview, and the
+            // desktop branch gates on the latched hasBattery, not on a nil
+            // snapshot: the DC-in SMC keys exist on laptops too, so a transient
+            // read miss at launch could otherwise show "No battery" with a
+            // perfectly real DC-in line under it.
+            if let snapshot = monitor.displaySnapshot {
                 header(snapshot)
                 Divider()
                 details(snapshot)
+            } else if monitor.hasBattery {
+                Text("Battery reading unavailable right now")
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 4)
             } else {
                 Text("No battery on this Mac")
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 4)
+                // Desktop: the DC-in rail is still worth a line, matching the
+                // CLI's no-battery fallback.
+                if let power = monitor.systemPower {
+                    Text("DC-in: " + BatteryFormatter.dcInPower(watts: power.watts, volts: power.volts, amps: power.amps))
+                        .scaledFont(.caption)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
             }
 
             if monitor.accessories.isEmpty {
@@ -170,10 +187,7 @@ struct MenuContentView: View {
         }
 
         if let health = snapshot.healthPercent {
-            ProgressView(value: min(health, 100), total: 100)
-                .tint(Theme.health(health))
-                .accessibilityLabel("Battery health")
-                .accessibilityValue("\(Int(health.rounded())) percent")
+            HealthBar(percent: health)
         }
     }
 

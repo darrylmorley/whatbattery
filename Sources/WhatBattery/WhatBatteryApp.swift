@@ -76,10 +76,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         setUpStatusItem()
         setUpPopover()
 
-        // The icon is static; the title (Mac charge, plus any Pro accessory
-        // readout) tracks live state. Rebuild it when the battery, the accessory
-        // list, the Pro unlock state, or the menu bar settings change.
-        let rebuild: () -> Void = { [weak self] in self?.refreshStatusTitle() }
+        // Both the glyph (charging / fill / desktop) and the title (badge, plus
+        // any Pro accessory readout) track live state. Rebuild when the battery,
+        // the accessory list, the Pro unlock state, or the settings change.
+        let rebuild: () -> Void = { [weak self] in self?.refreshStatusItem() }
         monitor.$snapshot.receive(on: RunLoop.main).sink { _ in rebuild() }.store(in: &cancellables)
         monitor.$accessories.receive(on: RunLoop.main).sink { _ in rebuild() }.store(in: &cancellables)
         PluginRegistry.shared.proStatus.$isUnlocked.receive(on: RunLoop.main).sink { _ in rebuild() }.store(in: &cancellables)
@@ -93,31 +93,69 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Status item
 
+    /// The symbol currently on the button, so a tick that lands on the same
+    /// state does not rebuild the image.
+    private var statusSymbolName: String?
+
     private func setUpStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         guard let button = statusItem.button else { return }
-        // A template image so the glyph adapts to the light / dark menu bar.
-        let icon = NSImage(systemSymbolName: "battery.100percent.circle", accessibilityDescription: "WhatBattery")
-        icon?.isTemplate = true
-        button.image = icon
         button.imagePosition = .imageLeading
         button.font = .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize(for: .small), weight: .regular)
-        refreshStatusTitle()
+        refreshStatusItem()
         button.target = self
         button.action = #selector(statusItemClicked(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
     }
 
-    /// Build the status title: the Mac's charge percentage, plus (Pro, when
-    /// enabled in Settings) one or all connected accessories as "icon NN%". Empty
-    /// on a Mac with no battery and no accessory to show, leaving just the glyph.
+    /// Rebuild the whole status item: the state-driven glyph, then the title.
+    private func refreshStatusItem() {
+        refreshStatusGlyph()
+        refreshStatusTitle()
+    }
+
+    /// The state-driven glyph: bolt on power, quartile fill discharging, a power
+    /// plug on a desktop. Only touches the button image when the symbol changed.
+    private func refreshStatusGlyph() {
+        guard let button = statusItem?.button else { return }
+        let name = MenuBarGlyph.symbolName(for: monitor.snapshot)
+        let description = MenuBarGlyph.accessibilityDescription(for: monitor.snapshot)
+        // On the BUTTON, not (only) the image: an NSButton with visible title
+        // text resolves its VoiceOver label from that text, so an image-level
+        // description never gets read while a badge is shown, which is the
+        // default. The button label wins regardless of badge choice.
+        button.setAccessibilityLabel(description)
+        guard name != statusSymbolName else { return }
+        // Fall back to the full battery if a symbol is ever missing on an older
+        // macOS, rather than blanking the menu bar item.
+        guard let icon = NSImage(systemSymbolName: name, accessibilityDescription: description)
+            ?? NSImage(systemSymbolName: "battery.100percent", accessibilityDescription: description) else { return }
+        // A template image so the glyph adapts to the light / dark menu bar.
+        icon.isTemplate = true
+        button.image = icon
+        statusSymbolName = name
+    }
+
+    /// Build the status title: the badge the user chose (charge %, health %, or
+    /// nothing), plus (Pro, when enabled in Settings) one or all connected
+    /// accessories as "icon NN%". Empty on a Mac with no battery and no
+    /// accessory to show, leaving just the glyph.
     private func refreshStatusTitle() {
         guard let button = statusItem?.button else { return }
         let font = button.font ?? .monospacedDigitSystemFont(ofSize: NSFont.systemFontSize(for: .small), weight: .regular)
         let title = NSMutableAttributedString()
 
         if let snapshot = monitor.snapshot {
-            title.append(NSAttributedString(string: " \(snapshot.currentChargePercent)%"))
+            switch MenuBarBadge.current {
+            case .charge:
+                title.append(NSAttributedString(string: " \(snapshot.currentChargePercent)%"))
+            case .health:
+                if let health = snapshot.healthPercent {
+                    title.append(NSAttributedString(string: " \(Int(health.rounded()))%"))
+                }
+            case .none:
+                break
+            }
         }
 
         for item in menuBarAccessoryItems() {
@@ -267,9 +305,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // Open tall enough to show the full This Mac tab without scrolling;
             // still resizable, and the content scrolls if shrunk or on a short
             // display.
-            // 600 matches MainWindowView's own minWidth (four tabs need it). The
-            // old 480 here was dead: the min constraint overrode it on open.
-            let window = makeWindow(title: "WhatBattery", width: 600, height: 880, resizable: true) {
+            // 680 matches MainWindowView's own minWidth (five tabs need it).
+            let window = makeWindow(title: "WhatBattery", width: 680, height: 880, resizable: true) {
                 MainWindowView(monitor: monitor)
             }
             mainWindow = window

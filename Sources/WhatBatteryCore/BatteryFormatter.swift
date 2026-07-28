@@ -58,6 +58,14 @@ public enum BatteryFormatter {
         return text
     }
 
+    /// The desktop DC-in line, e.g. "47.3 W (12.00 V, 3.94 A)". Shared by the
+    /// CLI's no-battery fallback and the GUI's desktop power view so the two
+    /// never drift. Raw doubles rather than the SMC struct because Core cannot
+    /// see the Darwin backend.
+    public static func dcInPower(watts: Double, volts: Double, amps: Double) -> String {
+        String(format: "%.1f W (%.2f V, %.2f A)", watts, volts, amps)
+    }
+
     public static func voltage(_ millivolts: Int) -> String {
         String(format: "%.2f V", Double(millivolts) / 1000)
     }

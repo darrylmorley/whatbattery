@@ -3,10 +3,11 @@ import WhatBatteryCore
 import WhatBatteryAppKit
 import WhatBatteryDarwinBackend
 
-/// The main window opened from the menu bar dropdown. Four tabs: "This Mac" (a
-/// free live Overview plus the Pro history and charging sections), "iPhone /
-/// iPad" (the Pro iDevice battery view), "Accessories" (free live levels plus
-/// Pro history), and "History" (long-term per-device health, Pro).
+/// The main window opened from the menu bar dropdown. Five tabs: "This Mac" (a
+/// free live Overview plus the Pro history section), "Charging" (the Pro
+/// charging sessions and charger verdict), "iPhone / iPad" (the Pro iDevice
+/// battery view), "Accessories" (free live levels plus Pro history), and
+/// "History" (long-term per-device health, Pro).
 ///
 /// Deliberately does **not** observe `monitor`. The monitor republishes every 5
 /// seconds, and this body builds the Pro sections by calling the registry's
@@ -33,7 +34,7 @@ struct MainWindowView: View {
         _hasBattery = State(initialValue: monitor.hasBattery)
     }
 
-    private enum Tab: Hashable { case mac, iDevice, accessories, history }
+    private enum Tab: Hashable { case mac, charging, iDevice, accessories, history }
 
     private var tempUnit: BatteryFormatter.TemperatureUnit {
         temperatureUnit == "F" ? .fahrenheit : .celsius
@@ -44,6 +45,9 @@ struct MainWindowView: View {
             macTab
                 .tabItem { Label("This Mac", systemImage: "laptopcomputer") }
                 .tag(Tab.mac)
+            chargingTab
+                .tabItem { Label("Charging", systemImage: "bolt.fill") }
+                .tag(Tab.charging)
             iDeviceTab
                 .tabItem { Label("iPhone / iPad", systemImage: "iphone") }
                 .tag(Tab.iDevice)
@@ -54,7 +58,8 @@ struct MainWindowView: View {
                 .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
                 .tag(Tab.history)
         }
-        .frame(minWidth: 600, minHeight: 440)
+        // 680 fits five tab labels; 600 was sized for four.
+        .frame(minWidth: 680, minHeight: 440)
         .environment(\.fontScale, FontScale.clamp(fontScale))
         .navigationTitle("WhatBattery")
         // Start the Bluetooth watcher (and the one-time permission prompt) only
@@ -90,19 +95,31 @@ struct MainWindowView: View {
                     // The only part of this tab tied to the 5-second refresh.
                     LiveOverviewSection(monitor: monitor, tempUnit: tempUnit, isPro: proStatus.isUnlocked)
                     Divider()
+                    appPowerSection
                     historySection
-                    chargingSection
                 } else {
-                    ContentUnavailableView(
-                        "No battery on this Mac",
-                        systemImage: "bolt.slash",
-                        description: Text("WhatBattery reports laptop battery health. Desktops have no battery.")
-                    )
-                    .frame(maxWidth: .infinity, minHeight: 280)
+                    // Desktop: no health to report, but the SMC DC-in rail is
+                    // still live, so show the power view SPEC asks for instead
+                    // of a bare empty state (the CLI has done this all along).
+                    DesktopPowerSection(monitor: monitor)
                 }
             }
             .padding(20)
             .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private var appPowerSection: some View {
+        // Per-app drain is Pro and lives in the plugins module, so the builder
+        // is nil in the free build. The history upsell below already sells Pro
+        // when locked, so this section is simply absent then rather than
+        // stacking a second card. The trailing Divider travels with it.
+        if proStatus.isUnlocked, let build = PluginRegistry.shared.appPowerSectionBuilder {
+            build()
+                // Pauses the per-app pid walk while another tab is frontmost.
+                .environment(\.macTabActive, selectedTab == .mac)
+            Divider()
         }
     }
 
@@ -119,14 +136,40 @@ struct MainWindowView: View {
         }
     }
 
+    // MARK: - Charging
+
+    private var chargingTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                chargingSection
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
     @ViewBuilder
     private var chargingSection: some View {
-        // The charging-session view is Pro and lives in the plugins module, so the
-        // builder is nil in the free build. The history section above already
-        // carries the Pro upsell when locked, so this is simply absent then.
-        if proStatus.isUnlocked, let build = PluginRegistry.shared.chargingSectionBuilder {
-            Divider()
+        // Inside This Mac this section sat behind the hasBattery gate; as its
+        // own tab it must carry the gate itself, or a desktop Mac would be told
+        // to "plug in" a battery it does not have.
+        if !hasBattery {
+            ContentUnavailableView(
+                "No battery to charge",
+                systemImage: "bolt.slash",
+                description: Text("Charging sessions describe a battery filling up. This Mac runs straight from mains power.")
+            )
+            .frame(maxWidth: .infinity, minHeight: 280)
+        } else if proStatus.isUnlocked, let build = PluginRegistry.shared.chargingSectionBuilder {
             build()
+                // Pauses the 5s reload while another tab is frontmost.
+                .environment(\.chargingTabActive, selectedTab == .charging)
+        } else {
+            UpsellCard(
+                title: "Charging sessions",
+                systemImage: "lock.fill",
+                message: "See each charge as a session: peak and sustained wattage, a verdict on whether your charger keeps up with your Mac, and a comparison across the chargers you use. A WhatBattery Pro feature."
+            )
         }
     }
 
@@ -230,21 +273,15 @@ private struct LiveOverviewSection: View {
     @ObservedObject var monitor: BatteryMonitor
     let tempUnit: BatteryFormatter.TemperatureUnit
     let isPro: Bool
-    /// How long a last-good reading may stand in for a live one. The monitor
-    /// refreshes every 5 seconds, so a minute covers a run of transient misses.
-    /// Past that the card would be presenting a minutes-old temperature,
-    /// wattage and charge as current, with nothing on screen saying otherwise,
-    /// so it says it cannot read instead.
-    private static let staleAfter: TimeInterval = 60
 
     var body: some View {
         // The parent only renders this section once a battery has been seen, so
         // going empty on a transient nil would leave a blank gap above an
-        // orphaned divider and the Pro sections. The fallback lives on the
-        // monitor rather than in `@State` here, so it is already populated when
-        // this view is created, including when the window is first opened
-        // during a nil.
-        if let snapshot = displaySnapshot {
+        // orphaned divider and the Pro sections. The freshness-bounded fallback
+        // lives on the monitor (shared with the popover), so it is already
+        // populated when this view is created, including when the window is
+        // first opened during a nil.
+        if let snapshot = monitor.displaySnapshot {
             OverviewCard(snapshot: snapshot, tempUnit: tempUnit, isPro: isPro)
         } else {
             ContentUnavailableView(
@@ -255,19 +292,6 @@ private struct LiveOverviewSection: View {
             .frame(maxWidth: .infinity, minHeight: 280)
         }
     }
-
-    private var displaySnapshot: BatterySnapshot? {
-        if let live = monitor.snapshot { return live }
-        guard let last = monitor.lastGoodSnapshot else { return nil }
-        // `Date` is not monotonic, so a negative age is reachable: move the Mac's
-        // clock back and a bare `age < staleAfter` would call an old reading
-        // fresh until wall time caught up, potentially for hours. Treating a
-        // negative age as stale fails the safe way, and costs nothing, since the
-        // next successful read replaces this within five seconds anyway.
-        let age = Date().timeIntervalSince(last.timestamp)
-        guard age >= 0, age < Self.staleAfter else { return nil }
-        return last
-    }
 }
 
 private struct LiveAccessoriesSection: View {
@@ -275,6 +299,48 @@ private struct LiveAccessoriesSection: View {
 
     var body: some View {
         AccessoriesCard(accessories: monitor.accessories)
+    }
+}
+
+/// The desktop-Mac face of the This Mac tab: no battery to report, but the SMC
+/// DC-in rail is live, so surface it as a small power view (the SPEC edge case)
+/// rather than only an empty state. Falls back to the plain explanation when
+/// the SMC gives nothing.
+private struct DesktopPowerSection: View {
+    @ObservedObject var monitor: BatteryMonitor
+
+    var body: some View {
+        if let power = monitor.systemPower {
+            VStack(alignment: .leading, spacing: 14) {
+                Label("Power", systemImage: "powerplug").scaledFont(.headline)
+                Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
+                    GridRow {
+                        Text("DC-in").foregroundStyle(.secondary).gridColumnAlignment(.leading)
+                        Text(String(format: "%.1f W", power.watts)).monospacedDigit()
+                    }
+                    GridRow {
+                        Text("Voltage").foregroundStyle(.secondary)
+                        Text(String(format: "%.2f V", power.volts)).monospacedDigit()
+                    }
+                    GridRow {
+                        Text("Current").foregroundStyle(.secondary)
+                        Text(String(format: "%.2f A", power.amps)).monospacedDigit()
+                    }
+                }
+                .scaledFont(.callout)
+                Text("This Mac has no battery. These figures are the DC input feeding the logic board, refreshed every few seconds.")
+                    .scaledFont(.caption)
+                    .foregroundStyle(.tertiary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            ContentUnavailableView(
+                "No battery on this Mac",
+                systemImage: "bolt.slash",
+                description: Text("WhatBattery reports laptop battery health. Desktops have no battery.")
+            )
+            .frame(maxWidth: .infinity, minHeight: 280)
+        }
     }
 }
 
@@ -294,10 +360,7 @@ private struct OverviewCard: View {
             header
 
             if let health = snapshot.healthPercent {
-                ProgressView(value: min(health, 100), total: 100)
-                    .tint(Theme.health(health))
-                    .accessibilityLabel("Battery health")
-                    .accessibilityValue("\(Int(health.rounded())) percent")
+                HealthBar(percent: health)
             }
 
             grid
@@ -341,9 +404,15 @@ private struct OverviewCard: View {
     private var grid: some View {
         Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
             if condition != .unknown {
-                GridRow {
+                // Baseline-aligned explicitly: this is the one row whose value
+                // cell is a capsule rather than plain Text, and Grid's automatic
+                // row alignment keys off Text baselines.
+                GridRow(alignment: .firstTextBaseline) {
                     Text("Condition").foregroundStyle(.secondary).gridColumnAlignment(.leading)
-                    Text(condition.label).foregroundStyle(conditionColor)
+                    // A pill, not coloured text: the vivid status colours are
+                    // roughly 2:1 on a light window, and the capsule carries
+                    // the state without leaning on the glyph strokes.
+                    StatusPill(condition.label, status: conditionStatus)
                 }
             }
             row("Charge", BatteryFormatter.chargeLine(snapshot, includeTimeEstimate: false))
@@ -385,12 +454,13 @@ private struct OverviewCard: View {
         BatteryFormatter.powerLine(snapshot)
     }
 
-    private var conditionColor: Color {
+    private var conditionStatus: Theme.Status {
         switch condition {
-        case .normal: return .green
-        case .serviceRecommended: return .orange
-        case .serviceBattery: return .red
-        case .unknown: return .secondary
+        case .normal: return .good
+        case .serviceRecommended: return .warning
+        // .unknown never reaches here (the row is hidden), so it shares the
+        // cautious band rather than inventing a fourth.
+        case .serviceBattery, .unknown: return .critical
         }
     }
 
@@ -468,7 +538,7 @@ private struct AccessoriesCard: View {
                     // build, and gated on the licence) rather than capturing it at
                     // view-init, so it's never a stale snapshot of the registry.
                     if let seconds = PluginRegistry.shared.accessoryEstimateProvider?(accessory.id) {
-                        Text(AccessoryFormatting.timeToEmpty(seconds))
+                        Text(AccessoryFormatting.timeToEmpty(seconds, kind: accessory.kind))
                             .scaledFont(.caption)
                             .foregroundStyle(.tertiary)
                     }
@@ -481,9 +551,12 @@ private struct AccessoriesCard: View {
             Spacer()
             if let lowest = accessory.lowestPercent {
                 VStack(alignment: .trailing, spacing: 4) {
+                    // Text-grade variant: the vivid band colour is unreadable
+                    // as text on a light window. The bar below keeps the vivid
+                    // fill, so the colour signal is not lost.
                     Text("\(lowest)%")
                         .scaledFont(.title3).monospacedDigit()
-                        .foregroundStyle(Theme.level(lowest))
+                        .foregroundStyle(Theme.levelText(lowest))
                     ProgressView(value: Double(lowest), total: 100)
                         .tint(Theme.level(lowest))
                         .frame(width: 80)

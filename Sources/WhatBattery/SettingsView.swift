@@ -8,6 +8,7 @@ struct SettingsView: View {
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
     @AppStorage(FontScale.key) private var fontScale = FontScale.defaultValue
     @AppStorage(UpdateChecker.notifyKey) private var notifyOnUpdates = true
+    @AppStorage(MenuBarBadge.key) private var menuBarBadge = MenuBarBadge.charge.rawValue
     @ObservedObject private var updates = UpdateChecker.shared
     @ObservedObject private var launchAtLogin = LaunchAtLogin.shared
     /// When embedded in the menu bar popover, drop the fixed window frame and let
@@ -28,6 +29,11 @@ struct SettingsView: View {
                     Text(message)
                         .scaledFont(.caption)
                         .foregroundStyle(.secondary)
+                }
+                Picker("Menu bar shows", selection: $menuBarBadge) {
+                    ForEach(MenuBarBadge.allCases) { badge in
+                        Text(badge.label).tag(badge.rawValue)
+                    }
                 }
             }
 

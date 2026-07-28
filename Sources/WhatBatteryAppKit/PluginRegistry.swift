@@ -71,6 +71,15 @@ public final class PluginRegistry {
         chargingSectionBuilder = chargingSection
     }
 
+    // The per-app power ("What's using power") view injected into the main
+    // window's This Mac tab below the Overview, gated by licence. Nil in the
+    // free build (the public mirror's no-op bootstrap never registers it), so
+    // the window shows a Pro upsell instead.
+    public private(set) var appPowerSectionBuilder: (@MainActor () -> AnyView)?
+    public func register(appPowerSection: @escaping @MainActor () -> AnyView) {
+        appPowerSectionBuilder = appPowerSection
+    }
+
     // The iPhone/iPad view injected into the main window's iDevice tab, gated by
     // licence. Nil in the free build (the public mirror's no-op bootstrap never
     // registers it), so the window shows a Pro upsell instead.

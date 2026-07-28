@@ -23,6 +23,32 @@ final class BatteryMonitor: ObservableObject {
     /// during a nil window.
     @Published private(set) var lastGoodSnapshot: BatterySnapshot?
 
+    /// Desktop fallback: the SMC DC-in rail (`VD0R`/`ID0R`/`PDTR`), refreshed on
+    /// the same 5-second tick, but only while no battery has ever been seen.
+    /// After the latch it is nil on a laptop and stays that way; before the
+    /// latch there is a brief launch window where a laptop can populate it (the
+    /// DC-in keys exist on laptops too), which is why every desktop-facing view
+    /// gates on `hasBattery`, never on this being non-nil alone.
+    @Published private(set) var systemPower: SMCSystemPowerInput?
+
+    /// How long a last-good reading may stand in for a live one: a minute
+    /// covers a run of transient misses at the 5-second refresh; past that the
+    /// views say "unavailable" rather than presenting minutes-old figures as
+    /// current.
+    private static let staleAfter: TimeInterval = 60
+
+    /// The snapshot views should render: the live one, or the last good one
+    /// while it is still fresh. `Date` is not monotonic, so a negative age
+    /// (clock moved back) counts as stale and fails the safe way. Shared by the
+    /// window's overview and the popover so their fallback rules cannot drift.
+    var displaySnapshot: BatterySnapshot? {
+        if let snapshot { return snapshot }
+        guard let last = lastGoodSnapshot else { return nil }
+        let age = Date().timeIntervalSince(last.timestamp)
+        guard age >= 0, age < Self.staleAfter else { return nil }
+        return last
+    }
+
     /// Connected Bluetooth accessories and their battery levels. Refreshed
     /// immediately on a Bluetooth connect/disconnect event, plus a slow poll to
     /// keep levels current (the reader runs a `system_profiler` subprocess).
@@ -69,6 +95,13 @@ final class BatteryMonitor: ObservableObject {
         if let snapshot {
             hasBattery = true
             lastGoodSnapshot = snapshot
+        }
+        if !hasBattery {
+            systemPower = provider.systemPowerInput()
+        } else if systemPower != nil {
+            // A battery appeared after a transient launch miss: this is a
+            // laptop, so drop the desktop reading rather than leaving it stale.
+            systemPower = nil
         }
         updateWidget()
         if let snapshot {

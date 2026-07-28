@@ -174,7 +174,7 @@ private func deviceLabel(_ d: IDeviceBatteryReader.DeviceInfo, connection: Strin
 private func exitNoBattery(_ provider: DarwinSnapshotProvider) -> Never {
     errln("No battery on this Mac (desktop, or AppleSmartBattery unavailable).")
     if let input = provider.systemPowerInput() {
-        print(String(format: "DC-in power: %.1f W (%.2f V, %.2f A)", input.watts, input.volts, input.amps))
+        print("DC-in power: " + BatteryFormatter.dcInPower(watts: input.watts, volts: input.volts, amps: input.amps))
     }
     exit(2)
 }

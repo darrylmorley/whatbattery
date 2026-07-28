@@ -20,10 +20,15 @@ enum AccessoryFormatting {
         accessory.levelSummary
     }
 
-    /// "About 5h left" from a projected time-to-empty in seconds. Matches the
-    /// wording of the Pro history view's fuller estimate line.
-    static func timeToEmpty(_ seconds: TimeInterval) -> String {
-        "About \(duration(seconds)) left"
+    /// "About 5h left" from a projected time-to-empty in seconds; for
+    /// headphones, "About 5h of listening left", the framing that actually
+    /// answers the AirPods question. "About" is doing real work here: the
+    /// discharge rate varies with volume and ANC, so the estimate is honest
+    /// but rough.
+    static func timeToEmpty(_ seconds: TimeInterval, kind: Accessory.Kind = .other) -> String {
+        kind == .headphones
+            ? "About \(duration(seconds)) of listening left"
+            : "About \(duration(seconds)) left"
     }
 
     /// "<1h", "5h", "3 days", "3 weeks".
