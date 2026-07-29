@@ -45,7 +45,7 @@ struct WhatBatteryCLI {
         }
 
         if args.contains("--accessories") {
-            runAccessories(json: args.contains("--json"))
+            await runAccessories(json: args.contains("--json"))
             return
         }
 
@@ -137,9 +137,15 @@ private func runIDevice(json: Bool) {
 }
 
 /// List Bluetooth accessory battery levels (keyboard, mouse, trackpad, AirPods).
-/// Devices that report no level show as "battery unavailable".
-private func runAccessories(json: Bool) {
-    let accessories = AccessoryBatteryReader.readAll()
+/// Devices that report no level show as "battery unavailable". BLE accessories
+/// that only publish battery over GATT are filled from that service, matching
+/// the app; without Bluetooth permission the GATT half quietly contributes
+/// nothing.
+private func runAccessories(json: Bool) async {
+    let accessories = AccessoryBLEMerge.merge(
+        AccessoryBatteryReader.readAll(),
+        bleLevels: await BLEBatteryReader.readLevels()
+    )
     if json {
         print(encodeJSON(accessories))
         return

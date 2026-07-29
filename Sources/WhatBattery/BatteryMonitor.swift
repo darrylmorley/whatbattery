@@ -175,9 +175,15 @@ final class BatteryMonitor: ObservableObject {
         // surrounding Task is main-actor-isolated (BatteryMonitor is @MainActor),
         // so the assignment lands back on main without capturing self off-actor.
         Task { [weak self] in
-            let accessories = await Task.detached(priority: .utility) {
+            // Two sources, read concurrently: system_profiler for the list and
+            // most levels, and the GATT battery service for BLE accessories
+            // (Logitech mice and the like) that the profiler lists with no
+            // battery key at all. The merge never overrides a profiler level.
+            async let profiled = Task.detached(priority: .utility) {
                 AccessoryBatteryReader.readAll()
             }.value
+            async let bleLevels = BLEBatteryReader.readLevels()
+            let accessories = AccessoryBLEMerge.merge(await profiled, bleLevels: await bleLevels)
             guard let self, generation == self.accessoryReadGeneration else { return }
             self.accessories = accessories
             for hook in PluginRegistry.shared.accessorySampleHooks {
