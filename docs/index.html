@@ -72,9 +72,9 @@
       </span>
       <h1>See what your battery is <span class="accent">actually doing.</span></h1>
       <p class="lede">
-        WhatBattery shows the real health, live power in and out, and the service
-        condition for your Mac, iPhone, and iPad. Right from the menu bar. No rounding,
-        no guessing.
+        WhatBattery shows the real health, live power in and out, which apps are
+        using it, and the service condition for your Mac, iPhone, and iPad. Right
+        from the menu bar. No rounding, no guessing.
       </p>
       <div class="actions">
         <a class="button primary" href="https://github.com/darrylmorley/whatbattery/releases">
@@ -125,8 +125,8 @@
       </div>
       <div class="problem-card">
         <span class="label power">How much power, right now?</span>
-        <div class="ask">Watts in, and watts out?</div>
-        <p>See the live charge and discharge wattage, the charger your Mac negotiated, the voltage, and the temperature, updating in real time.</p>
+        <div class="ask">And which app is pulling it?</div>
+        <p>See the live charge and discharge wattage, the charger your Mac negotiated, the voltage, and the temperature. Plus your apps ranked by the power they're using, in real watts, not a mystery score.</p>
       </div>
       <div class="problem-card">
         <span class="label device">What about my iPhone?</span>
@@ -208,6 +208,27 @@
         <h3>Service condition</h3>
         <p>The same Normal / Service Recommended condition macOS uses, read from the system, so you know when a battery actually needs attention.</p>
       </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>What's using power</h3>
+        <p>Your apps ranked by live watts, from the same kernel counters behind Activity Monitor's Energy tab, plus the top power users over the last day, week, or month. Honest framing: the screen and radios belong to nobody, so it never pretends to split the whole battery per app.</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <h3>Smart alerts</h3>
+        <p>Notifications for the things that actually wear a battery: sat plugged in at 100% for hours, no full cycle in a long while, wearing faster than its own trend, running warm while charging. Each fires once per crossing, not every five seconds.</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 4 12.7c-.6.5-1 1.3-1 2.1V17H9v-.2c0-.8-.4-1.6-1-2.1A7 7 0 0 1 12 2z"/></svg>
+        </div>
+        <h3>Charging habits</h3>
+        <p>Thirty days of your charging behaviour summarised, with a pointer when a habit warrants Optimized Charging or a charge limiter. WhatBattery only observes. It never changes how your Mac charges.</p>
+      </article>
     </div>
   </div>
 </section>
@@ -225,16 +246,24 @@
         <figcaption>This Mac: health, condition, and the Lifetime Analyzer</figcaption>
       </figure>
       <figure>
-        <img src="/img/screenshot-idevice.png" alt="WhatBattery iPhone tab showing 82.4% battery health, cycles, and a live graph" width="320" loading="lazy" />
+        <img src="/img/screenshot-apps.png" alt="WhatBattery Apps tab showing apps ranked by live watts and the top power users over 24 hours" width="320" loading="lazy" />
+        <figcaption>Apps: live watts per app, and the day's top power users</figcaption>
+      </figure>
+      <figure>
+        <img src="/img/screenshot-charging.png" alt="WhatBattery Charging tab showing the last charge, an underpowered charger verdict, recent charges, and a charger comparison" width="320" loading="lazy" />
+        <figcaption>Charging: every charge recorded, every charger judged</figcaption>
+      </figure>
+      <figure>
+        <img src="/img/screenshot-idevice.png" alt="WhatBattery iPhone tab showing 83.5% battery health, cycles, and live readings over Wi-Fi" width="320" loading="lazy" />
         <figcaption>iPhone &amp; iPad: health and live graph over the cable or Wi-Fi</figcaption>
       </figure>
       <figure>
-        <img src="/img/screenshot-history.png" alt="WhatBattery History tab listing Mac and iPhone with monthly health and cycle counts" width="320" loading="lazy" />
+        <img src="/img/screenshot-history.png" alt="WhatBattery History tab showing a Mac's health-over-time chart with monthly health and cycle counts" width="320" loading="lazy" />
         <figcaption>History: monthly health and cycles, per device, for years</figcaption>
       </figure>
       <figure>
-        <img src="/img/screenshot-accessories.png" alt="WhatBattery Accessories tab showing keyboard, AirPods, and mouse battery levels with a per-device history chart" width="320" loading="lazy" />
-        <figcaption>Accessories: keyboard, mouse, and AirPods levels, with Pro history</figcaption>
+        <img src="/img/screenshot-accessories.png" alt="WhatBattery Accessories tab showing keyboard, AirPods with a listening-time estimate, and a Logitech mouse level, with a per-device history chart" width="320" loading="lazy" />
+        <figcaption>Accessories: keyboard, mouse, and AirPods, with history and runtime estimates</figcaption>
       </figure>
     </div>
   </div>
@@ -292,6 +321,13 @@
       </article>
       <article class="feature">
         <div class="icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <h3>It names the hungry apps, honestly</h3>
+        <p>Real watts per app, live and over the day, from the kernel's own energy accounting. And it tells you what it can't know: the screen and radios aren't attributable per app, so it never dresses the numbers up as a share of your battery. Activity Monitor gives you a unitless score. This gives you watts.</p>
+      </article>
+      <article class="feature">
+        <div class="icon" aria-hidden="true">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
         </div>
         <h3>Read-only, unprivileged, open source</h3>
@@ -306,7 +342,7 @@
     <div class="section-head">
       <span class="section-tag">WhatBattery Pro</span>
       <h2>Track every battery you own, for years.</h2>
-      <p>The free app shows health and live power right now. Pro keeps a long-term, per-device record, forecasts when you'll need a new battery, judges your charger, reads your iPhone and iPad, and turns it all into reports you can hand to a warranty claim or a buyer.</p>
+      <p>The free app shows health and live power right now. Pro keeps a long-term, per-device record, shows which apps are using the power, forecasts when you'll need a new battery, judges your charger, coaches your charging habits, reads your iPhone and iPad, and turns it all into reports you can hand to a warranty claim or a buyer.</p>
     </div>
     <div class="pro-showcase">
       <figure>
@@ -344,6 +380,18 @@
           <li>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
             CSV and JSON export of your logged history
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            What's using power: apps by live watts, and the top users over time
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            Smart alerts: plugged in at 100% too long, calibration due, wearing fast, warm while charging
+          </li>
+          <li>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            Charging habits: 30 days of behaviour, and when a limiter would help
           </li>
           <li>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
@@ -423,7 +471,11 @@
       </div>
       <div class="faq-item">
         <h3>Which accessories show a battery level?</h3>
-        <p>Bluetooth keyboards, mice, trackpads, and AirPods that report their level over Bluetooth. AirPods are broken out per bud and case. Many third-party mice and headphones don't publish a level at all, so those show "Battery unavailable". Showing the levels is free; Pro adds a history, a time-till-empty estimate, low-battery alerts, and a menu bar readout.</p>
+        <p>Bluetooth keyboards, mice, trackpads, and AirPods. AirPods are broken out per bud and case. Since 1.2, devices that only publish battery over Bluetooth Low Energy, Logitech's MX mice among them, show a level too, matching what System Settings sees. A few devices publish nothing at all, and those still say "Battery unavailable" rather than a guess. Showing the levels is free. Pro adds a history, a time-till-empty estimate, low-battery alerts, and a menu bar readout.</p>
+      </div>
+      <div class="faq-item">
+        <h3>Why don't the app watts add up to the battery's drain?</h3>
+        <p>Because they honestly can't. The Apps tab shows the work the chip bills to your own processes. The display, the radios, and system processes belong to nobody in that accounting, so WhatBattery never scales app figures to match the battery's discharge. Tools that show "X% of your battery" per app are making that part up.</p>
       </div>
       <div class="faq-item">
         <h3>Why does it ask for Bluetooth access?</h3>
@@ -439,7 +491,11 @@
       </div>
       <div class="faq-item">
         <h3>Does it phone home?</h3>
-        <p>No analytics, no telemetry. It reads local battery data and nothing else. The only network call is a one-time licence check when you activate Pro. The source is on GitHub if you want to verify.</p>
+        <p>No analytics, no telemetry. Three network calls exist, all visible in the source: a licence check when you activate Pro, an update check against GitHub (which you can turn off), and the wear comparison below, which is off unless you opt in.</p>
+      </div>
+      <div class="faq-item">
+        <h3>What does the anonymous wear comparison share?</h3>
+        <p>If you opt in (Settings, Pro), WhatBattery contributes one anonymous reading a week: your Mac's model identifier ("Mac14,2"), the cycle count rounded down to the nearest 100, the health percent, and a coarse years-since-first-recorded figure. No serial, no device name, no OS version, no location, nothing tied to your licence. In return you see where your battery's health sits among other readings of the same model and cycle band. Contributions are kept for at most 13 months, and the payload is pinned by a test so a new field can't sneak in.</p>
       </div>
       <div class="faq-item">
         <h3>How does the two-Mac licence work?</h3>

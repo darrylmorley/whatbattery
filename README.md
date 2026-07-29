@@ -4,7 +4,7 @@
 
 **Website: [whatbattery.app](https://www.whatbattery.app)** (overview, screenshots, and Pro details)
 
-A small macOS menu bar app that shows the real health of your battery, the live power going in and out, and the service condition macOS uses, for your Mac and any iPhone or iPad you connect to it.
+A small macOS menu bar app that shows the real health of your battery, the live power going in and out, which apps are using it, and the service condition macOS uses, for your Mac and any iPhone or iPad you connect to it.
 
 System Settings rounds battery health to a whole number and hides almost everything else. WhatBattery reads the same data Apple does, straight from IOKit and the SMC, and shows you the real maximum capacity, the cycle count, the live watts in and out, the temperature, and whether the battery actually needs service. No rounding, no guessing.
 
@@ -23,6 +23,9 @@ For your Mac, in the menu bar dropdown and the main window:
 - **Live power:** watts in and out in real time, taken from the SMC power rail rather than the stale fuel-gauge reading, plus the charger your Mac negotiated, the voltage, and the temperature.
 - **Service condition:** the same Normal / Service Recommended / Service Battery verdict macOS uses, read from the system so it matches System Settings.
 - **Device detail:** marketing model name ("MacBook Pro (14-inch, M5)"), model identifier, regulatory model number, chip, serial, and Low Power Mode status, alongside the battery serial and adapter.
+- **What's using power (Pro):** the Apps tab ranks your apps by live watts, from the same kernel energy counters behind Activity Monitor's Energy tab but in real units instead of a unitless score, plus the top power users over the last day, week, or month. Honest framing: the display, radios, and system processes aren't attributable per app, so the figures are never dressed up as a share of the battery.
+
+![WhatBattery Apps tab showing apps ranked by live watts and the top power users over 24 hours](src/img/screenshot-apps.png)
 
 For a connected **iPhone or iPad** (Pro):
 
@@ -30,7 +33,8 @@ For a connected **iPhone or iPad** (Pro):
 
 For your **Bluetooth accessories**:
 
-- The live battery level of a connected keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case (L / R / Case). Many third-party devices don't report a level over Bluetooth, so those show "Battery unavailable". This is free.
+- The live battery level of a connected keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case (L / R / Case). Devices that only publish battery over Bluetooth Low Energy, like Logitech's MX mice, are read over the GATT Battery Service, matching what System Settings sees. A few devices publish nothing at all, and those show "Battery unavailable" rather than a guess. This is free.
+- Devices appear the moment they connect and leave when they disconnect, no waiting on a poll.
 
 ![WhatBattery Accessories tab showing keyboard, AirPods, and mouse levels with a history chart](src/img/screenshot-accessories.png)
 
@@ -45,8 +49,12 @@ WhatBattery is free and open source. The free app shows battery health, live pow
 - **Battery Health History:** a long-term, per-device record of monthly health and cycles, for your Mac and every device you connect, kept for years, with backup and restore.
 - **Battery runway:** a forecast, not just today's number. The wear rate ("down 4% over the last 90 days"), the date your battery is projected to reach 80% health, and a flag when it starts ageing faster than its own trend. Built from the long-term health history, Macs first. No other battery app projects forward or names a date.
 - **Charging sessions:** every charge recorded with how fast it ran, how hot it got, and a charger verdict ("58W of 96W") that tells you whether the charger kept up with what your Mac can fast-charge at. It only judges a real charge from a low battery, so a quick top-up is never wrongly called underpowered.
+- **What's using power:** apps ranked by live watts, plus the recorded top power users over the last day, week, or month.
+- **Charging habits:** thirty days of your charging behaviour summarised, with a pointer when a habit warrants Optimized Charging or a charge limiter. WhatBattery only observes; it never changes how your Mac charges.
 - **Reports and export:** a one-page battery report as PDF or print, and CSV / JSON export of your logged history, for warranty claims, resale, or your own records.
 - **Threshold notifications:** alerts for charge high/low, temperature, and health milestones.
+- **Smart alerts:** the wear-driven ones too: sat plugged in at 100% for hours, no full charge cycle in a long while, health dropping faster than the battery's own trend, and running warm while charging.
+- **Anonymous wear comparison (opt-in):** see where your battery's health sits among other readings of the same model and cycle band. One anonymous reading a week: model identifier, cycle count rounded to the hundred below, health percent, and a coarse age figure. No serial, no device name, no OS version, nothing tied to your licence, and contributions age out after 13 months.
 - **Accessory history and alerts:** a per-device level history for your keyboard, mouse, trackpad, and AirPods, with an estimated time-till-empty, a low-battery alert before they die, and the option to show an accessory's level right in the menu bar.
 
 ![WhatBattery showing accessory battery levels in the menu bar](src/img/screenshot-menubar-strip.png)
@@ -134,6 +142,8 @@ WhatBattery reads from Apple's own interfaces. No entitlements, no kernel extens
 | `IODeviceTree` / `IOPlatformExpertDevice` / `sysctl` | Marketing model name, regulatory model number, model identifier, chip, and serial. |
 | `MobileDevice.framework` diagnostics relay | For a connected iPhone or iPad, the device's `AppleSmartBattery` node over the lockdown relay (the same path Finder and Xcode use), mapped through the same health math as the Mac. |
 | Bluetooth (`IORegistry` `BatteryPercent` + `system_profiler SPBluetoothDataType`) | Battery levels for connected Bluetooth accessories (keyboard, mouse, trackpad, AirPods). macOS asks for Bluetooth access the first time you open the Accessories tab; it is used only to read these levels locally. |
+| GATT Battery Service (CoreBluetooth) | Levels for accessories that only publish battery over Bluetooth Low Energy (Logitech MX mice and the like). One bounded read per refresh of already-connected devices: no scanning, no pairing, and it never prompts (it only runs once Bluetooth access is already granted). |
+| Per-process energy counters (`libproc`) | The Apps tab's watts: the cumulative energy the kernel bills to each of your processes, diffed between passes. Your own processes only; system daemons refuse the unprivileged read. |
 
 ## Build from source
 
