@@ -20,12 +20,17 @@ public final class BluetoothConnectionWatcher: NSObject {
         super.init()
     }
 
-    public func start() {
-        guard Bundle.main.bundleIdentifier != nil else { return }
+    /// Returns true when the connect notification actually registered: Apple
+    /// documents that registration can return nil on error, and the caller
+    /// must not consider watching started on that path.
+    @discardableResult
+    public func start() -> Bool {
+        guard Bundle.main.bundleIdentifier != nil else { return false }
         connectNotification = IOBluetoothDevice.register(
             forConnectNotifications: self,
             selector: #selector(deviceConnected(_:device:))
         )
+        return connectNotification != nil
     }
 
     public func stop() {

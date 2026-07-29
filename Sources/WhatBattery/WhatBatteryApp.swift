@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import Combine
+import CoreBluetooth
 import WhatBatteryCore
 import WhatBatteryAppKit
 import WhatBatteryPlugins
@@ -55,12 +56,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 await hook()
             }
         }
-        // `monitor` is a stored property, so its first read ran before the line
-        // above registered any sample hook: that snapshot went nowhere. Read
-        // again now the plugins are listening, so the samplers do not miss the
-        // launch sample and ChargingView has a snapshot to describe rather than
-        // waiting up to five seconds for the timer.
+        // `monitor` is a stored property, so its first battery read ran before
+        // the line above registered any sample hook: that snapshot went
+        // nowhere. Read again now the plugins are listening, so the samplers
+        // do not miss the launch sample and ChargingView has a snapshot to
+        // describe rather than waiting up to five seconds for the timer. The
+        // accessory read follows the same rule and only happens here: the
+        // monitor deliberately takes no init-time accessory read at all.
         monitor.refresh()
+        monitor.refreshAccessories()
+
+        // Start the Bluetooth connect/disconnect watcher at launch when the
+        // policy says it is safe and justified: permission already granted
+        // (cannot prompt), or not-yet-asked with the menu bar accessory
+        // readout switched on (a prompt is then justified). Denied/restricted
+        // never start. Without this, a newly connected accessory took up to
+        // the 5-minute poll to appear anywhere; the lazy tab-open start
+        // remains for fresh installs, so a user who never touches accessories
+        // is still never prompted. Guarded to a real bundle with the Bluetooth
+        // usage string, so `swift run` never touches the permission machinery.
+        if Bundle.main.bundleIdentifier != nil,
+           Bundle.main.object(forInfoDictionaryKey: "NSBluetoothAlwaysUsageDescription") != nil,
+           AccessoryWatchLaunchPolicy.shouldStartAtLaunch(
+               authorization: CBCentralManager.authorization,
+               readoutEnabled: UserDefaults.standard.bool(forKey: MenuBarAccessoryDefaults.enabledKey)
+           ) {
+            // The init-time accessory read is already in flight; don't spawn a
+            // second system_profiler alongside it.
+            monitor.startAccessoryWatchingIfNeeded(refreshImmediately: false)
+        }
 
         // Free in-app updater: one check at launch, then every 6h.
         UpdateChecker.shared.start()

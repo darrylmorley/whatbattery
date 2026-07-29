@@ -77,10 +77,18 @@ final class BatteryMonitor: ObservableObject {
         refresh()
         startWatching()
         startTimer()
-        refreshAccessories()
+        // No accessory read here on purpose: at init the plugin hooks are not
+        // registered yet, so a read's result would publish into an empty hook
+        // array and the first sample would go unrecorded. The app delegate
+        // performs the first read right after bootstrapPlugins, exactly like
+        // the battery snapshot's post-bootstrap refresh.
         startAccessoryTimer()
-        // The Bluetooth watcher is started lazily (it triggers the permission
-        // prompt), the first time the user opens the Accessories tab.
+        // The Bluetooth watcher is NOT started here: the app delegate starts
+        // it at launch when the permission is already granted (or when it is
+        // not yet determined and the user enabled the menu bar readout), and
+        // the Accessories tab starts it on first open otherwise; see
+        // AccessoryWatchLaunchPolicy and applicationDidFinishLaunching.
+        // Starting it can show the one-time Bluetooth permission prompt.
     }
 
     deinit {
@@ -187,19 +195,23 @@ final class BatteryMonitor: ObservableObject {
         }
     }
 
-    /// Start the Bluetooth connect/disconnect watcher and do an immediate read.
-    /// Called when the user first opens the Accessories tab, so the permission
-    /// prompt only appears for users who actually look at accessories. Idempotent.
-    func startAccessoryWatchingIfNeeded() {
-        refreshAccessories()
+    /// Start the Bluetooth connect/disconnect watcher, optionally with an
+    /// immediate read. Two callers: the app delegate at launch (when the
+    /// permission state makes it safe; it passes false because the init-time
+    /// read is already in flight) and the Accessories tab on first open (with
+    /// the default immediate read). Idempotent, and only counted as started
+    /// once registration actually succeeds, so a failed registration retries
+    /// on the next call instead of being latched forever.
+    func startAccessoryWatchingIfNeeded(refreshImmediately: Bool = true) {
+        if refreshImmediately { refreshAccessories() }
         guard !bluetoothWatchingStarted else { return }
-        bluetoothWatchingStarted = true
         bluetoothWatcher = BluetoothConnectionWatcher { [weak self] in
             // IOBluetooth delivers this on its own coordinator queue, not the main
             // run loop, so hop to the main actor rather than asserting we're on it.
             Task { @MainActor in self?.scheduleAccessoryRefresh() }
         }
-        bluetoothWatcher?.start()
+        bluetoothWatchingStarted = bluetoothWatcher?.start() ?? false
+        if !bluetoothWatchingStarted { bluetoothWatcher = nil }
     }
 
     /// Debounce a burst of connect/disconnect events (several devices at once, or

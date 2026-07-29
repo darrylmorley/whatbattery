@@ -62,8 +62,10 @@ struct MainWindowView: View {
         .frame(minWidth: 680, minHeight: 440)
         .environment(\.fontScale, FontScale.clamp(fontScale))
         .navigationTitle("WhatBattery")
-        // Start the Bluetooth watcher (and the one-time permission prompt) only
-        // when the user actually opens the Accessories tab.
+        // Fallback start for the Bluetooth watcher (and its one-time
+        // permission prompt): the app delegate already starts it at launch
+        // when the permission state allows; this covers everyone else the
+        // moment they actually look at accessories.
         .onChange(of: selectedTab) { _, tab in
             if tab == .accessories { monitor.startAccessoryWatchingIfNeeded() }
         }
