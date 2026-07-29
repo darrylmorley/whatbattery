@@ -3,11 +3,12 @@ import WhatBatteryCore
 import WhatBatteryAppKit
 import WhatBatteryDarwinBackend
 
-/// The main window opened from the menu bar dropdown. Five tabs: "This Mac" (a
-/// free live Overview plus the Pro history section), "Charging" (the Pro
-/// charging sessions and charger verdict), "iPhone / iPad" (the Pro iDevice
-/// battery view), "Accessories" (free live levels plus Pro history), and
-/// "History" (long-term per-device health, Pro).
+/// The main window opened from the menu bar dropdown. Six tabs: "This Mac" (a
+/// free live Overview plus the Pro history section), "Apps" (the Pro per-app
+/// power monitor, live and historical), "Charging" (the Pro charging sessions
+/// and charger verdict), "iPhone / iPad" (the Pro iDevice battery view),
+/// "Accessories" (free live levels plus Pro history), and "History" (long-term
+/// per-device health, Pro).
 ///
 /// Deliberately does **not** observe `monitor`. The monitor republishes every 5
 /// seconds, and this body builds the Pro sections by calling the registry's
@@ -34,7 +35,7 @@ struct MainWindowView: View {
         _hasBattery = State(initialValue: monitor.hasBattery)
     }
 
-    private enum Tab: Hashable { case mac, charging, iDevice, accessories, history }
+    private enum Tab: Hashable { case mac, apps, charging, iDevice, accessories, history }
 
     private var tempUnit: BatteryFormatter.TemperatureUnit {
         temperatureUnit == "F" ? .fahrenheit : .celsius
@@ -45,6 +46,9 @@ struct MainWindowView: View {
             macTab
                 .tabItem { Label("This Mac", systemImage: "laptopcomputer") }
                 .tag(Tab.mac)
+            appsTab
+                .tabItem { Label("Apps", systemImage: "gauge.with.needle") }
+                .tag(Tab.apps)
             chargingTab
                 .tabItem { Label("Charging", systemImage: "bolt.fill") }
                 .tag(Tab.charging)
@@ -58,8 +62,8 @@ struct MainWindowView: View {
                 .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
                 .tag(Tab.history)
         }
-        // 680 fits five tab labels; 600 was sized for four.
-        .frame(minWidth: 680, minHeight: 440)
+        // 760 fits six tab labels; 680 was sized for five, 600 for four.
+        .frame(minWidth: 760, minHeight: 440)
         .environment(\.fontScale, FontScale.clamp(fontScale))
         .navigationTitle("WhatBattery")
         // Fallback start for the Bluetooth watcher (and its one-time
@@ -97,7 +101,6 @@ struct MainWindowView: View {
                     // The only part of this tab tied to the 5-second refresh.
                     LiveOverviewSection(monitor: monitor, tempUnit: tempUnit, isPro: proStatus.isUnlocked)
                     Divider()
-                    appPowerSection
                     historySection
                 } else {
                     // Desktop: no health to report, but the SMC DC-in rail is
@@ -112,28 +115,51 @@ struct MainWindowView: View {
     }
 
     @ViewBuilder
-    private var appPowerSection: some View {
-        // Per-app drain is Pro and lives in the plugins module, so the builder
-        // is nil in the free build. The history upsell below already sells Pro
-        // when locked, so this section is simply absent then rather than
-        // stacking a second card. The trailing Divider travels with it.
-        if proStatus.isUnlocked, let build = PluginRegistry.shared.appPowerSectionBuilder {
-            build()
-                // Pauses the per-app pid walk while another tab is frontmost.
-                .environment(\.macTabActive, selectedTab == .mac)
-            Divider()
-        }
-    }
-
-    @ViewBuilder
     private var historySection: some View {
         if proStatus.isUnlocked, let build = PluginRegistry.shared.historySectionBuilder {
             build()
+                // Pauses the charge-habits reload while another tab is
+                // frontmost (ChargeHabitsView reads this via hostTabActive;
+                // LifetimeAnalyzerView has its own unconditional loop and
+                // ignores it, a pre-existing gap).
+                .environment(\.hostTabActive, selectedTab == .mac)
         } else {
             UpsellCard(
                 title: "WhatBattery Pro",
                 systemImage: "lock.fill",
                 message: "Unlock lifetime history and the Battery Lifetime Analyzer, threshold notifications, and data export."
+            )
+        }
+    }
+
+    // MARK: - Apps
+
+    private var appsTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                appsSection
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private var appsSection: some View {
+        // Per-app drain is Pro and lives in the plugins module, so the builder
+        // is nil in the free build; as its own tab it carries its own upsell.
+        // Deliberately no hasBattery gate: the kernel's energy counters exist
+        // on desktops too (inside This Mac this section sat behind the battery
+        // gate and desktop Macs never saw it).
+        if proStatus.isUnlocked, let build = PluginRegistry.shared.appPowerSectionBuilder {
+            build()
+                // Pauses the per-app pid walk while another tab is frontmost.
+                .environment(\.hostTabActive, selectedTab == .apps)
+        } else {
+            UpsellCard(
+                title: "WhatBattery Pro",
+                systemImage: "lock.fill",
+                message: "Unlock the per-app power monitor: which apps are working the chip hardest right now, and which used the most energy over the day."
             )
         }
     }
