@@ -38,8 +38,9 @@ public enum FontScale {
 
 /// Applies a `Font.system` font whose point size is `baseSize * fontScale`. Use
 /// either a semantic text style (mapped to a base point size) or an explicit
-/// size. Mirrors the live environment value, so every `.scaledFont` view tracks
-/// the slider with no extra wiring.
+/// size. Mirrors the environment value, so every `.scaledFont` view tracks the
+/// committed font-scale setting (the slider commits on release, not per tick)
+/// with no extra wiring.
 public struct ScaledFontModifier: ViewModifier {
     @Environment(\.fontScale) private var scale
     let size: Double

@@ -7,6 +7,11 @@ import WhatBatteryAppKit
 struct SettingsView: View {
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
     @AppStorage(FontScale.key) private var fontScale = FontScale.defaultValue
+    /// The slider drags this local value and commits it to `fontScale` once, on
+    /// release. Binding the slider straight to storage resized every panel
+    /// (including the popover frame around this very form) on each drag tick,
+    /// which flashed the popover and dragged it around under the menu bar.
+    @State private var draggedScale: Double?
     @AppStorage(UpdateChecker.notifyKey) private var notifyOnUpdates = true
     @AppStorage(MenuBarBadge.key) private var menuBarBadge = MenuBarBadge.charge.rawValue
     @ObservedObject private var updates = UpdateChecker.shared
@@ -48,14 +53,56 @@ struct SettingsView: View {
                     HStack {
                         Text("Font size")
                         Spacer()
-                        Text(verbatim: "\(Int((fontScale * 100).rounded()))%")
+                        Text(verbatim: "\(Int(((draggedScale ?? fontScale) * 100).rounded()))%")
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
                     }
                     HStack(spacing: 8) {
                         Image(systemName: "textformat.size.smaller")
                             .foregroundStyle(.secondary)
-                        Slider(value: $fontScale, in: FontScale.range, step: FontScale.step)
+                        Slider(
+                            value: Binding(
+                                get: { draggedScale ?? fontScale },
+                                set: { draggedScale = $0 }
+                            ),
+                            in: FontScale.range,
+                            step: FontScale.step
+                        ) { editing in
+                            guard !editing, let dragged = draggedScale else { return }
+                            fontScale = dragged
+                            draggedScale = nil
+                        }
+                        // Keyboard and accessibility adjustments don't reliably
+                        // report an editing end, so commit those after a beat of
+                        // inactivity too. A mouse drag paused this long commits
+                        // mid-drag, which is one resize, not a flicker.
+                        .task(id: draggedScale) {
+                            guard draggedScale != nil else { return }
+                            // A new drag tick cancels this task; try? swallows
+                            // the CancellationError, so check explicitly or the
+                            // commit below would run on every tick.
+                            try? await Task.sleep(for: .milliseconds(800))
+                            guard !Task.isCancelled, let dragged = draggedScale else { return }
+                            fontScale = dragged
+                            draggedScale = nil
+                        }
+                        // Leaving the pane (the popover's Back button) tears
+                        // this view down and cancels the fallback task, which
+                        // silently dropped a keyboard adjustment made in the
+                        // last 800ms. Flush it instead.
+                        .onDisappear {
+                            guard let dragged = draggedScale else { return }
+                            fontScale = dragged
+                            draggedScale = nil
+                        }
+                        // Another Settings instance (popover pane vs standalone
+                        // window) committing while this one holds a draft wins:
+                        // drop the draft rather than overwrite the newer value
+                        // when the fallback fires. Our own commits clear the
+                        // draft before this runs, so they pass through.
+                        .onChange(of: fontScale) {
+                            draggedScale = nil
+                        }
                         Image(systemName: "textformat.size.larger")
                             .foregroundStyle(.secondary)
                     }
