@@ -297,6 +297,22 @@ h2 {
 .problem-card .ask { font-size: 19px; font-weight: 700; margin-bottom: 8px; }
 .problem-card p { color: var(--ink-soft); font-size: 14.5px; line-height: 1.55; }
 
+/* Free/Pro split marker on feature cards and screenshot captions.
+   Everything unmarked is free; the section heads say so in words too. */
+.pro-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ffedd5;
+  color: #9a3412;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  vertical-align: 2px;
+}
+
 /* Features */
 .features { background: var(--panel); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 

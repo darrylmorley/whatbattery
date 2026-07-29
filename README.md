@@ -17,6 +17,8 @@ System Settings rounds battery health to a whole number and hides almost everyth
 
 ## What it shows
 
+Everything below is free unless it's marked **(Pro)**. The full Pro list is in [its own section](#whatbattery-pro); Pro is a one-time licence.
+
 For your Mac, in the menu bar dropdown and the main window:
 
 - **True battery health:** the real maximum capacity and cycle count, computed from the raw mAh figures (`NominalChargeCapacity / DesignCapacity`), not the rounded number macOS shows. Health is shown to one decimal, so a worn battery can't hide as "100%".
@@ -27,7 +29,7 @@ For your Mac, in the menu bar dropdown and the main window:
 
 ![WhatBattery Apps tab showing apps ranked by live watts and the top power users over 24 hours](src/img/screenshot-apps.png)
 
-For a connected **iPhone or iPad** (Pro):
+For a connected **iPhone or iPad (Pro)**:
 
 - The same health, cycle count, charge, temperature, voltage, and live power, read straight from the device over a cable or Wi-Fi, with no app installed on the device. It uses the same battery node and the same health math as the Mac.
 
