@@ -5,5 +5,6 @@
   "url": "https://www.whatbattery.app",
   "repo": "https://github.com/darrylmorley/whatbattery",
   "releases": "https://github.com/darrylmorley/whatbattery/releases",
-  "worker": "https://www.whatbattery.app"
+  "worker": "https://www.whatbattery.app",
+  "download": "https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip"
 }
