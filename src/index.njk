@@ -1,493 +1,178 @@
 ---
 layout: base.njk
+description: Know your Mac, iPhone, and iPad's real battery health, see live power use, and forecast when a battery may need replacing. Free for macOS, with an optional Pro upgrade.
 ---
 
 <header class="hero">
   <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <span class="eyebrow">
-        <span class="dot-accent" aria-hidden="true"></span>
-        macOS menu bar app
-      </span>
-      <h1>See what your battery is <span class="accent">actually doing.</span></h1>
-      <p class="lede">
-        WhatBattery shows the real health, live power in and out, which apps are
-        using it, and the service condition for your Mac, iPhone, and iPad. Right
-        from the menu bar. No rounding, no guessing.
-      </p>
+    <div>
+      <span class="eyebrow"><span class="dot-accent" aria-hidden="true"></span>macOS battery intelligence</span>
+      <h1>Know your battery's real health and <span class="accent">where it's heading.</span></h1>
+      <p class="lede">See unrounded health, live power use, charger performance, and when your battery is likely to need replacing. For your Mac, iPhone, iPad, and Bluetooth accessories.</p>
       <div class="actions">
-        <a class="button primary" href="{{ site.download }}">
-          Download for macOS
-          <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
-        <button class="button buy" id="buy-pro-hero" type="button">
-          Buy Pro &middot; £9.99
-          <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </button>
+        <a class="button primary" href="{{ site.download }}">Download WhatBattery free <span aria-hidden="true">↓</span></a>
+        <a class="button secondary" href="/pro/">Explore WhatBattery Pro <span aria-hidden="true">→</span></a>
       </div>
-      <p class="hero-pro-line">
-        The app is free and open source. Pro adds <a href="#pro">history, per-app power, iPhone and iPad reading, reports, and alerts</a> &middot; <a href="{{ site.repo }}">View source</a>
-      </p>
-      <div class="meta-row">
-        <span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-          Free and open source
-        </span>
-        <span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-          Apple Silicon, macOS 14+
-        </span>
-        <span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-          Signed and notarised
-        </span>
-      </div>
+      <p class="support-line">Free and open source. Pro is a £9.99 one-time purchase. <a href="/docs/install/">See installation options</a>.</p>
     </div>
-    <div class="hero-shot">
-      <img src="/img/screenshot-menubar.png" alt="WhatBattery menu bar dropdown showing battery health, charge, cycles, temperature, power, and connected Bluetooth accessory levels" width="320" />
+    <div class="hero-visual">
+      <img src="/img/screenshot-menubar.png" alt="WhatBattery menu bar dropdown showing true battery health, live power, temperature, cycle count, and accessory battery levels" width="320" />
     </div>
   </div>
 </header>
 
-<section class="problem">
+<div class="trust-strip" aria-label="Product assurances">
+  <div class="wrap trust-row">
+    <span class="trust-item"><span class="check" aria-hidden="true">✓</span>Free and open source</span>
+    <span class="trust-item"><span class="check" aria-hidden="true">✓</span>Signed and notarised</span>
+    <span class="trust-item"><span class="check" aria-hidden="true">✓</span>No root or kernel extension</span>
+    <span class="trust-item"><span class="check" aria-hidden="true">✓</span>No analytics or telemetry</span>
+  </div>
+</div>
+
+<section>
   <div class="wrap">
-    <div class="section-head">
-      <span class="section-tag">The problem</span>
-      <h2>macOS rounds the truth about your battery.</h2>
-      <p>System Settings shows a rounded health figure and not much else. It won't tell you the real maximum capacity, the live watts going in and out, or whether the iPhone on your desk is quietly wearing out. WhatBattery does.</p>
+    <div class="section-head center">
+      <span class="section-tag">Answers, not a wall of numbers</span>
+      <h2>Understand the battery you have today. Plan for the one you'll need tomorrow.</h2>
+      <p>WhatBattery turns the data macOS already holds into three useful answers: how healthy the battery really is, where the power is going, and how quickly the battery is wearing.</p>
     </div>
-    <div class="problem-grid">
-      <div class="problem-card">
-        <span class="label health">Is 100% really 100%?</span>
-        <div class="ask">Rounded up from 99.5%?</div>
-        <p>macOS rounds health to a whole number, so a worn battery can still read 100%. WhatBattery computes it from the raw mAh and shows it to one decimal.</p>
-      </div>
-      <div class="problem-card">
-        <span class="label power">How much power, right now?</span>
-        <div class="ask">And which app is pulling it?</div>
-        <p>See the live charge and discharge wattage, the charger your Mac negotiated, the voltage, and the temperature. Plus your apps ranked by the power they're using, in real watts, not a mystery score.</p>
-      </div>
-      <div class="problem-card">
-        <span class="label device">What about my iPhone?</span>
-        <div class="ask">Is the phone battery worn too?</div>
-        <p>Read a connected iPhone or iPad's health and cycle count straight from your Mac, over a cable or Wi-Fi. No app on the device.</p>
-      </div>
+
+    <div class="story-stack">
+      <article class="story">
+        <div class="story-copy">
+          <span class="number">1</span>
+          <h3>Is 100% really 100%?</h3>
+          <p>System Settings rounds battery health to a whole number. WhatBattery computes health from the raw capacity figures and shows it to one decimal, alongside cycle count and Apple's service condition.</p>
+          <p class="result">A battery reported as 100% by macOS may be 99.5%. WhatBattery shows the difference.</p>
+          <a class="text-link" href="/features/battery-health/">See how true health works →</a>
+        </div>
+        <figure class="story-media">
+          <img src="/img/screenshot-mac.png" alt="WhatBattery showing detailed Mac battery health, service condition, capacity, and live power" width="420" loading="lazy" />
+        </figure>
+      </article>
+
+      <article class="story">
+        <div class="story-copy">
+          <span class="number">2</span>
+          <h3>Where is the power going?</h3>
+          <p>See the real watts flowing into or out of the battery, the charger your Mac negotiated, voltage, and temperature. Pro also ranks your own apps by live watts and keeps the day's top power users.</p>
+          <p class="result">Activity Monitor gives you an energy score. WhatBattery gives you watts and tells you honestly what cannot be attributed to an app.</p>
+          <a class="text-link" href="/features/power/">Explore live power and app usage →</a>
+        </div>
+        <figure class="story-media">
+          <img src="/img/screenshot-apps.png" alt="WhatBattery ranking Mac apps by live power use in watts" width="420" loading="lazy" />
+        </figure>
+      </article>
+
+      <article class="story">
+        <div class="story-copy">
+          <span class="number">3</span>
+          <h3>When might it need replacing?</h3>
+          <p>Pro builds a long-term health record, measures the wear rate, and forecasts the date your Mac is likely to reach 80% health. If the battery starts ageing faster than its own trend, WhatBattery flags the change.</p>
+          <p class="result">Not just “91% today”, but a projected replacement window you can budget and plan around.</p>
+          <a class="text-link" href="/features/history/">See battery history and runway →</a>
+        </div>
+        <figure class="story-media">
+          <img src="/img/screenshot-history.png" alt="WhatBattery long-term battery health history with monthly health and cycle counts" width="420" loading="lazy" />
+        </figure>
+      </article>
     </div>
   </div>
 </section>
 
-<section class="features" id="features">
+<section class="soft-section">
   <div class="wrap">
     <div class="section-head">
-      <span class="section-tag">Features</span>
-      <h2>Everything your battery knows, now you know too.</h2>
-      <p>WhatBattery reads from Apple's own battery and power interfaces and turns the raw numbers into something you can actually read. No terminal needed. Everything here is free unless it carries the Pro mark; Pro is a one-time licence.</p>
+      <span class="section-tag">More than the Mac</span>
+      <h2>Every rechargeable thing on your desk, in one place.</h2>
+      <p>Start with the Mac. Add the iPhone or iPad you connect to it, then keep an eye on the accessories around it.</p>
     </div>
-    <div class="feature-grid">
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        </div>
-        <h3>True battery health</h3>
-        <p>The real maximum capacity and cycle count, computed from the raw mAh figures, not the rounded number macOS shows. Health to one decimal, so a worn battery can't hide as "100%".</p>
+    <div class="card-grid">
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">M</div>
+        <h3>Your Mac</h3>
+        <p>True health, cycles, live watts, temperature, charger details, service condition, and the current power state from the menu bar.</p>
+        <a class="text-link" href="/features/">Explore all features →</a>
       </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        </div>
-        <h3>Live power</h3>
-        <p>Watts in and out in real time, the charger it negotiated, voltage, and temperature. In the menu bar and the main window.</p>
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">iP</div>
+        <h3>iPhone and iPad <span class="pro-tag">Pro</span></h3>
+        <p>Read health, cycle count, temperature, voltage, and live power from your Mac over USB or Wi-Fi. Nothing to install on the device.</p>
+        <a class="text-link" href="/features/iphone-ipad/">See connected-device health →</a>
       </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="10.5" x2="22" y2="13.5"/><polyline points="10.5 9.5 8 12.5 11 12.5 9.5 15"/></svg>
-        </div>
-        <h3>Charging sessions<span class="pro-tag">Pro</span></h3>
-        <p>Every charge recorded: how fast it ran, how hot it got, and a verdict on the charger ("58W of 96W") that tells you whether it kept up with what your Mac can take. Spot a slow charger before it wastes your day.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-        </div>
-        <h3>iPhone &amp; iPad<span class="pro-tag">Pro</span></h3>
-        <p>Read a connected iPhone or iPad's battery health and cycle count straight from your Mac, over a cable or Wi-Fi. The same data, the same health math.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h2a3 3 0 0 1 3 3v0a3 3 0 0 1-3 3H3zM19 11h2a3 3 0 0 0 0-6h-2v12"/><path d="M5 11V9a7 7 0 0 1 14 0v2"/></svg>
-        </div>
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">BT</div>
         <h3>Bluetooth accessories</h3>
-        <p>Live battery levels for your keyboard, mouse, trackpad, and AirPods, broken out per bud and case. Free. Pro adds a per-device history, a time-till-empty estimate, low-battery alerts, and a menu bar readout.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg>
-        </div>
-        <h3>Lifetime history<span class="pro-tag">Pro</span></h3>
-        <p>A long-term, per-device health record: monthly health and cycles over months and years, for your Mac and every device you connect, with backup and export.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
-        </div>
-        <h3>Battery runway<span class="pro-tag">Pro</span></h3>
-        <p>Not just today's health. WhatBattery forecasts the wear rate and the date you're projected to reach 80%, and warns you if the battery starts ageing faster than its own trend. No other Mac battery app projects forward.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-        </div>
-        <h3>Reports &amp; export<span class="pro-tag">Pro</span></h3>
-        <p>A one-page battery report as PDF or print, and CSV / JSON export of your logged history, for warranty claims, resale, or your own records.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        </div>
-        <h3>Service condition</h3>
-        <p>The same Normal / Service Recommended condition macOS uses, read from the system, so you know when a battery actually needs attention.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </div>
-        <h3>What's using power<span class="pro-tag">Pro</span></h3>
-        <p>Your apps ranked by live watts, from the same kernel counters behind Activity Monitor's Energy tab, plus the top power users over the last day, week, or month. Honest framing: the screen and radios belong to nobody, so it never pretends to split the whole battery per app.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        </div>
-        <h3>Smart alerts<span class="pro-tag">Pro</span></h3>
-        <p>Notifications for the things that actually wear a battery: sat plugged in at 100% for hours, no full cycle in a long while, wearing faster than its own trend, running warm while charging. Each fires once per crossing, not every five seconds.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 1 4 12.7c-.6.5-1 1.3-1 2.1V17H9v-.2c0-.8-.4-1.6-1-2.1A7 7 0 0 1 12 2z"/></svg>
-        </div>
-        <h3>Charging habits<span class="pro-tag">Pro</span></h3>
-        <p>Thirty days of your charging behaviour summarised, with a pointer when a habit warrants Optimized Charging or a charge limiter. WhatBattery only observes. It never changes how your Mac charges.</p>
+        <p>See live levels for supported keyboards, mice, trackpads, and AirPods. Pro adds history, runtime estimates, alerts, and a menu bar readout.</p>
+        <a class="text-link" href="/features/">See accessory support →</a>
       </article>
     </div>
   </div>
 </section>
 
-<section class="screenshots">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="section-tag">In the app</span>
-      <h2>Every battery you own, in one window.</h2>
-      <p>Your Mac, any iPhone or iPad you connect, and a long-term record of them all. Switch between them in a tab.</p>
+<section>
+  <div class="wrap family-proof">
+    <div>
+      <span class="section-tag">From the maker of WhatCable</span>
+      <blockquote>Small Mac utilities that explain what the hardware is actually doing.</blockquote>
+      <cite>WhatBattery joins WhatCable and WhatPort in the Bitmoor product family.</cite>
     </div>
-    <div class="screenshot-grid">
-      <figure>
-        <img src="/img/screenshot-mac.png" alt="WhatBattery This Mac tab showing health, condition, live power, and the Lifetime Analyzer charts" width="320" loading="lazy" />
-        <figcaption>This Mac: health and condition free, the Lifetime Analyzer with Pro</figcaption>
-      </figure>
-      <figure>
-        <img src="/img/screenshot-apps.png" alt="WhatBattery Apps tab showing apps ranked by live watts and the top power users over 24 hours" width="320" loading="lazy" />
-        <figcaption>Apps: live watts per app, and the day's top power users<span class="pro-tag">Pro</span></figcaption>
-      </figure>
-      <figure>
-        <img src="/img/screenshot-charging.png" alt="WhatBattery Charging tab showing the last charge with held and peak watts, recent charges, and typical watts per charger" width="320" loading="lazy" />
-        <figcaption>Charging: every charge recorded, every charger judged<span class="pro-tag">Pro</span></figcaption>
-      </figure>
-      <figure>
-        <img src="/img/screenshot-idevice.png" alt="WhatBattery iPhone tab showing 83.5% battery health, cycles, and live readings over Wi-Fi" width="320" loading="lazy" />
-        <figcaption>iPhone &amp; iPad: health and live graph over the cable or Wi-Fi<span class="pro-tag">Pro</span></figcaption>
-      </figure>
-      <figure>
-        <img src="/img/screenshot-history.png" alt="WhatBattery History tab showing a Mac's health-over-time chart with monthly health and cycle counts" width="320" loading="lazy" />
-        <figcaption>History: monthly health and cycles, per device, for years<span class="pro-tag">Pro</span></figcaption>
-      </figure>
-      <figure>
-        <img src="/img/screenshot-accessories.png" alt="WhatBattery Accessories tab showing keyboard, AirPods with a listening-time estimate, and a Logitech mouse level, with a per-device history chart" width="320" loading="lazy" />
-        <figcaption>Accessories: live levels free, history and runtime estimates with Pro</figcaption>
-      </figure>
-    </div>
-  </div>
-</section>
-
-<section class="features" id="why">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="section-tag">Why WhatBattery</span>
-      <h2>Every battery app shows you today. This one shows you tomorrow.</h2>
-      <p>Most battery apps read the battery and stop there. WhatBattery reads the same data, then does something with it: forecasts the wear, judges your charger, reads the devices on your desk, and keeps the receipts for years.</p>
-    </div>
-    <div class="feature-grid">
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
-        </div>
-        <h3>It predicts the replacement, not just the reading<span class="pro-tag">Pro</span></h3>
-        <p>Every other app tells you health is 91% today. WhatBattery tells you you're projected to reach 80% around March 2027, about 14 months out, and flags it when the battery starts wearing faster than its own trend. The only Mac battery app that projects forward and names a date.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
-        </div>
-        <h3>It reads your iPhone and iPad too<span class="pro-tag">Pro</span></h3>
-        <p>Most Mac battery apps stop at the Mac. WhatBattery reads a connected iPhone or iPad's real health and cycle count straight from your Mac, over a cable or Wi-Fi, with nothing installed on the device.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-        </div>
-        <h3>Watts in and out, live</h3>
-        <p>Not a percentage and a shrug. The real power coming in from the charger and going out to your Mac, read from the SMC rail every second, not the stale fuel-gauge figure most tools show.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="16" height="10" rx="2"/><line x1="22" y1="10.5" x2="22" y2="13.5"/><polyline points="10.5 9.5 8 12.5 11 12.5 9.5 15"/></svg>
-        </div>
-        <h3>It grades your charger<span class="pro-tag">Pro</span></h3>
-        <p>Plug in and WhatBattery records the charge, then tells you what the charger actually delivered against what your Mac can fast-charge at, like "58W of 96W". The slow-charger nag macOS never gives you, with the watts to back it up.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-        </div>
-        <h3>It agrees with macOS</h3>
-        <p>WhatBattery uses Apple's own health math and the same Normal / Service Recommended verdict System Settings shows. No mysteriously different number to second-guess. Just more of it, and to one decimal.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
-        </div>
-        <h3>Years of history, and the paperwork<span class="pro-tag">Pro</span></h3>
-        <p>A per-device record of monthly health and cycles going back years, for every Mac, iPhone, and iPad you connect, plus a one-page PDF report and CSV or JSON export for a warranty claim, a Genius Bar visit, or a resale listing.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        </div>
-        <h3>It names the hungry apps, honestly<span class="pro-tag">Pro</span></h3>
-        <p>Real watts per app, live and over the day, from the kernel's own energy accounting. And it tells you what it can't know: the screen and radios aren't attributable per app, so it never dresses the numbers up as a share of your battery. Activity Monitor gives you a unitless score. This gives you watts.</p>
-      </article>
-      <article class="feature">
-        <div class="icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        </div>
-        <h3>Read-only, unprivileged, open source</h3>
-        <p>No root, no kernel extension, no background daemon, and it never changes how anything charges. Every number comes from Apple's own interfaces, and the source is on GitHub if you want to check the lot.</p>
-      </article>
-    </div>
-  </div>
-</section>
-
-<section class="pro" id="pro">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="section-tag">WhatBattery Pro</span>
-      <h2>Track every battery you own, for years.</h2>
-      <p>The free app shows health and live power right now. Pro keeps a long-term, per-device record, shows which apps are using the power, forecasts when you'll need a new battery, judges your charger, coaches your charging habits, reads your iPhone and iPad, and turns it all into reports you can hand to a warranty claim or a buyer.</p>
-    </div>
-    <div class="pro-showcase">
-      <figure>
-        <img src="/img/screenshot-report.png" alt="A WhatBattery battery report PDF with current and lifetime sections" width="720" loading="lazy" />
-        <figcaption>A one-page battery report, exported to PDF or printed</figcaption>
-      </figure>
-    </div>
-    <div class="pro-card-wrap">
-      <div class="pricing-card">
-        <span class="card-label">One-time purchase</span>
-        <p class="card-title">WhatBattery Pro</p>
-        <span class="price">£9.99</span>
-        <span class="price-period">one-time &nbsp;&middot;&nbsp; works on 2 Macs</span>
-        <ul class="pro-checklist">
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Lifetime history and Lifetime Analyzer, per device
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Battery runway: wear rate and a projected replacement date
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Charging sessions and a charger verdict, per charge
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            iPhone and iPad battery health, read from your Mac
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            One-page battery reports as PDF or print
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            CSV and JSON export of your logged history
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            What's using power: apps by live watts, and the top users over time
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Smart alerts: plugged in at 100% too long, calibration due, wearing fast, warm while charging
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Charging habits: 30 days of behaviour, and when a limiter would help
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Threshold notifications for charge, temperature, and health
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Accessory history, low-battery alerts, and a menu bar readout
-          </li>
-          <li>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-            Works on up to 2 Macs with one key
-          </li>
-        </ul>
-        <button class="button buy" id="buy-pro" type="button" style="width:100%;">
-          Buy WhatBattery Pro
-          <svg class="arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </button>
-        <p class="buy-reassure"><strong>14-day money-back guarantee, no questions asked.</strong> Apple Silicon only (M1 and later).</p>
-        <p class="buy-stripe-note">Secure checkout via Stripe. Your licence key is emailed instantly.</p>
-        <p class="buy-error" id="buy-error" role="alert" hidden></p>
+    <div>
+      <p class="muted">WhatCable has been featured by</p>
+      <div class="press-logos" aria-label="Publications that have featured WhatCable">
+        <span>The Verge</span><span>ZDNet</span><span>9to5Mac</span><span>Lifehacker</span><span>MakeUseOf</span>
       </div>
-      <p class="pro-existing">Already bought? Your key is in your email. Open Settings in the menu bar dropdown and paste it into the Licence field.</p>
+      <p style="margin-top:20px;"><a class="text-link" href="https://www.whatcable.uk">Meet WhatCable →</a></p>
     </div>
   </div>
 </section>
 
-<section id="how">
+<section class="soft-section">
   <div class="wrap">
-    <div class="section-head">
-      <span class="section-tag">How it works</span>
-      <h2>Unprivileged reads. The real numbers.</h2>
-      <p>WhatBattery reads from Apple's own battery and power interfaces. Everything is read-only and unprivileged: no root, no kernel extension, no background daemon. It never changes how anything charges.</p>
+    <div class="section-head center">
+      <span class="section-tag">Free or Pro</span>
+      <h2>Start with today's numbers. Add the long view when you need it.</h2>
+      <p>The free app is a useful battery monitor on its own. Pro adds history, forecasts, multi-device analysis, and evidence you can export.</p>
     </div>
-    <div class="how-grid">
-      <div class="how-card">
-        <div class="step">1</div>
-        <h3>AppleSmartBattery</h3>
-        <p>Reads the raw charge capacity, design capacity, and cycle count over IOKit, then computes health the same way Apple's own Settings does.</p>
-      </div>
-      <div class="how-card">
-        <div class="step">2</div>
-        <h3>SMC power rails</h3>
-        <p>Live power in and out: watts, voltage, current, and temperature, read from the System Management Controller and polled every second.</p>
-      </div>
-      <div class="how-card">
-        <div class="step">3</div>
-        <h3>Device diagnostics relay</h3>
-        <p>For a connected iPhone or iPad, it reads the same battery node Finder uses, over USB or Wi-Fi, with no app installed on the device.</p>
-      </div>
+    <div class="comparison" role="table" aria-label="WhatBattery Free and Pro comparison">
+      <div class="comparison-row" role="row"><span role="columnheader">Capability</span><span role="columnheader">Free</span><span role="columnheader">Pro · £9.99</span></div>
+      <div class="comparison-row" role="row"><span role="cell">True Mac health, cycles, condition, and live watts</span><span class="yes" role="cell">Included</span><span class="yes" role="cell">Included</span></div>
+      <div class="comparison-row" role="row"><span role="cell">Live Bluetooth accessory levels</span><span class="yes" role="cell">Included</span><span class="yes" role="cell">Included</span></div>
+      <div class="comparison-row" role="row"><span role="cell">Battery history and replacement forecast</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
+      <div class="comparison-row" role="row"><span role="cell">iPhone and iPad battery health</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
+      <div class="comparison-row" role="row"><span role="cell">Apps by watts, charging sessions, habits, and alerts</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
+      <div class="comparison-row" role="row"><span role="cell">PDF report, print, CSV, and JSON export</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
+    </div>
+    <div class="actions" style="justify-content:center;">
+      <a class="button primary" href="{{ site.download }}">Download the free app</a>
+      <a class="button secondary" href="/pro/">See everything in Pro</a>
     </div>
   </div>
 </section>
 
-<section class="faq" id="faq">
+<section>
   <div class="wrap">
     <div class="section-head">
-      <span class="section-tag">FAQ</span>
-      <h2>Common questions.</h2>
+      <span class="section-tag">Common questions</span>
+      <h2>The important details, before you install.</h2>
     </div>
     <div class="faq-list">
-      <div class="faq-item">
-        <h3>Why does it show a different health number than other battery apps?</h3>
-        <p>WhatBattery computes health the same way Apple's own Settings does, from the nominal charge capacity. Some tools read a slightly different capacity field and land a couple of points lower. Neither is wrong; WhatBattery matches the number you see elsewhere in macOS.</p>
-      </div>
-      <div class="faq-item">
-        <h3>When will I need to replace my battery?</h3>
-        <p>Pro works that out for you. Its Battery runway fits a line through your long-term health history and projects when you'll reach 80%, the level Apple flags for service, alongside your wear rate and a warning if the battery starts ageing faster than its trend. It needs a couple of months of history first, and it won't invent a date before then. It just says so.</p>
-      </div>
-      <div class="faq-item">
-        <h3>Does it tell me if my charger is too weak?</h3>
-        <p>Yes. Pro records each charge and reports what the charger delivered against what your Mac can fast-charge at, for example "58W of 96W", and flags a charger whose advertised wattage falls clearly below what your Mac can take. The judgement is on the charger's own claim, never on how fast a session happened to run, so a good charger loafing through an overnight charge is never wrongly accused.</p>
-      </div>
-      <div class="faq-item">
-        <h3>How do I read an iPhone or iPad's battery?</h3>
-        <p>Connect it with a cable and tap Trust the first time, or set it up over Wi-Fi. It then appears in the iPhone / iPad tab with the same health, cycles, and live power as a Mac. <a href="/faq/#wifi">Full Wi-Fi setup steps.</a></p>
-      </div>
-      <div class="faq-item">
-        <h3>Which accessories show a battery level?</h3>
-        <p>Bluetooth keyboards, mice, trackpads, and AirPods. AirPods are broken out per bud and case. Since 1.2, devices that only publish battery over Bluetooth Low Energy, Logitech's MX mice among them, show a level too, matching what System Settings sees. A few devices publish nothing at all, and those still say "Battery unavailable" rather than a guess. Showing the levels is free. Pro adds a history, a time-till-empty estimate, low-battery alerts, and a menu bar readout.</p>
-      </div>
-      <div class="faq-item">
-        <h3>Why don't the app watts add up to the battery's drain?</h3>
-        <p>Because they honestly can't. The Apps tab shows the work the chip bills to your own processes. The display, the radios, and system processes belong to nobody in that accounting, so WhatBattery never scales app figures to match the battery's discharge. Tools that show "X% of your battery" per app are making that part up.</p>
-      </div>
-      <div class="faq-item">
-        <h3>Why does it ask for Bluetooth access?</h3>
-        <p>macOS requires permission to read the battery level of Bluetooth accessories. WhatBattery asks the first time you open the Accessories tab, and uses it only to read those levels locally. Nothing is sent anywhere, and the rest of the app works fine if you decline.</p>
-      </div>
-      <div class="faq-item">
-        <h3>Does it change how my Mac charges?</h3>
-        <p>No. WhatBattery is strictly read-only. It reads battery and power data through Apple's own interfaces and never writes to the battery or changes charging behaviour.</p>
-      </div>
-      <div class="faq-item">
-        <h3>Does it work on Intel Macs?</h3>
-        <p>Not yet. WhatBattery targets Apple Silicon (M1 and later) on macOS 14 or later. Intel support is feasible later, but it is out of scope for now.</p>
-      </div>
-      <div class="faq-item">
-        <h3>Does it phone home?</h3>
-        <p>No analytics, no telemetry. Three network calls exist, all visible in the source: a licence check when you activate Pro, an update check against GitHub (which you can turn off), and the wear comparison below, which is off unless you opt in.</p>
-      </div>
-      <div class="faq-item">
-        <h3>What does the anonymous wear comparison share?</h3>
-        <p>If you opt in (Settings, Pro), WhatBattery contributes one anonymous reading a week: your Mac's model identifier ("Mac14,2"), the cycle count rounded down to the nearest 100, the health percent, and a coarse years-since-first-recorded figure. No serial, no device name, no OS version, no location, nothing tied to your licence. In return you see where your battery's health sits among other readings of the same model and cycle band. Contributions are kept for at most 13 months, and the payload is pinned by a test so a new field can't sneak in.</p>
-      </div>
-      <div class="faq-item">
-        <h3>How does the two-Mac licence work?</h3>
-        <p>One key activates Pro on up to two Macs. Paste the same key into Settings on each machine. Replacing a Mac? Email support and we'll free up a slot.</p>
-      </div>
-      <div class="faq-item">
-        <h3>How is this different from WhatCable and WhatPort?</h3>
-        <p><a href="https://www.whatcable.uk">WhatCable</a> is about cables, <a href="https://www.whatport.app">WhatPort</a> is about USB-C ports. WhatBattery is about battery health and power, for your Mac and the iPhones and iPads you connect to it.</p>
-      </div>
+      <div class="faq-item"><h3>Does WhatBattery change how my Mac charges?</h3><p>No. It is strictly read-only. It reads battery and power data through Apple's interfaces and never writes to the battery, enforces a charge limit, or changes charging behaviour.</p></div>
+      <div class="faq-item"><h3>Why is it not in the Mac App Store?</h3><p>The App Sandbox blocks the low-level IOKit and SMC reads WhatBattery needs. It ships directly as a Developer ID-signed and Apple-notarised app, so it opens without a Gatekeeper warning.</p></div>
+      <div class="faq-item"><h3>How does the iPhone and iPad reading work?</h3><p>Trust the Mac once over a cable, then read the device over USB or Wi-Fi using the same connection Finder uses. No app is installed on the device. <a href="/docs/iphone-ipad/">Read the setup guide.</a></p></div>
+      <div class="faq-item"><h3>What does Pro cost?</h3><p>£9.99 once, for up to two Macs. There is no subscription and purchases have a 14-day money-back guarantee.</p></div>
     </div>
+    <p style="margin-top:22px;"><a class="text-link" href="/faq/">Read all frequently asked questions →</a></p>
   </div>
 </section>
 
-<section class="install" id="install">
-  <div class="wrap">
-    <div class="section-head">
-      <span class="section-tag">Install</span>
-      <h2>Download and go.</h2>
-      <p>WhatBattery is signed, notarised, and ready to run. Requires macOS 14 (Sonoma) or later on Apple Silicon.</p>
+<section class="cta-band">
+  <div class="wrap cta-grid">
+    <div>
+      <h2>See what your battery is doing before it becomes a surprise.</h2>
+      <p>Free, open source, signed, and notarised for Apple Silicon Macs running macOS 14 or later.</p>
     </div>
-    <div class="install-grid">
-      <div class="install-card">
-        <div class="install-card-label">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          Download
-        </div>
-        <p>Grab the latest <code>.zip</code> from GitHub Releases. Unzip and drag <strong style="color:#fff;">WhatBattery.app</strong> into Applications.</p>
-        <a class="button primary" href="{{ site.download }}">Download the latest release</a>
-      </div>
-      <div class="install-card">
-        <div class="install-card-label">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-          Homebrew
-        </div>
-        <p>Prefer the terminal? Install with <strong style="color:#fff;">brew</strong> and get upgrades for free.</p>
-        <pre>brew install --cask \
-  darrylmorley/whatbattery/whatbattery</pre>
-        <a class="button primary" href="https://github.com/darrylmorley/homebrew-whatbattery">View the tap</a>
-      </div>
-    </div>
-    <div class="meta-row">
-      <span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-        Read-only, never writes to your battery
-      </span>
-      <span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-        No kernel extension, no root
-      </span>
-      <span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
-        MIT licensed
-      </span>
-    </div>
+    <a class="button primary" href="{{ site.download }}">Download WhatBattery free</a>
   </div>
 </section>

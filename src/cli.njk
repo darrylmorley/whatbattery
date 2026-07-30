@@ -1,0 +1,31 @@
+---
+layout: base.njk
+title: Command-line interface
+permalink: /cli/
+description: Use WhatBattery from the terminal for readable battery summaries, JSON output, watch mode, iPhone and iPad readings, reports, and history export.
+---
+
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>CLI</span></nav><span class="section-tag">WhatBattery CLI</span><h1>The same battery engine in your terminal.</h1><p class="lede">Get a readable snapshot, stream changing values, feed JSON into scripts, or export Pro history without opening the menu bar app.</p><div class="actions"><a class="button primary" href="/docs/install/#homebrew">Install with Homebrew</a><a class="button secondary" href="{{ site.repo }}">View source</a></div></div></header>
+
+<section><div class="wrap feature-lead"><div class="feature-copy"><span class="section-tag">A useful default</span><h2>Run one command. Get the important facts.</h2><p>The CLI and app share the same battery readers and formatting. The default output is designed for humans; <code>--json</code> exposes structured data for scripts.</p><ul class="benefit-list"><li>Battery health and raw capacity</li><li>Charge state and cycles</li><li>Temperature, voltage, and live power</li><li>Model and charger context</li></ul></div><div class="terminal" aria-label="WhatBattery command-line example">~ whatbattery<br><br>Model&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;MacBook Pro (14-inch, M5)<br>Health&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;99.6% (6,225 / 6,249 mAh)<br>Charge&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100%, fully charged<br>Cycles&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;42 (design 1000)<br>Temperature&nbsp;&nbsp;&nbsp;30.4°C<br>Power&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.0 W (100W PD charger)<br>Voltage&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;13.21 V</div></div></section>
+
+<section class="soft-section"><div class="wrap narrow prose"><span class="section-tag">Commands</span><h2>Readable, structured, or live.</h2><pre><code>whatbattery                # readable battery summary
+whatbattery --json         # structured JSON
+whatbattery --watch        # refresh as values change
+whatbattery --accessories  # connected accessory levels
+whatbattery --idevice      # iPhone/iPad reading (Pro)
+whatbattery --version
+whatbattery --help</code></pre>
+
+<h2>Pro commands</h2><pre><code>whatbattery --report
+whatbattery --export csv --range month
+whatbattery --export json --range all --out history.json
+whatbattery --activate XXXX-XXXX-XXXX-XXXX
+whatbattery --licence
+whatbattery --deactivate</code></pre>
+
+<h2>Install the CLI</h2><p>Homebrew installs the menu bar app and symlinks the bundled command into your PATH:</p><pre><code>brew install --cask darrylmorley/whatbattery/whatbattery</code></pre><p>If you installed the app manually, the binary is inside <code>WhatBattery.app/Contents/Helpers/whatbattery</code>.</p>
+
+<h2>Automation examples</h2><p>Extract the current health with <code>jq</code>:</p><pre><code>whatbattery --json | jq '.healthPercent'</code></pre><p>Keep a live view while testing chargers:</p><pre><code>whatbattery --watch</code></pre></div></section>
+
+<section class="cta-band"><div class="wrap cta-grid"><div><h2>Install the app and CLI together.</h2><p>The Homebrew cask gives you both and keeps upgrades simple.</p></div><a class="button primary" href="/docs/install/#homebrew">See Homebrew installation</a></div></section>

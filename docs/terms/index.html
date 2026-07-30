@@ -3,21 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Thanks · WhatBattery</title>
-    <meta name="description" content="Your WhatBattery Pro purchase is complete." />
-    <link rel="canonical" href="https://www.whatbattery.app/success/" />
+    <title>Terms · WhatBattery</title>
+    <meta name="description" content="Terms for downloading and using WhatBattery and purchasing a WhatBattery Pro licence." />
+    <link rel="canonical" href="https://www.whatbattery.app/terms/" />
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
     <link rel="icon" href="/img/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/img/icon.png" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.whatbattery.app/success/" />
-    <meta property="og:title" content="Thanks · WhatBattery" />
-    <meta property="og:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta property="og:url" content="https://www.whatbattery.app/terms/" />
+    <meta property="og:title" content="Terms · WhatBattery" />
+    <meta property="og:description" content="Terms for downloading and using WhatBattery and purchasing a WhatBattery Pro licence." />
     <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Thanks · WhatBattery" />
-    <meta name="twitter:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta name="twitter:title" content="Terms · WhatBattery" />
+    <meta name="twitter:description" content="Terms for downloading and using WhatBattery and purchasing a WhatBattery Pro licence." />
     <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
 
 
@@ -49,75 +49,20 @@
 
     <main id="main">
 
-<section class="page" id="success">
-  <div class="wrap">
-    <div class="section-head page-head">
-      <span class="section-tag">WhatBattery Pro</span>
-      <h1>Thank you</h1>
-      <p class="lede" id="status">Confirming your purchase&hellip;</p>
-    </div>
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>Terms</span></nav><span class="section-tag">Terms</span><h1>Terms for WhatBattery and WhatBattery Pro.</h1><p class="lede">The free app is open source. A Pro purchase grants a personal licence to unlock the additional features.</p></div></header>
 
-    <div class="faq-list">
-      <div id="next" hidden>
-        <div class="faq-item">
-          <h3>Your licence key is on its way</h3>
-          <p>We've emailed your key. Open WhatBattery, click the gear in the menu bar dropdown to open Settings, and paste the key into the Licence field to unlock Pro.</p>
-          <p>No email after a few minutes? Check spam, or reach us from the support link on the site.</p>
-        </div>
-      </div>
-      <div id="failed" hidden>
-        <div class="faq-item">
-          <h3>We couldn't confirm the payment automatically</h3>
-          <p>If you completed checkout, your key will still arrive by email. Otherwise, <a href="/pro/">try again</a>.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<script>
-  (async () => {
-    const statusEl = document.getElementById("status");
-    const nextEl = document.getElementById("next");
-    const failedEl = document.getElementById("failed");
-
-    const sessionId = new URLSearchParams(window.location.search).get("session_id");
-    if (!sessionId) {
-      statusEl.hidden = true;
-      failedEl.hidden = false;
-      return;
-    }
-
-    const check = async () => {
-      try {
-        const response = await fetch("https://www.whatbattery.app/api/session-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        if (!response.ok) return null;
-        return await response.json();
-      } catch {
-        return null;
-      }
-    };
-
-    // Poll briefly: the key is minted by the webhook moments after payment.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const result = await check();
-      if (result && (result.licenceIssued || result.status === "paid")) {
-        statusEl.hidden = true;
-        nextEl.hidden = false;
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-
-    // Still nothing: payment may be genuine but the email is the source of truth.
-    statusEl.hidden = true;
-    nextEl.hidden = false;
-  })();
-</script>
+<section class="prose-section"><div class="wrap prose"><p><strong>Last updated: 30 July 2026</strong></p>
+  <h2>About these terms</h2><p>These terms apply to the WhatBattery website, distributed app, and WhatBattery Pro licence. WhatBattery is a Bitmoor product created by Darryl Morley. By purchasing or using Pro, you agree to these terms.</p>
+  <h2>Free and open-source software</h2><p>The public WhatBattery source and the portions distributed under the MIT Licence remain governed by that licence. The MIT Licence is included with the source repository.</p>
+  <h2>WhatBattery Pro licence</h2><p>A purchase grants you a non-exclusive, non-transferable personal licence to activate WhatBattery Pro on up to two Macs. You may not sell, share publicly, or distribute the licence key. Replacing a Mac does not require a new purchase; contact support to free an activation slot when needed.</p>
+  <h2>Price and payment</h2><p>The displayed Pro price is a one-time payment. Payment is processed by Stripe. Any taxes or currency conversion applied by the payment provider will be shown during checkout where required.</p>
+  <h2>Refunds</h2><p>You may request a refund within 14 days of purchase. Use the contact route provided with the licence email or the support options in the GitHub repository. After a refund, the associated Pro licence may be deactivated.</p>
+  <h2>Updates and compatibility</h2><p>The licence covers use of the purchased WhatBattery Pro product and updates made available for it. It does not guarantee that every future Apple operating system or hardware model will remain compatible. WhatBattery currently requires an Apple Silicon Mac running macOS 14 or later.</p>
+  <h2>Read-only purpose</h2><p>WhatBattery is an informational utility. It does not control charging, repair a battery, or replace advice from Apple or an authorised service provider. Battery readings and forecasts are estimates based on values reported by the devices and may change as a battery recalibrates or an operating system changes.</p>
+  <h2>Availability</h2><p>The app and services are provided on an “as available” basis. Reasonable care is taken to keep them accurate and operational, but uninterrupted availability and error-free readings cannot be guaranteed.</p>
+  <h2>Liability</h2><p>To the maximum extent permitted by law, WhatBattery and its creator are not liable for indirect or consequential loss arising from use of the app, reliance on a battery estimate, or service interruption. Nothing in these terms limits rights or liabilities that cannot lawfully be excluded.</p>
+  <h2>Changes and contact</h2><p>These terms may be updated when the product or legal requirements change. Material changes will be posted here with a revised date. For support or licence questions, use the <a href="https://github.com/darrylmorley/whatbattery">WhatBattery GitHub repository</a>.</p>
+</div></section>
 
     </main>
 

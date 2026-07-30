@@ -3,21 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Thanks · WhatBattery</title>
-    <meta name="description" content="Your WhatBattery Pro purchase is complete." />
-    <link rel="canonical" href="https://www.whatbattery.app/success/" />
+    <title>Mac charging watts explained · WhatBattery</title>
+    <meta name="description" content="Understand Mac charger wattage, USB-C power negotiation, why a charger does not always deliver its maximum rating, and when it is genuinely undersized." />
+    <link rel="canonical" href="https://www.whatbattery.app/blog/mac-charging-watts/" />
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
     <link rel="icon" href="/img/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/img/icon.png" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.whatbattery.app/success/" />
-    <meta property="og:title" content="Thanks · WhatBattery" />
-    <meta property="og:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta property="og:url" content="https://www.whatbattery.app/blog/mac-charging-watts/" />
+    <meta property="og:title" content="Mac charging watts explained · WhatBattery" />
+    <meta property="og:description" content="Understand Mac charger wattage, USB-C power negotiation, why a charger does not always deliver its maximum rating, and when it is genuinely undersized." />
     <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Thanks · WhatBattery" />
-    <meta name="twitter:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta name="twitter:title" content="Mac charging watts explained · WhatBattery" />
+    <meta name="twitter:description" content="Understand Mac charger wattage, USB-C power negotiation, why a charger does not always deliver its maximum rating, and when it is genuinely undersized." />
     <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
 
 
@@ -49,75 +49,16 @@
 
     <main id="main">
 
-<section class="page" id="success">
-  <div class="wrap">
-    <div class="section-head page-head">
-      <span class="section-tag">WhatBattery Pro</span>
-      <h1>Thank you</h1>
-      <p class="lede" id="status">Confirming your purchase&hellip;</p>
-    </div>
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/blog/">Blog</a><span>/</span><span>Charging watts</span></nav><span class="section-tag">Charging power</span><h1>Mac charging watts explained.</h1><p class="lede">The number printed on the charger is a capability, not a promise that the Mac will draw that amount every second.</p></div></header>
 
-    <div class="faq-list">
-      <div id="next" hidden>
-        <div class="faq-item">
-          <h3>Your licence key is on its way</h3>
-          <p>We've emailed your key. Open WhatBattery, click the gear in the menu bar dropdown to open Settings, and paste the key into the Licence field to unlock Pro.</p>
-          <p>No email after a few minutes? Check spam, or reach us from the support link on the site.</p>
-        </div>
-      </div>
-      <div id="failed" hidden>
-        <div class="faq-item">
-          <h3>We couldn't confirm the payment automatically</h3>
-          <p>If you completed checkout, your key will still arrive by email. Otherwise, <a href="/pro/">try again</a>.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<script>
-  (async () => {
-    const statusEl = document.getElementById("status");
-    const nextEl = document.getElementById("next");
-    const failedEl = document.getElementById("failed");
-
-    const sessionId = new URLSearchParams(window.location.search).get("session_id");
-    if (!sessionId) {
-      statusEl.hidden = true;
-      failedEl.hidden = false;
-      return;
-    }
-
-    const check = async () => {
-      try {
-        const response = await fetch("https://www.whatbattery.app/api/session-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        if (!response.ok) return null;
-        return await response.json();
-      } catch {
-        return null;
-      }
-    };
-
-    // Poll briefly: the key is minted by the webhook moments after payment.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const result = await check();
-      if (result && (result.licenceIssued || result.status === "paid")) {
-        statusEl.hidden = true;
-        nextEl.hidden = false;
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-
-    // Still nothing: payment may be genuine but the email is the source of truth.
-    statusEl.hidden = true;
-    nextEl.hidden = false;
-  })();
-</script>
+<article class="prose-section"><div class="wrap prose">
+  <h2>Three different wattages can all be correct</h2><p>A charging setup has at least three relevant limits: what the charger can offer, what the cable can carry, and what the Mac is prepared to request. The lowest applicable limit constrains the connection.</p><p>Even after negotiation, the Mac controls the moment-to-moment draw. Battery charge level, temperature, system load, Optimized Battery Charging, and the normal taper near full all affect how much power moves into the battery.</p>
+  <h2>Negotiated power versus live battery power</h2><p><strong>Negotiated power</strong> describes the power profile agreed between the charger and Mac. <strong>Live battery power</strong> describes what is entering or leaving the battery now. They are related, but they should not be expected to match.</p><p>The Mac may negotiate with a 96W charger while the battery receives far less because the battery is nearly full or the computer is using part of the incoming power.</p>
+  <h2>When is a charger actually undersized?</h2><p>A charger is clearly undersized when its advertised capability is well below what the Mac can use for fast charging. A small phone charger connected to a MacBook Pro is one example. That judgement should be based on the charger's capability, not on one slow sample during an overnight charge.</p><p><a href="/features/power/">WhatBattery Pro's charging sessions</a> keep both parts: how the session actually ran and whether the charger's own advertised wattage falls short of the Mac's fast-charge capability.</p>
+  <h2>Why power can be negative while connected</h2><p>If the charger cannot cover the computer's current load, the battery may still discharge while the cable is connected. A weak charger, a cable or hub limit, or an intensive workload can all contribute. Seeing live battery watts makes that state explicit.</p>
+  <h2>A better way to test a charger</h2><ol><li>Start with the battery below full, so charging is not already tapering.</li><li>Connect the charger directly where practical.</li><li>Check the negotiated charger capability.</li><li>Watch live input and battery power over more than one moment.</li><li>Compare the result with the Mac's supported fast-charge setup.</li></ol>
+  <div class="callout"><strong>Remember:</strong> a charger is a ceiling, the Mac chooses the draw, and the battery receives what remains after the system's own load.</div>
+</div></article>
 
     </main>
 

@@ -3,21 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Thanks · WhatBattery</title>
-    <meta name="description" content="Your WhatBattery Pro purchase is complete." />
-    <link rel="canonical" href="https://www.whatbattery.app/success/" />
+    <title>Live power and app usage · WhatBattery</title>
+    <meta name="description" content="See your Mac&#39;s live charge and discharge watts, negotiated charger, temperature, voltage, and which apps are using power." />
+    <link rel="canonical" href="https://www.whatbattery.app/features/power/" />
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
     <link rel="icon" href="/img/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/img/icon.png" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.whatbattery.app/success/" />
-    <meta property="og:title" content="Thanks · WhatBattery" />
-    <meta property="og:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta property="og:url" content="https://www.whatbattery.app/features/power/" />
+    <meta property="og:title" content="Live power and app usage · WhatBattery" />
+    <meta property="og:description" content="See your Mac&#39;s live charge and discharge watts, negotiated charger, temperature, voltage, and which apps are using power." />
     <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Thanks · WhatBattery" />
-    <meta name="twitter:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta name="twitter:title" content="Live power and app usage · WhatBattery" />
+    <meta name="twitter:description" content="See your Mac&#39;s live charge and discharge watts, negotiated charger, temperature, voltage, and which apps are using power." />
     <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
 
 
@@ -49,75 +49,15 @@
 
     <main id="main">
 
-<section class="page" id="success">
-  <div class="wrap">
-    <div class="section-head page-head">
-      <span class="section-tag">WhatBattery Pro</span>
-      <h1>Thank you</h1>
-      <p class="lede" id="status">Confirming your purchase&hellip;</p>
-    </div>
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/features/">Features</a><span>/</span><span>Power</span></nav><span class="section-tag">Live power</span><h1>See the watts, not a mystery score.</h1><p class="lede">Watch power flow into or out of the battery in real time, then use Pro to find the apps doing the most work and keep their history.</p><div class="actions"><a class="button primary" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download free</a><a class="button secondary" href="/pro/">Explore Pro analysis</a></div></div></header>
 
-    <div class="faq-list">
-      <div id="next" hidden>
-        <div class="faq-item">
-          <h3>Your licence key is on its way</h3>
-          <p>We've emailed your key. Open WhatBattery, click the gear in the menu bar dropdown to open Settings, and paste the key into the Licence field to unlock Pro.</p>
-          <p>No email after a few minutes? Check spam, or reach us from the support link on the site.</p>
-        </div>
-      </div>
-      <div id="failed" hidden>
-        <div class="faq-item">
-          <h3>We couldn't confirm the payment automatically</h3>
-          <p>If you completed checkout, your key will still arrive by email. Otherwise, <a href="/pro/">try again</a>.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+<section><div class="wrap feature-lead"><div class="feature-copy"><span class="section-tag">At this moment</span><h2>Know whether the Mac is charging, holding, or draining.</h2><p>The free app reads the live battery power rail every second. Alongside watts, it shows temperature, voltage, charge state, and the charger your Mac negotiated.</p><p>This is the useful layer between “the battery icon changed” and a full engineering trace.</p><ul class="benefit-list"><li>Live charge and discharge watts</li><li>Negotiated charger wattage</li><li>Battery voltage and temperature</li><li>Menu bar and full-window views</li></ul></div><img src="/img/screenshot-menubar.png" alt="WhatBattery menu bar showing live power, charger details, voltage, and temperature" width="360" /></div></section>
 
-<script>
-  (async () => {
-    const statusEl = document.getElementById("status");
-    const nextEl = document.getElementById("next");
-    const failedEl = document.getElementById("failed");
+<section class="soft-section"><div class="wrap feature-lead"><img src="/img/screenshot-apps.png" alt="Apps ranked by live watts in WhatBattery" width="440" loading="lazy" /><div class="feature-copy"><span class="section-tag">What is using it</span><h2>Name the hungry apps, honestly. <span class="pro-tag">Pro</span></h2><p>WhatBattery reads the cumulative energy macOS bills to your own processes, measures the change, and turns it into live watts. It also records the top users over the day, week, or month.</p><p>The display, radios, and system processes are not attributable to one app. WhatBattery leaves that remainder alone rather than scaling app figures until they add up to the battery drain.</p><ul class="benefit-list"><li>Apps ranked by live watts</li><li>Top power users over time</li><li>Clear limits instead of invented percentages</li></ul></div></div></section>
 
-    const sessionId = new URLSearchParams(window.location.search).get("session_id");
-    if (!sessionId) {
-      statusEl.hidden = true;
-      failedEl.hidden = false;
-      return;
-    }
+<section><div class="wrap feature-lead"><div class="feature-copy"><span class="section-tag">Charging sessions</span><h2>Find the charger that cannot keep up. <span class="pro-tag">Pro</span></h2><p>Every charging session records how fast it ran, how warm the battery became, and what the charger advertised. A verdict such as “58W of 96W” shows whether the charger is clearly undersized for the Mac.</p><p>A good charger is not blamed for an overnight trickle: the verdict uses the charger's own claim, not a single momentary draw.</p></div><img src="/img/screenshot-charging.png" alt="WhatBattery charging history with delivered watts and charger verdicts" width="440" loading="lazy" /></div></section>
 
-    const check = async () => {
-      try {
-        const response = await fetch("https://www.whatbattery.app/api/session-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        if (!response.ok) return null;
-        return await response.json();
-      } catch {
-        return null;
-      }
-    };
-
-    // Poll briefly: the key is minted by the webhook moments after payment.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const result = await check();
-      if (result && (result.licenceIssued || result.status === "paid")) {
-        statusEl.hidden = true;
-        nextEl.hidden = false;
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-
-    // Still nothing: payment may be genuine but the email is the source of truth.
-    statusEl.hidden = true;
-    nextEl.hidden = false;
-  })();
-</script>
+<section class="cta-band"><div class="wrap cta-grid"><div><h2>See where the watts are going.</h2><p>Live battery power is free. App history and charger analysis are included in Pro.</p></div><a class="button primary" href="/pro/">Explore WhatBattery Pro</a></div></section>
 
     </main>
 

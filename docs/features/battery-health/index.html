@@ -3,21 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Thanks · WhatBattery</title>
-    <meta name="description" content="Your WhatBattery Pro purchase is complete." />
-    <link rel="canonical" href="https://www.whatbattery.app/success/" />
+    <title>True battery health · WhatBattery</title>
+    <meta name="description" content="See your Mac&#39;s unrounded battery health, raw capacity, cycle count, temperature, and Apple service condition from the menu bar." />
+    <link rel="canonical" href="https://www.whatbattery.app/features/battery-health/" />
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
     <link rel="icon" href="/img/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/img/icon.png" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.whatbattery.app/success/" />
-    <meta property="og:title" content="Thanks · WhatBattery" />
-    <meta property="og:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta property="og:url" content="https://www.whatbattery.app/features/battery-health/" />
+    <meta property="og:title" content="True battery health · WhatBattery" />
+    <meta property="og:description" content="See your Mac&#39;s unrounded battery health, raw capacity, cycle count, temperature, and Apple service condition from the menu bar." />
     <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Thanks · WhatBattery" />
-    <meta name="twitter:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta name="twitter:title" content="True battery health · WhatBattery" />
+    <meta name="twitter:description" content="See your Mac&#39;s unrounded battery health, raw capacity, cycle count, temperature, and Apple service condition from the menu bar." />
     <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
 
 
@@ -49,75 +49,13 @@
 
     <main id="main">
 
-<section class="page" id="success">
-  <div class="wrap">
-    <div class="section-head page-head">
-      <span class="section-tag">WhatBattery Pro</span>
-      <h1>Thank you</h1>
-      <p class="lede" id="status">Confirming your purchase&hellip;</p>
-    </div>
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/features/">Features</a><span>/</span><span>Battery health</span></nav><span class="section-tag">True battery health</span><h1>See the health number macOS rounds away.</h1><p class="lede">WhatBattery computes health from the battery's raw maximum and design capacities, shows it to one decimal, and puts cycle count and service condition beside it.</p><div class="actions"><a class="button primary" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download free</a><a class="button secondary" href="/docs/install/">Install guide</a></div></div></header>
 
-    <div class="faq-list">
-      <div id="next" hidden>
-        <div class="faq-item">
-          <h3>Your licence key is on its way</h3>
-          <p>We've emailed your key. Open WhatBattery, click the gear in the menu bar dropdown to open Settings, and paste the key into the Licence field to unlock Pro.</p>
-          <p>No email after a few minutes? Check spam, or reach us from the support link on the site.</p>
-        </div>
-      </div>
-      <div id="failed" hidden>
-        <div class="faq-item">
-          <h3>We couldn't confirm the payment automatically</h3>
-          <p>If you completed checkout, your key will still arrive by email. Otherwise, <a href="/pro/">try again</a>.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+<section><div class="wrap feature-lead"><div class="feature-copy"><span class="section-tag">No false precision, no hidden rounding</span><h2>100% can mean 99.5%.</h2><p>System Settings presents a whole number. That is useful at a glance, but it can hide the first signs of wear. WhatBattery works from the underlying mAh figures and keeps one decimal place.</p><p>It also shows the nominal capacity, design capacity, cycle count, temperature, voltage, current state, and the same Normal or Service Recommended condition macOS uses.</p><ul class="benefit-list"><li>Health computed from nominal capacity ÷ design capacity</li><li>Apple's own service condition, not a competing verdict</li><li>Raw figures available when you want to check the maths</li><li>Free in the Mac overview and menu bar</li></ul></div><img src="/img/screenshot-mac.png" alt="WhatBattery Mac overview showing battery health, capacity, cycle count, temperature, and service condition" width="440" /></div></section>
 
-<script>
-  (async () => {
-    const statusEl = document.getElementById("status");
-    const nextEl = document.getElementById("next");
-    const failedEl = document.getElementById("failed");
+<section class="soft-section"><div class="wrap"><div class="section-head"><span class="section-tag">The honest boundary</span><h2>It tells you what the battery reports and what cannot be known.</h2><p>There is no dependable public signal that proves a battery is genuine. WhatBattery does not add a green “genuine” badge to incomplete evidence. It shows the service condition, capacities, health, cycles, and identifiers the system can actually support.</p></div><div class="card-grid"><article class="card"><h3>Matches macOS</h3><p>The condition is read from the system, so a service warning agrees with System Settings.</p></article><article class="card"><h3>Does not control charging</h3><p>WhatBattery observes. It never enforces a charge limit or writes to the battery.</p></article><article class="card"><h3>Keeps missing data missing</h3><p>If the system refuses a reading, the app shows that it is unavailable instead of guessing.</p></article></div></div></section>
 
-    const sessionId = new URLSearchParams(window.location.search).get("session_id");
-    if (!sessionId) {
-      statusEl.hidden = true;
-      failedEl.hidden = false;
-      return;
-    }
-
-    const check = async () => {
-      try {
-        const response = await fetch("https://www.whatbattery.app/api/session-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        if (!response.ok) return null;
-        return await response.json();
-      } catch {
-        return null;
-      }
-    };
-
-    // Poll briefly: the key is minted by the webhook moments after payment.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const result = await check();
-      if (result && (result.licenceIssued || result.status === "paid")) {
-        statusEl.hidden = true;
-        nextEl.hidden = false;
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-
-    // Still nothing: payment may be genuine but the email is the source of truth.
-    statusEl.hidden = true;
-    nextEl.hidden = false;
-  })();
-</script>
+<section class="cta-band"><div class="wrap cta-grid"><div><h2>Check the real health of your Mac battery.</h2><p>Free on Apple Silicon Macs running macOS 14 or later.</p></div><a class="button primary" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download WhatBattery free</a></div></section>
 
     </main>
 

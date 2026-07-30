@@ -3,21 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Thanks · WhatBattery</title>
-    <meta name="description" content="Your WhatBattery Pro purchase is complete." />
-    <link rel="canonical" href="https://www.whatbattery.app/success/" />
+    <title>Privacy · WhatBattery</title>
+    <meta name="description" content="WhatBattery&#39;s privacy policy covering local battery data, Bluetooth, connected devices, licence activation, updates, optional wear comparison, website, and checkout." />
+    <link rel="canonical" href="https://www.whatbattery.app/privacy/" />
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
     <link rel="icon" href="/img/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/img/icon.png" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.whatbattery.app/success/" />
-    <meta property="og:title" content="Thanks · WhatBattery" />
-    <meta property="og:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta property="og:url" content="https://www.whatbattery.app/privacy/" />
+    <meta property="og:title" content="Privacy · WhatBattery" />
+    <meta property="og:description" content="WhatBattery&#39;s privacy policy covering local battery data, Bluetooth, connected devices, licence activation, updates, optional wear comparison, website, and checkout." />
     <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Thanks · WhatBattery" />
-    <meta name="twitter:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta name="twitter:title" content="Privacy · WhatBattery" />
+    <meta name="twitter:description" content="WhatBattery&#39;s privacy policy covering local battery data, Bluetooth, connected devices, licence activation, updates, optional wear comparison, website, and checkout." />
     <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
 
 
@@ -49,75 +49,20 @@
 
     <main id="main">
 
-<section class="page" id="success">
-  <div class="wrap">
-    <div class="section-head page-head">
-      <span class="section-tag">WhatBattery Pro</span>
-      <h1>Thank you</h1>
-      <p class="lede" id="status">Confirming your purchase&hellip;</p>
-    </div>
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>Privacy</span></nav><span class="section-tag">Privacy</span><h1>Battery data stays local by default.</h1><p class="lede">WhatBattery has no in-app analytics or telemetry. This policy explains the limited cases where the app or website communicates with another service.</p></div></header>
 
-    <div class="faq-list">
-      <div id="next" hidden>
-        <div class="faq-item">
-          <h3>Your licence key is on its way</h3>
-          <p>We've emailed your key. Open WhatBattery, click the gear in the menu bar dropdown to open Settings, and paste the key into the Licence field to unlock Pro.</p>
-          <p>No email after a few minutes? Check spam, or reach us from the support link on the site.</p>
-        </div>
-      </div>
-      <div id="failed" hidden>
-        <div class="faq-item">
-          <h3>We couldn't confirm the payment automatically</h3>
-          <p>If you completed checkout, your key will still arrive by email. Otherwise, <a href="/pro/">try again</a>.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<script>
-  (async () => {
-    const statusEl = document.getElementById("status");
-    const nextEl = document.getElementById("next");
-    const failedEl = document.getElementById("failed");
-
-    const sessionId = new URLSearchParams(window.location.search).get("session_id");
-    if (!sessionId) {
-      statusEl.hidden = true;
-      failedEl.hidden = false;
-      return;
-    }
-
-    const check = async () => {
-      try {
-        const response = await fetch("https://www.whatbattery.app/api/session-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        if (!response.ok) return null;
-        return await response.json();
-      } catch {
-        return null;
-      }
-    };
-
-    // Poll briefly: the key is minted by the webhook moments after payment.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const result = await check();
-      if (result && (result.licenceIssued || result.status === "paid")) {
-        statusEl.hidden = true;
-        nextEl.hidden = false;
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
-
-    // Still nothing: payment may be genuine but the email is the source of truth.
-    statusEl.hidden = true;
-    nextEl.hidden = false;
-  })();
-</script>
+<section class="prose-section"><div class="wrap prose"><p><strong>Last updated: 30 July 2026</strong></p>
+  <h2>Data processed on your Mac</h2><p>WhatBattery reads battery, power, charger, device, accessory, and process-energy information locally. Pro history is stored locally on the Mac. This information is not uploaded automatically.</p>
+  <h2>Bluetooth</h2><p>If you grant Bluetooth access, WhatBattery uses it to read battery levels from connected accessories. The readings remain local. You can deny or revoke the permission in macOS Settings.</p>
+  <h2>Connected iPhone and iPad</h2><p>When a device trusts the Mac, WhatBattery can request battery diagnostics over that local USB or Wi-Fi connection. No WhatBattery app runs on the device, and the battery response is not sent to WhatBattery's servers.</p>
+  <h2>Licence activation</h2><p>Pro activation contacts the licensing service to validate the key and enforce the two-Mac activation limit. The service processes the licence key and an installation identifier needed for activation. It does not receive battery readings or history.</p>
+  <h2>Update checks</h2><p>When enabled, the app contacts the GitHub Releases API to check for a newer version. No battery or hardware readings are added to the request. Update checks can be disabled.</p>
+  <h2>Optional anonymous wear comparison</h2><p>If you explicitly opt in, WhatBattery can contribute one reading per week containing the Mac model identifier, cycle count rounded down to the nearest 100, health percentage, and a coarse age value. It excludes serial numbers, device names, OS version, location, and licence identifiers. Contributions are retained for no more than 13 months. You can opt out at any time.</p>
+  <h2>Reports and exports</h2><p>Reports, exports, and backups are created only when requested and saved to a location you choose. WhatBattery does not upload them.</p>
+  <h2>Website and checkout</h2><p>The marketing site is served through GitHub Pages. Standard technical request information may be processed by the hosting provider. Pro checkout is handled by Stripe, which processes the payment and purchaser details needed to complete the transaction. Stripe's own privacy policy applies to that processing.</p>
+  <h2>Children</h2><p>WhatBattery is a general-purpose utility and is not directed at children. The app does not knowingly collect children's personal information.</p>
+  <h2>Changes and contact</h2><p>Material changes will be posted on this page with a revised date. For privacy questions, use the support options in the <a href="https://github.com/darrylmorley/whatbattery">WhatBattery GitHub repository</a>.</p>
+</div></section>
 
     </main>
 

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}: battery health and live power for Mac, iPhone, and iPad{% endif %}</title>
+    <title>{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}: know your battery's real health and where it's heading{% endif %}</title>
     <meta name="description" content="{{ description or site.tagline }}" />
     <link rel="canonical" href="{{ site.url }}{{ page.url }}" />
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
@@ -12,15 +12,15 @@
 
     <meta property="og:type" content="website" />
     <meta property="og:url" content="{{ site.url }}{{ page.url }}" />
-    <meta property="og:title" content="{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}: battery health and live power for Mac, iPhone, and iPad{% endif %}" />
+    <meta property="og:title" content="{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}: know your battery's real health and where it's heading{% endif %}" />
     <meta property="og:description" content="{{ description or site.tagline }}" />
-    <meta property="og:image" content="{{ site.url }}/img/screenshot-mac.png" />
+    <meta property="og:image" content="{{ site.url }}/img/og-whatbattery.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="{{ site.name }}" />
+    <meta name="twitter:title" content="{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}{% endif %}" />
     <meta name="twitter:description" content="{{ description or site.tagline }}" />
-    <meta name="twitter:image" content="{{ site.url }}/img/screenshot-mac.png" />
+    <meta name="twitter:image" content="{{ site.url }}/img/og-whatbattery.png" />
 
-    {% if page.url == '/' %}
+{% if page.url == '/' %}
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -31,15 +31,15 @@
       "url": "{{ site.url }}/",
       "downloadUrl": "{{ site.download }}",
       "description": "{{ site.tagline | safe }}",
-      "image": "{{ site.url }}/img/screenshot-mac.png",
+      "image": "{{ site.url }}/img/og-whatbattery.png",
       "author": { "@type": "Person", "name": "Darryl Morley" },
       "offers": [
         { "@type": "Offer", "name": "WhatBattery", "price": "0", "priceCurrency": "GBP" },
-        { "@type": "Offer", "name": "WhatBattery Pro", "price": "9.99", "priceCurrency": "GBP", "url": "{{ site.url }}/#pro" }
+        { "@type": "Offer", "name": "WhatBattery Pro", "price": "9.99", "priceCurrency": "GBP", "url": "{{ site.url }}/pro/" }
       ]
     }
     </script>
-    {% endif %}
+{% endif %}
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -47,46 +47,77 @@
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <nav class="nav" aria-label="Primary">
       <div class="wrap nav-inner">
-        <a class="brand" href="/">
-          <img class="mark" src="/img/icon.png" alt="" aria-hidden="true" width="28" height="28" />
+        <a class="brand" href="/" aria-label="WhatBattery home">
+          <img class="mark" src="/img/icon.png" alt="" aria-hidden="true" width="30" height="30" />
           <span>{{ site.name }}</span>
         </a>
         <div class="nav-links">
-          <a href="/#features">Features</a>
-          <a href="/#pro">Pro</a>
-          <a href="/faq/">FAQ</a>
-          <a class="button secondary" href="{{ site.repo }}">GitHub</a>
+          <a href="/features/">Features</a>
+          <a href="/pro/">Pro</a>
+          <a href="/docs/">Guides</a>
+          <a href="/cli/">CLI</a>
+          <a href="/blog/">Blog</a>
+          <a href="{{ site.repo }}">GitHub</a>
+          <a class="button nav-cta" href="{{ site.download }}">Download free</a>
         </div>
       </div>
     </nav>
 
-    {{ content | safe }}
+    <main id="main">
+{{ content | safe }}
+    </main>
 
     <footer class="site-footer">
-      <div class="wrap">
-        <span>A <a href="https://www.bitmoor.co.uk">Bitmoor</a> product. Founded by <a href="https://github.com/darrylmorley">Darryl Morley</a>. MIT licensed. Read-only: it never changes how your devices charge.</span>
-        <span>
-          <a href="{{ site.repo }}">Source</a>
-          &nbsp;&middot;&nbsp;
-          <a href="{{ site.releases }}">Releases</a>
-          &nbsp;&middot;&nbsp;
+      <div class="wrap footer-grid">
+        <div class="footer-brand">
+          <a class="brand footer-logo" href="/">
+            <img class="mark" src="/img/icon.png" alt="" aria-hidden="true" width="30" height="30" />
+            <span>WhatBattery</span>
+          </a>
+          <p>Know your battery's real health, live power use, and where it is heading.</p>
+          <p class="footer-small">A <a href="https://www.bitmoor.co.uk">Bitmoor</a> product by <a href="https://github.com/darrylmorley">Darryl Morley</a>.</p>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <a href="/features/">Features</a>
+          <a href="/pro/">WhatBattery Pro</a>
+          <a href="/cli/">CLI</a>
+          <a href="{{ site.download }}">Download</a>
+        </div>
+        <div>
+          <h2>Resources</h2>
+          <a href="/docs/">Guides</a>
           <a href="/faq/">FAQ</a>
-        </span>
+          <a href="/blog/">Blog</a>
+          <a href="{{ site.repo }}">Source on GitHub</a>
+        </div>
+        <div>
+          <h2>Family</h2>
+          <a href="https://www.whatcable.uk">WhatCable</a>
+          <a href="https://www.whatport.app">WhatPort</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </div>
+      </div>
+      <div class="wrap footer-bottom">
+        <span>MIT licensed. Read-only: it never changes how your devices charge.</span>
+        <span>Apple Silicon · macOS 14+</span>
       </div>
     </footer>
 
     <script>
       (function () {
-        var errorSlot = document.getElementById("buy-error");
-        function wireBuyButton(button) {
-          if (!button) return;
+        var buttons = document.querySelectorAll("[data-buy-pro]");
+        var errorSlots = document.querySelectorAll("[data-buy-error]");
+        buttons.forEach(function (button) {
           var originalHTML = button.innerHTML;
           button.addEventListener("click", async function () {
-            button.disabled = true;
-            button.textContent = "Starting checkout...";
-            if (errorSlot) { errorSlot.hidden = true; errorSlot.textContent = ""; }
+            buttons.forEach(function (candidate) { candidate.disabled = true; });
+            button.textContent = "Starting secure checkout…";
+            errorSlots.forEach(function (slot) { slot.hidden = true; slot.textContent = ""; });
             try {
               var res = await fetch("{{ site.worker }}/api/checkout", { method: "POST" });
               var data = await res.json();
@@ -96,15 +127,12 @@
                 throw new Error(data.error || "Could not start checkout. Please try again.");
               }
             } catch (err) {
-              var msg = err.message || "Could not start checkout. Please try again.";
-              if (errorSlot) { errorSlot.textContent = msg; errorSlot.hidden = false; }
-              button.disabled = false;
+              errorSlots.forEach(function (slot) { slot.textContent = err.message || "Could not start checkout. Please try again."; slot.hidden = false; });
+              buttons.forEach(function (candidate) { candidate.disabled = false; });
               button.innerHTML = originalHTML;
             }
           });
-        }
-        wireBuyButton(document.getElementById("buy-pro"));
-        wireBuyButton(document.getElementById("buy-pro-hero"));
+        });
       })();
     </script>
   </body>

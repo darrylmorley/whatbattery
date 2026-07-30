@@ -1,0 +1,18 @@
+---
+layout: base.njk
+title: How to check your MacBook battery health properly
+permalink: /blog/check-mac-battery-health/
+description: Learn how to check MacBook battery health using Maximum Capacity, cycle count, service condition, and raw capacity, and what each number really means.
+---
+
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/blog/">Blog</a><span>/</span><span>Mac battery health</span></nav><span class="section-tag">Mac battery health</span><h1>How to check your MacBook battery health properly.</h1><p class="lede">Maximum Capacity is useful, but condition, cycle count, raw capacity, and the direction of travel complete the picture.</p></div></header>
+
+<article class="prose-section"><div class="wrap prose">
+  <h2>Start with System Settings</h2><p>Open System Settings, choose Battery, then Battery Health. macOS shows Maximum Capacity as a percentage and a condition such as Normal or Service Recommended.</p><p>For most people, that is the right first check. The condition is Apple's service judgement; the percentage is an easy summary of how much charge the battery can hold compared with when it was new.</p>
+  <h2>Why the percentage is not the whole answer</h2><p>macOS displays battery health as a whole number. A reading near the boundary can therefore look slightly healthier than the underlying capacities suggest. It also says nothing about whether the battery has been stable for six months or has lost several points recently.</p><p><a href="/features/battery-health/">WhatBattery's free health view</a> computes the percentage from the raw nominal and design capacities and shows one decimal place, alongside the original mAh figures.</p>
+  <h2>Check the service condition</h2><p>Health percentage describes capacity. Condition is the system's broader verdict. A battery can still be usable with reduced capacity, while a service condition can flag wear or a fault that deserves attention.</p><ul><li><strong>Normal:</strong> macOS sees no service condition.</li><li><strong>Service Recommended:</strong> the battery is worn but may continue working.</li><li><strong>Service Battery:</strong> macOS has identified a service condition.</li></ul>
+  <h2>Put cycle count in context</h2><p>A cycle is not the same as one charge. Using 50% today and 50% tomorrow adds up to one cycle. Cycle count helps explain use, but it does not determine health on its own: temperature, calendar age, long periods at high charge, and individual battery variation all matter.</p>
+  <h2>Look at the trend, not only today's value</h2><p>Battery capacity estimates can move slightly as the fuel gauge recalibrates. A single drop is less informative than a consistent direction over months. <a href="/features/history/">WhatBattery Pro's health history and runway</a> preserve the long-term record, report the wear rate, and wait for enough evidence before projecting an 80% date.</p>
+  <div class="callout"><strong>The practical check:</strong> use Maximum Capacity for a quick summary, condition for Apple's service judgement, cycles for usage context, and history for direction.</div>
+  <h2>When to seek service</h2><p>Consider Apple or an authorised service provider when macOS recommends service, the Mac shuts down unexpectedly, the battery is swelling, or runtime has become unsuitable for your work. Stop using a visibly swollen or damaged battery and seek professional advice.</p>
+</div></article>

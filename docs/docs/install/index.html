@@ -3,21 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Thanks · WhatBattery</title>
-    <meta name="description" content="Your WhatBattery Pro purchase is complete." />
-    <link rel="canonical" href="https://www.whatbattery.app/success/" />
+    <title>Install WhatBattery · WhatBattery</title>
+    <meta name="description" content="Download and install WhatBattery on an Apple Silicon Mac using a signed release or Homebrew, then keep it updated." />
+    <link rel="canonical" href="https://www.whatbattery.app/docs/install/" />
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
     <link rel="icon" href="/img/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/img/icon.png" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.whatbattery.app/success/" />
-    <meta property="og:title" content="Thanks · WhatBattery" />
-    <meta property="og:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta property="og:url" content="https://www.whatbattery.app/docs/install/" />
+    <meta property="og:title" content="Install WhatBattery · WhatBattery" />
+    <meta property="og:description" content="Download and install WhatBattery on an Apple Silicon Mac using a signed release or Homebrew, then keep it updated." />
     <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Thanks · WhatBattery" />
-    <meta name="twitter:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta name="twitter:title" content="Install WhatBattery · WhatBattery" />
+    <meta name="twitter:description" content="Download and install WhatBattery on an Apple Silicon Mac using a signed release or Homebrew, then keep it updated." />
     <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
 
 
@@ -49,75 +49,35 @@
 
     <main id="main">
 
-<section class="page" id="success">
-  <div class="wrap">
-    <div class="section-head page-head">
-      <span class="section-tag">WhatBattery Pro</span>
-      <h1>Thank you</h1>
-      <p class="lede" id="status">Confirming your purchase&hellip;</p>
-    </div>
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/docs/">Guides</a><span>/</span><span>Install</span></nav><span class="section-tag">Installation guide</span><h1>Download, drag, and open.</h1><p class="lede">WhatBattery is signed with a Developer ID and notarised by Apple. Choose the direct app download or Homebrew.</p><div class="actions"><a class="button primary" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download the latest release</a><a class="button secondary" href="#homebrew">Use Homebrew</a></div></div></header>
 
-    <div class="faq-list">
-      <div id="next" hidden>
-        <div class="faq-item">
-          <h3>Your licence key is on its way</h3>
-          <p>We've emailed your key. Open WhatBattery, click the gear in the menu bar dropdown to open Settings, and paste the key into the Licence field to unlock Pro.</p>
-          <p>No email after a few minutes? Check spam, or reach us from the support link on the site.</p>
-        </div>
-      </div>
-      <div id="failed" hidden>
-        <div class="faq-item">
-          <h3>We couldn't confirm the payment automatically</h3>
-          <p>If you completed checkout, your key will still arrive by email. Otherwise, <a href="/pro/">try again</a>.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+<section class="prose-section"><div class="wrap prose">
+  <h2>Before you install</h2>
+  <ul><li>Apple Silicon Mac: M1 or later.</li><li>macOS 14 Sonoma or later.</li><li>No administrator helper, kernel extension, or root access.</li></ul>
 
-<script>
-  (async () => {
-    const statusEl = document.getElementById("status");
-    const nextEl = document.getElementById("next");
-    const failedEl = document.getElementById("failed");
+  <h2>Direct download</h2>
+  <ol><li><a href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download the latest WhatBattery.zip</a>.</li><li>Open the zip file.</li><li>Drag <strong>WhatBattery.app</strong> into the Applications folder.</li><li>Open WhatBattery from Applications. The battery icon appears in the menu bar.</li></ol>
+  <div class="callout"><strong>No Gatekeeper workaround is required.</strong> Release builds are Developer ID signed, Apple-notarised, and stapled. If macOS reports otherwise, confirm that the file came from the official release link.</div>
 
-    const sessionId = new URLSearchParams(window.location.search).get("session_id");
-    if (!sessionId) {
-      statusEl.hidden = true;
-      failedEl.hidden = false;
-      return;
-    }
+  <h2 id="homebrew">Install with Homebrew</h2>
+  <p>The cask installs the menu bar app and puts the bundled <code>whatbattery</code> command on your PATH.</p>
+  <pre><code>brew install --cask darrylmorley/whatbattery/whatbattery</code></pre>
+  <p>Upgrade later with:</p>
+  <pre><code>brew upgrade --cask whatbattery</code></pre>
 
-    const check = async () => {
-      try {
-        const response = await fetch("https://www.whatbattery.app/api/session-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        if (!response.ok) return null;
-        return await response.json();
-      } catch {
-        return null;
-      }
-    };
+  <h2>First launch</h2>
+  <p>The Mac overview needs no special permission. WhatBattery reads battery and power information available to your user account.</p>
+  <p>macOS asks for Bluetooth access only when you open the Accessories tab. This is used to read local accessory battery levels. You can decline it and continue using the rest of the app.</p>
 
-    // Poll briefly: the key is minted by the webhook moments after payment.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const result = await check();
-      if (result && (result.licenceIssued || result.status === "paid")) {
-        statusEl.hidden = true;
-        nextEl.hidden = false;
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
+  <h2>Automatic update checks</h2>
+  <p>WhatBattery can check the GitHub Releases API for a newer version and show an in-app update banner. No battery or hardware data is included in the request, and update checks can be disabled in Settings.</p>
 
-    // Still nothing: payment may be genuine but the email is the source of truth.
-    statusEl.hidden = true;
-    nextEl.hidden = false;
-  })();
-</script>
+  <h2>Why it is not in the Mac App Store</h2>
+  <p>The App Sandbox blocks the low-level IOKit and SMC access used for live power and detailed battery readings. Reading a connected iPhone or iPad also uses a private framework that App Store rules do not allow. Direct Developer ID distribution preserves those features while still using Apple's signing and notarisation checks.</p>
+
+  <h2>Next steps</h2>
+  <ul><li><a href="/docs/iphone-ipad/">Connect an iPhone or iPad</a>.</li><li><a href="/docs/privacy/">Understand permissions and privacy</a>.</li><li><a href="/cli/">Try the command-line interface</a>.</li></ul>
+</div></section>
 
     </main>
 

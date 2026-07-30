@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://whatbattery.app/sitemap.xml
+Sitemap: https://www.whatbattery.app/sitemap.xml

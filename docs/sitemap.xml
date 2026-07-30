@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.whatbattery.app/</loc><priority>1.0</priority></url>
+  <url><loc>https://www.whatbattery.app/features/</loc><priority>0.9</priority></url>
+  <url><loc>https://www.whatbattery.app/features/battery-health/</loc><priority>0.8</priority></url>
+  <url><loc>https://www.whatbattery.app/features/power/</loc><priority>0.8</priority></url>
+  <url><loc>https://www.whatbattery.app/features/iphone-ipad/</loc><priority>0.8</priority></url>
+  <url><loc>https://www.whatbattery.app/features/history/</loc><priority>0.8</priority></url>
+  <url><loc>https://www.whatbattery.app/pro/</loc><priority>0.9</priority></url>
+  <url><loc>https://www.whatbattery.app/docs/</loc><priority>0.8</priority></url>
+  <url><loc>https://www.whatbattery.app/docs/install/</loc><priority>0.7</priority></url>
+  <url><loc>https://www.whatbattery.app/docs/iphone-ipad/</loc><priority>0.7</priority></url>
+  <url><loc>https://www.whatbattery.app/docs/privacy/</loc><priority>0.6</priority></url>
+  <url><loc>https://www.whatbattery.app/cli/</loc><priority>0.8</priority></url>
+  <url><loc>https://www.whatbattery.app/faq/</loc><priority>0.8</priority></url>
+  <url><loc>https://www.whatbattery.app/blog/</loc><priority>0.7</priority></url>
+  <url><loc>https://www.whatbattery.app/blog/check-mac-battery-health/</loc><priority>0.7</priority></url>
+  <url><loc>https://www.whatbattery.app/blog/iphone-battery-health-from-mac/</loc><priority>0.7</priority></url>
+  <url><loc>https://www.whatbattery.app/blog/mac-charging-watts/</loc><priority>0.7</priority></url>
+  <url><loc>https://www.whatbattery.app/privacy/</loc><priority>0.4</priority></url>
+  <url><loc>https://www.whatbattery.app/terms/</loc><priority>0.4</priority></url>
+</urlset>

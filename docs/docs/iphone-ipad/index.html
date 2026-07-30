@@ -3,21 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Thanks · WhatBattery</title>
-    <meta name="description" content="Your WhatBattery Pro purchase is complete." />
-    <link rel="canonical" href="https://www.whatbattery.app/success/" />
+    <title>Connect an iPhone or iPad · WhatBattery</title>
+    <meta name="description" content="Connect an iPhone or iPad to WhatBattery over USB or Wi-Fi and troubleshoot device discovery from your Mac." />
+    <link rel="canonical" href="https://www.whatbattery.app/docs/iphone-ipad/" />
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
     <link rel="icon" href="/img/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/img/icon.png" />
 
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://www.whatbattery.app/success/" />
-    <meta property="og:title" content="Thanks · WhatBattery" />
-    <meta property="og:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta property="og:url" content="https://www.whatbattery.app/docs/iphone-ipad/" />
+    <meta property="og:title" content="Connect an iPhone or iPad · WhatBattery" />
+    <meta property="og:description" content="Connect an iPhone or iPad to WhatBattery over USB or Wi-Fi and troubleshoot device discovery from your Mac." />
     <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Thanks · WhatBattery" />
-    <meta name="twitter:description" content="Your WhatBattery Pro purchase is complete." />
+    <meta name="twitter:title" content="Connect an iPhone or iPad · WhatBattery" />
+    <meta name="twitter:description" content="Connect an iPhone or iPad to WhatBattery over USB or Wi-Fi and troubleshoot device discovery from your Mac." />
     <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
 
 
@@ -49,75 +49,32 @@
 
     <main id="main">
 
-<section class="page" id="success">
-  <div class="wrap">
-    <div class="section-head page-head">
-      <span class="section-tag">WhatBattery Pro</span>
-      <h1>Thank you</h1>
-      <p class="lede" id="status">Confirming your purchase&hellip;</p>
-    </div>
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/docs/">Guides</a><span>/</span><span>iPhone and iPad</span></nav><span class="section-tag">Connected-device guide</span><h1>Pair once over a cable. Read later over USB or Wi-Fi.</h1><p class="lede">WhatBattery Pro uses the same trusted connection Finder uses. No app or account is required on the iPhone or iPad.</p></div></header>
 
-    <div class="faq-list">
-      <div id="next" hidden>
-        <div class="faq-item">
-          <h3>Your licence key is on its way</h3>
-          <p>We've emailed your key. Open WhatBattery, click the gear in the menu bar dropdown to open Settings, and paste the key into the Licence field to unlock Pro.</p>
-          <p>No email after a few minutes? Check spam, or reach us from the support link on the site.</p>
-        </div>
-      </div>
-      <div id="failed" hidden>
-        <div class="faq-item">
-          <h3>We couldn't confirm the payment automatically</h3>
-          <p>If you completed checkout, your key will still arrive by email. Otherwise, <a href="/pro/">try again</a>.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
+<section class="prose-section"><div class="wrap prose">
+  <h2>1. Trust the Mac</h2>
+  <ol><li>Connect the iPhone or iPad to the Mac with a data-capable cable.</li><li>Unlock the device.</li><li>Tap <strong>Trust</strong> when the device asks whether to trust the computer.</li><li>Enter the device passcode.</li></ol>
+  <p>The first pairing cannot be completed over Wi-Fi.</p>
 
-<script>
-  (async () => {
-    const statusEl = document.getElementById("status");
-    const nextEl = document.getElementById("next");
-    const failedEl = document.getElementById("failed");
+  <h2>2. Confirm the device in Finder</h2>
+  <p>Open Finder and select the device in the sidebar. If it does not appear, open Finder Settings, choose Sidebar, and make sure “CDs, DVDs and iOS Devices” is enabled.</p>
 
-    const sessionId = new URLSearchParams(window.location.search).get("session_id");
-    if (!sessionId) {
-      statusEl.hidden = true;
-      failedEl.hidden = false;
-      return;
-    }
+  <h2>3. Enable Wi-Fi access</h2>
+  <ol><li>With the device selected in Finder, open the General tab.</li><li>Enable <strong>Show this iPhone when on Wi-Fi</strong> or the equivalent iPad option.</li><li>Choose Apply.</li><li>Keep the Mac and device on the same Wi-Fi network.</li></ol>
 
-    const check = async () => {
-      try {
-        const response = await fetch("https://www.whatbattery.app/api/session-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionId }),
-        });
-        if (!response.ok) return null;
-        return await response.json();
-      } catch {
-        return null;
-      }
-    };
+  <h2>4. Open WhatBattery</h2>
+  <p>Open the iPhone / iPad tab. Connected devices appear automatically. If more than one is available, use the device picker to switch between them.</p>
+  <p>WhatBattery can show health, cycle count, charge, temperature, voltage, time remaining when reported, and live power. Long-term health history is recorded while the device is available.</p>
 
-    // Poll briefly: the key is minted by the webhook moments after payment.
-    for (let attempt = 0; attempt < 8; attempt++) {
-      const result = await check();
-      if (result && (result.licenceIssued || result.status === "paid")) {
-        statusEl.hidden = true;
-        nextEl.hidden = false;
-        return;
-      }
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-    }
+  <h2>Troubleshooting</h2>
+  <h3>The device does not appear</h3>
+  <ul><li>Unlock it and reconnect the cable.</li><li>Try another cable or Mac port; some cables carry power but no data.</li><li>Confirm that Finder can see the device first.</li><li>Confirm that both devices are on the same Wi-Fi network for wireless access.</li><li>Reconnect briefly over USB to wake the pairing.</li></ul>
 
-    // Still nothing: payment may be genuine but the email is the source of truth.
-    statusEl.hidden = true;
-    nextEl.hidden = false;
-  })();
-</script>
+  <h3>The device appears as “Battery not readable”</h3>
+  <p>Apple's diagnostics fields are private and can change between iOS releases. WhatBattery validates the capacities and health band before showing them. If the data is missing or implausible, it reports the battery as unreadable instead of displaying a misleading number.</p>
+
+  <div class="callout"><strong>Privacy:</strong> the reading travels directly between the device and your Mac. It is not uploaded by WhatBattery. See the <a href="/docs/privacy/">privacy and permissions guide</a> for every network request the app can make.</div>
+</div></section>
 
     </main>
 

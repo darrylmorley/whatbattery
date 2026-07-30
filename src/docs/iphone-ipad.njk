@@ -1,0 +1,33 @@
+---
+layout: base.njk
+title: Connect an iPhone or iPad
+permalink: /docs/iphone-ipad/
+description: Connect an iPhone or iPad to WhatBattery over USB or Wi-Fi and troubleshoot device discovery from your Mac.
+---
+
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/docs/">Guides</a><span>/</span><span>iPhone and iPad</span></nav><span class="section-tag">Connected-device guide</span><h1>Pair once over a cable. Read later over USB or Wi-Fi.</h1><p class="lede">WhatBattery Pro uses the same trusted connection Finder uses. No app or account is required on the iPhone or iPad.</p></div></header>
+
+<section class="prose-section"><div class="wrap prose">
+  <h2>1. Trust the Mac</h2>
+  <ol><li>Connect the iPhone or iPad to the Mac with a data-capable cable.</li><li>Unlock the device.</li><li>Tap <strong>Trust</strong> when the device asks whether to trust the computer.</li><li>Enter the device passcode.</li></ol>
+  <p>The first pairing cannot be completed over Wi-Fi.</p>
+
+  <h2>2. Confirm the device in Finder</h2>
+  <p>Open Finder and select the device in the sidebar. If it does not appear, open Finder Settings, choose Sidebar, and make sure “CDs, DVDs and iOS Devices” is enabled.</p>
+
+  <h2>3. Enable Wi-Fi access</h2>
+  <ol><li>With the device selected in Finder, open the General tab.</li><li>Enable <strong>Show this iPhone when on Wi-Fi</strong> or the equivalent iPad option.</li><li>Choose Apply.</li><li>Keep the Mac and device on the same Wi-Fi network.</li></ol>
+
+  <h2>4. Open WhatBattery</h2>
+  <p>Open the iPhone / iPad tab. Connected devices appear automatically. If more than one is available, use the device picker to switch between them.</p>
+  <p>WhatBattery can show health, cycle count, charge, temperature, voltage, time remaining when reported, and live power. Long-term health history is recorded while the device is available.</p>
+
+  <h2>Troubleshooting</h2>
+  <h3>The device does not appear</h3>
+  <ul><li>Unlock it and reconnect the cable.</li><li>Try another cable or Mac port; some cables carry power but no data.</li><li>Confirm that Finder can see the device first.</li><li>Confirm that both devices are on the same Wi-Fi network for wireless access.</li><li>Reconnect briefly over USB to wake the pairing.</li></ul>
+
+  <h3>The device appears as “Battery not readable”</h3>
+  <p>Apple's diagnostics fields are private and can change between iOS releases. WhatBattery validates the capacities and health band before showing them. If the data is missing or implausible, it reports the battery as unreadable instead of displaying a misleading number.</p>
+
+  <div class="callout"><strong>Privacy:</strong> the reading travels directly between the device and your Mac. It is not uploaded by WhatBattery. See the <a href="/docs/privacy/">privacy and permissions guide</a> for every network request the app can make.</div>
+</div></section>

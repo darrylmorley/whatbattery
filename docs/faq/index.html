@@ -14,13 +14,13 @@
     <meta property="og:url" content="https://www.whatbattery.app/faq/" />
     <meta property="og:title" content="FAQ · WhatBattery" />
     <meta property="og:description" content="How to connect a device over Wi-Fi, what battery health means, and how WhatBattery reads your battery." />
-    <meta property="og:image" content="https://www.whatbattery.app/img/screenshot-mac.png" />
+    <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="WhatBattery" />
+    <meta name="twitter:title" content="FAQ · WhatBattery" />
     <meta name="twitter:description" content="How to connect a device over Wi-Fi, what battery health means, and how WhatBattery reads your battery." />
-    <meta name="twitter:image" content="https://www.whatbattery.app/img/screenshot-mac.png" />
+    <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
 
-    
+
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,29 +28,38 @@
     <link rel="stylesheet" href="/css/style.css" />
   </head>
   <body>
+    <a class="skip-link" href="#main">Skip to content</a>
     <nav class="nav" aria-label="Primary">
       <div class="wrap nav-inner">
-        <a class="brand" href="/">
-          <img class="mark" src="/img/icon.png" alt="" aria-hidden="true" width="28" height="28" />
+        <a class="brand" href="/" aria-label="WhatBattery home">
+          <img class="mark" src="/img/icon.png" alt="" aria-hidden="true" width="30" height="30" />
           <span>WhatBattery</span>
         </a>
         <div class="nav-links">
-          <a href="/#features">Features</a>
-          <a href="/#pro">Pro</a>
-          <a href="/faq/">FAQ</a>
-          <a class="button secondary" href="https://github.com/darrylmorley/whatbattery">GitHub</a>
+          <a href="/features/">Features</a>
+          <a href="/pro/">Pro</a>
+          <a href="/docs/">Guides</a>
+          <a href="/cli/">CLI</a>
+          <a href="/blog/">Blog</a>
+          <a href="https://github.com/darrylmorley/whatbattery">GitHub</a>
+          <a class="button nav-cta" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download free</a>
         </div>
       </div>
     </nav>
 
-    
-<section class="page faq">
+    <main id="main">
+
+<header class="page-hero">
   <div class="wrap">
-    <div class="section-head page-head">
-      <span class="section-tag">Help</span>
-      <h1>Frequently asked questions</h1>
-      <p class="lede">Connecting a device, what the health number means, and how WhatBattery reads your battery.</p>
-    </div>
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>FAQ</span></nav>
+    <span class="section-tag">Help</span>
+    <h1>Frequently asked questions.</h1>
+    <p class="lede">Connecting a device, what the health number means, how charger verdicts work, and what WhatBattery reads.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
 
     <div class="faq-list">
       <div class="faq-item" id="wifi">
@@ -91,12 +100,12 @@
 
       <div class="faq-item" id="charging">
         <h3>How does the charger verdict work?</h3>
-        <p>When you charge your Mac, <a href="/#pro">Pro</a> records the session and shows what the charger delivered against what your Mac is rated to fast-charge at, for example <em>"58W of 96W"</em>. A charger is flagged as underpowered when what it advertises falls clearly below what your Mac can take, a 20W phone brick on a MacBook Pro, say. The judgement is on the charger's own advertised wattage, never on how fast a session happened to run: your Mac paces itself (Optimized Charging, overnight trickle), so a good charger loafing through a slow charge is never wrongly accused. Each session also records how fast the charge ran, how hot the battery got, and any thermal throttling.</p>
+        <p>When you charge your Mac, <a href="/pro/">Pro</a> records the session and shows what the charger delivered against what your Mac is rated to fast-charge at, for example <em>"58W of 96W"</em>. A charger is flagged as underpowered when what it advertises falls clearly below what your Mac can take, a 20W phone brick on a MacBook Pro, say. The judgement is on the charger's own advertised wattage, never on how fast a session happened to run: your Mac paces itself (Optimized Charging, overnight trickle), so a good charger loafing through a slow charge is never wrongly accused. Each session also records how fast the charge ran, how hot the battery got, and any thermal throttling.</p>
       </div>
 
       <div class="faq-item" id="accessories">
         <h3>What about my keyboard, mouse, and AirPods?</h3>
-        <p>WhatBattery shows the live battery level of connected Bluetooth accessories, a keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case. Since 1.2 it also reads devices that only publish battery over Bluetooth Low Energy, like Logitech's MX mice, matching what System Settings sees. A few devices publish nothing at all, and those show <em>"Battery unavailable"</em> rather than a guess. Showing the levels is free; <a href="/#pro">Pro</a> adds a per-device history, a time-till-empty estimate, a low-battery alert, and the option to show an accessory's level in the menu bar.</p>
+        <p>WhatBattery shows the live battery level of connected Bluetooth accessories, a keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case. Since 1.2 it also reads devices that only publish battery over Bluetooth Low Energy, like Logitech's MX mice, matching what System Settings sees. A few devices publish nothing at all, and those show <em>"Battery unavailable"</em> rather than a guess. Showing the levels is free; <a href="/pro/">Pro</a> adds a per-device history, a time-till-empty estimate, a low-battery alert, and the option to show an accessory's level in the menu bar.</p>
         <p>macOS asks for <strong>Bluetooth access</strong> the first time you open the Accessories tab. It's used only to read these levels locally, nothing is sent anywhere, and the rest of the app works fine if you decline.</p>
       </div>
 
@@ -157,30 +166,56 @@
 }
 </script>
 
+    </main>
 
     <footer class="site-footer">
-      <div class="wrap">
-        <span>A <a href="https://www.bitmoor.co.uk">Bitmoor</a> product. Founded by <a href="https://github.com/darrylmorley">Darryl Morley</a>. MIT licensed. Read-only: it never changes how your devices charge.</span>
-        <span>
-          <a href="https://github.com/darrylmorley/whatbattery">Source</a>
-          &nbsp;&middot;&nbsp;
-          <a href="https://github.com/darrylmorley/whatbattery/releases">Releases</a>
-          &nbsp;&middot;&nbsp;
+      <div class="wrap footer-grid">
+        <div class="footer-brand">
+          <a class="brand footer-logo" href="/">
+            <img class="mark" src="/img/icon.png" alt="" aria-hidden="true" width="30" height="30" />
+            <span>WhatBattery</span>
+          </a>
+          <p>Know your battery's real health, live power use, and where it is heading.</p>
+          <p class="footer-small">A <a href="https://www.bitmoor.co.uk">Bitmoor</a> product by <a href="https://github.com/darrylmorley">Darryl Morley</a>.</p>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <a href="/features/">Features</a>
+          <a href="/pro/">WhatBattery Pro</a>
+          <a href="/cli/">CLI</a>
+          <a href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download</a>
+        </div>
+        <div>
+          <h2>Resources</h2>
+          <a href="/docs/">Guides</a>
           <a href="/faq/">FAQ</a>
-        </span>
+          <a href="/blog/">Blog</a>
+          <a href="https://github.com/darrylmorley/whatbattery">Source on GitHub</a>
+        </div>
+        <div>
+          <h2>Family</h2>
+          <a href="https://www.whatcable.uk">WhatCable</a>
+          <a href="https://www.whatport.app">WhatPort</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </div>
+      </div>
+      <div class="wrap footer-bottom">
+        <span>MIT licensed. Read-only: it never changes how your devices charge.</span>
+        <span>Apple Silicon · macOS 14+</span>
       </div>
     </footer>
 
     <script>
       (function () {
-        var errorSlot = document.getElementById("buy-error");
-        function wireBuyButton(button) {
-          if (!button) return;
+        var buttons = document.querySelectorAll("[data-buy-pro]");
+        var errorSlots = document.querySelectorAll("[data-buy-error]");
+        buttons.forEach(function (button) {
           var originalHTML = button.innerHTML;
           button.addEventListener("click", async function () {
-            button.disabled = true;
-            button.textContent = "Starting checkout...";
-            if (errorSlot) { errorSlot.hidden = true; errorSlot.textContent = ""; }
+            buttons.forEach(function (candidate) { candidate.disabled = true; });
+            button.textContent = "Starting secure checkout…";
+            errorSlots.forEach(function (slot) { slot.hidden = true; slot.textContent = ""; });
             try {
               var res = await fetch("https://www.whatbattery.app/api/checkout", { method: "POST" });
               var data = await res.json();
@@ -190,15 +225,12 @@
                 throw new Error(data.error || "Could not start checkout. Please try again.");
               }
             } catch (err) {
-              var msg = err.message || "Could not start checkout. Please try again.";
-              if (errorSlot) { errorSlot.textContent = msg; errorSlot.hidden = false; }
-              button.disabled = false;
+              errorSlots.forEach(function (slot) { slot.textContent = err.message || "Could not start checkout. Please try again."; slot.hidden = false; });
+              buttons.forEach(function (candidate) { candidate.disabled = false; });
               button.innerHTML = originalHTML;
             }
           });
-        }
-        wireBuyButton(document.getElementById("buy-pro"));
-        wireBuyButton(document.getElementById("buy-pro-hero"));
+        });
       })();
     </script>
   </body>

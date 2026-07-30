@@ -5,13 +5,17 @@ permalink: /faq/
 description: How to connect a device over Wi-Fi, what battery health means, and how WhatBattery reads your battery.
 ---
 
-<section class="page faq">
+<header class="page-hero">
   <div class="wrap">
-    <div class="section-head page-head">
-      <span class="section-tag">Help</span>
-      <h1>Frequently asked questions</h1>
-      <p class="lede">Connecting a device, what the health number means, and how WhatBattery reads your battery.</p>
-    </div>
+    <nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>FAQ</span></nav>
+    <span class="section-tag">Help</span>
+    <h1>Frequently asked questions.</h1>
+    <p class="lede">Connecting a device, what the health number means, how charger verdicts work, and what WhatBattery reads.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
 
     <div class="faq-list">
       <div class="faq-item" id="wifi">
@@ -52,12 +56,12 @@ description: How to connect a device over Wi-Fi, what battery health means, and 
 
       <div class="faq-item" id="charging">
         <h3>How does the charger verdict work?</h3>
-        <p>When you charge your Mac, <a href="/#pro">Pro</a> records the session and shows what the charger delivered against what your Mac is rated to fast-charge at, for example <em>"58W of 96W"</em>. A charger is flagged as underpowered when what it advertises falls clearly below what your Mac can take, a 20W phone brick on a MacBook Pro, say. The judgement is on the charger's own advertised wattage, never on how fast a session happened to run: your Mac paces itself (Optimized Charging, overnight trickle), so a good charger loafing through a slow charge is never wrongly accused. Each session also records how fast the charge ran, how hot the battery got, and any thermal throttling.</p>
+        <p>When you charge your Mac, <a href="/pro/">Pro</a> records the session and shows what the charger delivered against what your Mac is rated to fast-charge at, for example <em>"58W of 96W"</em>. A charger is flagged as underpowered when what it advertises falls clearly below what your Mac can take, a 20W phone brick on a MacBook Pro, say. The judgement is on the charger's own advertised wattage, never on how fast a session happened to run: your Mac paces itself (Optimized Charging, overnight trickle), so a good charger loafing through a slow charge is never wrongly accused. Each session also records how fast the charge ran, how hot the battery got, and any thermal throttling.</p>
       </div>
 
       <div class="faq-item" id="accessories">
         <h3>What about my keyboard, mouse, and AirPods?</h3>
-        <p>WhatBattery shows the live battery level of connected Bluetooth accessories, a keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case. Since 1.2 it also reads devices that only publish battery over Bluetooth Low Energy, like Logitech's MX mice, matching what System Settings sees. A few devices publish nothing at all, and those show <em>"Battery unavailable"</em> rather than a guess. Showing the levels is free; <a href="/#pro">Pro</a> adds a per-device history, a time-till-empty estimate, a low-battery alert, and the option to show an accessory's level in the menu bar.</p>
+        <p>WhatBattery shows the live battery level of connected Bluetooth accessories, a keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case. Since 1.2 it also reads devices that only publish battery over Bluetooth Low Energy, like Logitech's MX mice, matching what System Settings sees. A few devices publish nothing at all, and those show <em>"Battery unavailable"</em> rather than a guess. Showing the levels is free; <a href="/pro/">Pro</a> adds a per-device history, a time-till-empty estimate, a low-battery alert, and the option to show an accessory's level in the menu bar.</p>
         <p>macOS asks for <strong>Bluetooth access</strong> the first time you open the Accessories tab. It's used only to read these levels locally, nothing is sent anywhere, and the rest of the app works fine if you decline.</p>
       </div>
 
