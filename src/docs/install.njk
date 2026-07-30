@@ -26,7 +26,7 @@ description: Download and install WhatBattery on an Apple Silicon Mac using a si
   <p>macOS asks for Bluetooth access only when you open the Accessories tab. This is used to read local accessory battery levels. You can decline it and continue using the rest of the app.</p>
 
   <h2>Automatic update checks</h2>
-  <p>WhatBattery can check the GitHub Releases API for a newer version and show an in-app update banner. No battery or hardware data is included in the request, and update checks can be disabled in Settings.</p>
+  <p>WhatBattery checks the GitHub Releases API at launch and every six hours while running, then shows an in-app banner when a newer version is available. No battery or hardware data is included in the request. Update notifications can be disabled in Settings.</p>
 
   <h2>Why it is not in the Mac App Store</h2>
   <p>The App Sandbox blocks the low-level IOKit and SMC access used for live power and detailed battery readings. Reading a connected iPhone or iPad also uses a private framework that App Store rules do not allow. Direct Developer ID distribution preserves those features while still using Apple's signing and notarisation checks.</p>

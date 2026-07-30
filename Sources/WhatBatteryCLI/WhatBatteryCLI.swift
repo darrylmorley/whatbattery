@@ -40,6 +40,10 @@ struct WhatBatteryCLI {
         }
 
         if args.contains("--idevice") {
+            guard PluginRegistry.shared.proStatus.isUnlocked else {
+                errln("This is a WhatBattery Pro feature. Unlock WhatBattery Pro: https://www.whatbattery.app")
+                exit(1)
+            }
             runIDevice(json: args.contains("--json"))
             return
         }
@@ -103,7 +107,8 @@ private func runWatch(_ provider: DarwinSnapshotProvider) async {
 }
 
 // Read a tethered/paired iPhone or iPad's battery over the native
-// MobileDevice.framework path; see IDeviceBatteryReader.
+// MobileDevice.framework path; see IDeviceBatteryReader. The dispatch site
+// verifies Pro is unlocked before this reader is called.
 private func runIDevice(json: Bool) {
     do {
         let result = try IDeviceBatteryReader.readAll()
@@ -223,7 +228,7 @@ private func printUsage() {
       whatbattery            Battery summary
       whatbattery --json     Machine-readable snapshot (JSON)
       whatbattery --watch    Live-updating summary (Ctrl-C to stop)
-      whatbattery --idevice  Battery of a tethered/paired iPhone or iPad
+      whatbattery --idevice  Battery of a tethered/paired iPhone or iPad (Pro)
       whatbattery --accessories  Bluetooth accessory battery levels
       whatbattery --version  Print version
       whatbattery --help     This help

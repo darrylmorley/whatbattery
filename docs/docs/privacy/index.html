@@ -49,7 +49,7 @@
 
     <main id="main">
 
-<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/docs/">Guides</a><span>/</span><span>Privacy and permissions</span></nav><span class="section-tag">Privacy and permissions</span><h1>Local by default. Explicit when a network is involved.</h1><p class="lede">Battery readings and history stay on the Mac. The app has no analytics or telemetry and does not need root access.</p></div></header>
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/docs/">Guides</a><span>/</span><span>Privacy and permissions</span></nav><span class="section-tag">Privacy and permissions</span><h1>Local by default. Explicit when a network is involved.</h1><p class="lede">Battery readings and history stay on the Mac. The app has no analytics, anonymous wear comparison is opt-in, and root access is not required.</p></div></header>
 
 <section class="prose-section"><div class="wrap prose">
   <h2>Battery and power data</h2><p>WhatBattery reads battery, power, charger, system, and process-energy data locally from macOS. It does not upload these readings automatically.</p>
@@ -57,7 +57,7 @@
   <h2>iPhone and iPad access</h2><p>A connected device must trust the Mac. WhatBattery uses the diagnostics relay established by that pairing to read the battery node over USB or Wi-Fi. No WhatBattery app runs on the device, and readings remain on the Mac.</p>
   <h2>History and exports</h2><p>Pro history is stored locally in SQLite databases. PDF reports, CSV and JSON exports, and health-history backups are created only when you request them and are saved to the location you choose.</p>
   <h2>Licence activation</h2><p>Activating Pro sends the licence key and the information required to enforce the two-Mac activation limit to the licensing service. It does not send battery history, serialised readings, app power history, or Bluetooth-device data.</p>
-  <h2>Update checks</h2><p>When enabled, WhatBattery checks the GitHub Releases API for a newer version. The request includes no battery or hardware information. Update checks can be disabled in Settings.</p>
+  <h2>Update checks</h2><p>WhatBattery checks the GitHub Releases API at launch and every six hours while running. The request includes no battery or hardware information. Update notifications can be disabled in Settings.</p>
   <h2>Anonymous wear comparison</h2><p>This Pro feature is off until you opt in. It can contribute one reading a week containing the Mac model identifier, cycle count rounded down to the nearest 100, health percentage, and a coarse age figure. It does not include a serial number, device name, OS version, location, or licence identifier. Contributions expire after at most 13 months.</p>
   <h2>What WhatBattery never does</h2><ul><li>It never changes how a device charges.</li><li>It never installs a kernel extension or privileged daemon.</li><li>It never sells battery or device data.</li><li>It never silently opts a device into the wear comparison.</li></ul>
   <p>For the formal policy, read <a href="/privacy/">WhatBattery Privacy</a>.</p>
