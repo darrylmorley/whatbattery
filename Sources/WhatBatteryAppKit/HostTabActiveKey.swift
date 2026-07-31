@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Whether the tab hosting this view is the frontmost tab. Views that run
 /// their own polling loops (the per-app pid walk on the Apps tab, the
-/// charge-habits SQLite reload on This Mac) read this to pause while the user
+/// charge-habits SQLite reload on Charging) read this to pause while the user
 /// is on another tab: TabView keeps non-selected tabs mounted, so without an
 /// explicit signal those loops would keep running for a tab nobody is looking
 /// at. The host window sets it per section, keyed to that section's own tab;

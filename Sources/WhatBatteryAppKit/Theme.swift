@@ -8,6 +8,23 @@ public enum Theme {
     /// Corner radius for the standard inset section cards.
     public static let cardCornerRadius: CGFloat = 12
 
+    /// Spacing between section cards down a tab.
+    public static let sectionSpacing: CGFloat = 16
+
+    /// The surface a section card sits on: white over the grey window in light
+    /// mode, a step up from near-black in dark. The same figure/ground the
+    /// system's own settings windows use, so a card reads as a card without
+    /// needing a heavy border or shadow to say so.
+    public static var cardSurface: Color {
+        Color(nsColor: .controlBackgroundColor)
+    }
+
+    /// A hairline to hold the card's edge where surface contrast alone is too
+    /// subtle, which is most of dark mode.
+    public static var cardBorder: Color {
+        Color(nsColor: .separatorColor).opacity(0.6)
+    }
+
     /// The three status bands every coloured readout maps into. Keeping the
     /// band, not the colour, as the shared currency means a view can ask for
     /// the right *variant* (vivid for a fill, text-grade for a label) without

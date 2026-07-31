@@ -59,7 +59,9 @@ struct MainWindowView: View {
                 .tabItem { Label("Accessories", systemImage: "dot.radiowaves.left.and.right") }
                 .tag(Tab.accessories)
             historyTab
-                .tabItem { Label("History", systemImage: "clock.arrow.circlepath") }
+                // "Health", not "History": three tabs show historical data, so
+                // the old name said nothing about which history this one holds.
+                .tabItem { Label("Health", systemImage: "heart.text.square") }
                 .tag(Tab.history)
         }
         // 760 fits six tab labels; 680 was sized for five, 600 for four.
@@ -93,14 +95,18 @@ struct MainWindowView: View {
 
     private var macTab: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                 if let update = updates.available {
                     UpdateBanner(update: update)
                 }
                 if hasBattery {
                     // The only part of this tab tied to the 5-second refresh.
                     LiveOverviewSection(monitor: monitor, tempUnit: tempUnit, isPro: proStatus.isUnlocked)
-                    Divider()
+                        // Carries the advisory banner, which reads this to pause
+                        // its own reload. Without it the flag defaults to true
+                        // and the banner keeps querying for a hidden tab.
+                        .environment(\.hostTabActive, selectedTab == .mac)
+                    // No divider: each section carries its own edge now.
                     historySection
                 } else {
                     // Desktop: no health to report, but the SMC DC-in rail is
@@ -136,7 +142,7 @@ struct MainWindowView: View {
 
     private var appsTab: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                 appsSection
             }
             .padding(20)
@@ -168,7 +174,7 @@ struct MainWindowView: View {
 
     private var chargingTab: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                 chargingSection
             }
             .padding(20)
@@ -192,6 +198,9 @@ struct MainWindowView: View {
             build()
                 // Pauses the 5s reload while another tab is frontmost.
                 .environment(\.chargingTabActive, selectedTab == .charging)
+                // The habits card moved here from This Mac and pauses on the
+                // generic host flag, so this tab has to set that one too.
+                .environment(\.hostTabActive, selectedTab == .charging)
         } else {
             UpsellCard(
                 title: "Charging sessions",
@@ -205,7 +214,7 @@ struct MainWindowView: View {
 
     private var iDeviceTab: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                 iDeviceSection
             }
             .padding(20)
@@ -217,12 +226,11 @@ struct MainWindowView: View {
 
     private var accessoriesTab: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                 // Observes the monitor on its own, for the same reason as the
                 // This Mac tab: the Pro section below must not be rebuilt every
                 // time an accessory level lands.
-                LiveAccessoriesSection(monitor: monitor)
-                Divider()
+                SectionCard { LiveAccessoriesSection(monitor: monitor) }
                 accessoriesProSection
             }
             .padding(20)
@@ -249,7 +257,7 @@ struct MainWindowView: View {
 
     private var historyTab: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
                 healthHistorySection
             }
             .padding(20)
@@ -315,7 +323,9 @@ private struct LiveOverviewSection: View {
             if isPro, let advisory = PluginRegistry.shared.advisorySectionBuilder {
                 advisory()
             }
-            OverviewCard(snapshot: snapshot, tempUnit: tempUnit, isPro: isPro)
+            SectionCard {
+                OverviewCard(snapshot: snapshot, tempUnit: tempUnit, isPro: isPro)
+            }
         } else {
             ContentUnavailableView(
                 "Battery reading unavailable",
@@ -409,13 +419,21 @@ private struct OverviewCard: View {
         }
     }
 
+    /// The health figure on the left, this Mac's identity on the right. The
+    /// supporting lines used to stack under "Battery health" in one grey column
+    /// of five, where the device name (the thing that says which machine you
+    /// are looking at) ended up the faintest line on the screen.
     private var header: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
-            Text(BatteryFormatter.healthPercent(snapshot.healthPercent))
-                .scaledFont(size: 48, weight: .bold, design: .rounded)
-                .monospacedDigit()
+        HStack(alignment: .top, spacing: 20) {
             VStack(alignment: .leading, spacing: 2) {
-                Text("Battery health").foregroundStyle(.secondary)
+                HStack(alignment: .firstTextBaseline, spacing: 10) {
+                    Text(BatteryFormatter.healthPercent(snapshot.healthPercent))
+                        .scaledFont(size: 44, weight: .bold, design: .rounded)
+                        .monospacedDigit()
+                    Text("Battery health")
+                        .scaledFont(.callout)
+                        .foregroundStyle(.secondary)
+                }
                 // Capacity detail is a Pro touch; the free app shows the health
                 // percentage only.
                 if isPro, snapshot.fullChargeCapacitymAh > 0, snapshot.designCapacitymAh > 0 {
@@ -429,50 +447,70 @@ private struct OverviewCard: View {
                 // wrong. Ours is the gauge's raw estimate, Apple's is rounded
                 // and smoothed.
                 if let appleLine {
-                    Text(appleLine).scaledFont(.caption).foregroundStyle(.secondary)
-                }
-                Text(deviceTitle).scaledFont(.caption).foregroundStyle(.tertiary)
-                if let subtitle = deviceSubtitle {
-                    Text(subtitle).scaledFont(.caption).foregroundStyle(.tertiary)
+                    Text(appleLine).scaledFont(.caption).foregroundStyle(.tertiary)
                 }
             }
-            Spacer()
+            // The big number, "Battery health" and the capacity line are
+            // separate VoiceOver stops otherwise, read as disconnected
+            // fragments. Combined they announce as one sentence.
+            .accessibilityElement(children: .combine)
+
+            Spacer(minLength: 12)
+
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(deviceTitle).scaledFont(.callout, weight: .medium)
+                if let subtitle = deviceSubtitle {
+                    Text(subtitle).scaledFont(.caption).foregroundStyle(.secondary)
+                }
+            }
+            .accessibilityElement(children: .combine)
         }
-        // The big number, "Battery health", the capacity line and the device
-        // name are four separate VoiceOver stops otherwise, read as disconnected
-        // fragments. Combined they announce as one sentence.
-        .accessibilityElement(children: .combine)
     }
 
     private var grid: some View {
-        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
+        MetricGrid {
             if condition != .unknown {
-                // Baseline-aligned explicitly: this is the one row whose value
-                // cell is a capsule rather than plain Text, and Grid's automatic
-                // row alignment keys off Text baselines.
-                GridRow(alignment: .firstTextBaseline) {
-                    Text("Condition").foregroundStyle(.secondary).gridColumnAlignment(.leading)
+                MetricTile("Condition") {
                     // A pill, not coloured text: the vivid status colours are
                     // roughly 2:1 on a light window, and the capsule carries
                     // the state without leaning on the glyph strokes.
                     StatusPill(condition.label, status: conditionStatus)
                 }
             }
-            row("Charge", BatteryFormatter.chargeLine(snapshot, includeTimeEstimate: false))
+            tile("Charge", BatteryFormatter.chargeLine(snapshot, includeTimeEstimate: false))
             if let estimate = BatteryFormatter.timeEstimate(snapshot) {
-                row(estimate.label, estimate.value)
+                tile(estimate.label, estimate.value)
             }
-            row("Cycles", "\(snapshot.cycleCount)")
-            row("Temperature", BatteryFormatter.temperature(snapshot.temperatureCelsius, unit: tempUnit))
-            row("Power", power)
-            row("Voltage", BatteryFormatter.voltage(snapshot.voltageMillivolts))
+            tile("Cycles", "\(snapshot.cycleCount)")
+            tile("Temperature", BatteryFormatter.temperature(snapshot.temperatureCelsius, unit: tempUnit))
+            tile("Power", power)
+            if let adapter = snapshot.adapter?.label {
+                tile("Charger", adapter)
+            }
+            tile("Voltage", BatteryFormatter.voltage(snapshot.voltageMillivolts))
             // Identity extras are a Pro touch, like the capacity line.
             if isPro {
-                if let serial = snapshot.batterySerial { row("Battery Serial", serial) }
-                if let identity { row("Low Power Mode", identity.lowPowerMode ? "Enabled" : "Disabled") }
+                // A serial is a long unbroken string; at tile width it wrapped
+                // mid-token. Smaller and monospaced keeps it on one line and
+                // reads as an identifier rather than a reading.
+                if let serial = snapshot.batterySerial {
+                    MetricTile("Battery serial") {
+                        Text(serial)
+                            .scaledFont(.caption, design: .monospaced)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .textSelection(.enabled)
+                    }
+                }
+                if let identity { tile("Low Power Mode", identity.lowPowerMode ? "Enabled" : "Disabled") }
             }
         }
-        .scaledFont(.callout)
+    }
+
+    private func tile(_ label: String, _ value: String) -> some View {
+        MetricTile(label) {
+            Text(value).scaledFont(.callout, monospacedDigit: true)
+        }
     }
 
     private var deviceTitle: String {
@@ -502,8 +540,10 @@ private struct OverviewCard: View {
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
 
+    /// The reading alone. The charger gets its own tile, so trailing it here
+    /// only made this one cell wrap and knocked the row out of line.
     private var power: String {
-        BatteryFormatter.powerLine(snapshot)
+        BatteryFormatter.powerLine(snapshot, includeAdapter: false)
     }
 
     private var conditionStatus: Theme.Status {
@@ -571,6 +611,14 @@ private struct AccessoriesCard: View {
         }
     }
 
+    /// The per-cell breakdown, or nil when it would just repeat the headline
+    /// percentage (a device with one cell).
+    private func detailedLevels(_ accessory: Accessory) -> String? {
+        let summary = AccessoryFormatting.levels(accessory)
+        guard let lowest = accessory.lowestPercent, summary != "\(lowest)%" else { return nil }
+        return summary
+    }
+
     @ViewBuilder
     private func row(_ accessory: Accessory) -> some View {
         HStack(alignment: .center, spacing: 12) {
@@ -581,10 +629,15 @@ private struct AccessoriesCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(accessory.name)
                 if accessory.isAvailable {
-                    Text(AccessoryFormatting.levels(accessory))
-                        .scaledFont(.caption)
-                        .foregroundStyle(.secondary)
-                        .monospacedDigit()
+                    // Only when it says more than the big readout on the right
+                    // does. A single-cell mouse printed "90%" twice on one row;
+                    // AirPods genuinely need the per-bud breakdown.
+                    if let levels = detailedLevels(accessory) {
+                        Text(levels)
+                            .scaledFont(.caption)
+                            .foregroundStyle(.secondary)
+                            .monospacedDigit()
+                    }
                     // Pro: projected time till empty, shown only once the sampler
                     // has enough history. Read the seam inline (nil in the free
                     // build, and gated on the licence) rather than capturing it at

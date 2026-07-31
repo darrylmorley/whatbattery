@@ -42,7 +42,13 @@ public enum BatteryFormatter {
     /// reading on AC says what it means instead. Shared by the window, the
     /// popover, the CLI, the report and the iDevice view, which all used to
     /// build this line separately.
-    public static func powerLine(_ snapshot: BatterySnapshot, adapterSeparator: String = "  ") -> String {
+    /// `includeAdapter: false` leaves the charger off, for layouts that give the
+    /// adapter a slot of its own rather than trailing it on the reading.
+    public static func powerLine(
+        _ snapshot: BatterySnapshot,
+        adapterSeparator: String = "  ",
+        includeAdapter: Bool = true
+    ) -> String {
         var text = power(snapshot.powerWatts)
         // power() prints one decimal place, so anything under 0.05 shows as 0.0.
         if abs(snapshot.powerWatts) < 0.05 {
@@ -52,7 +58,7 @@ public enum BatteryFormatter {
             case .charging, .discharging: break
             }
         }
-        if let adapter = snapshot.adapter?.label {
+        if includeAdapter, let adapter = snapshot.adapter?.label {
             text += "\(adapterSeparator)(\(adapter))"
         }
         return text
