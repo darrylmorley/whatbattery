@@ -310,6 +310,11 @@ private struct LiveOverviewSection: View {
         // populated when this view is created, including when the window is
         // first opened during a nil.
         if let snapshot = monitor.displaySnapshot {
+            // Above the card, not buried below it: the whole point is that the
+            // advice reaches someone who never scrolls this tab.
+            if isPro, let advisory = PluginRegistry.shared.advisorySectionBuilder {
+                advisory()
+            }
             OverviewCard(snapshot: snapshot, tempUnit: tempUnit, isPro: isPro)
         } else {
             ContentUnavailableView(
@@ -381,7 +386,9 @@ private struct OverviewCard: View {
     // Device identity and service condition, read once when the card appears (the
     // detail that used to sit behind a "Battery Info" popover, now inline).
     @State private var identity: MacIdentity?
-    @State private var condition: BatteryCondition = .unknown
+    @State private var appleHealth: SystemProfilerBatteryHealth = .unknown
+
+    private var condition: BatteryCondition { appleHealth.condition }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -395,9 +402,9 @@ private struct OverviewCard: View {
         }
         .task {
             identity = MacIdentity.read()
-            // system_profiler blocks briefly, so read condition off the main actor.
-            condition = await Task.detached(priority: .userInitiated) {
-                BatteryConditionReader.read()
+            // system_profiler blocks briefly, so read it off the main actor.
+            appleHealth = await Task.detached(priority: .userInitiated) {
+                BatteryConditionReader.readHealth()
             }.value
         }
     }
@@ -415,6 +422,14 @@ private struct OverviewCard: View {
                     Text("\(BatteryFormatter.milliampHours(snapshot.fullChargeCapacitymAh)) of \(BatteryFormatter.milliampHours(snapshot.designCapacitymAh)) design")
                         .scaledFont(.callout)
                         .foregroundStyle(.secondary)
+                }
+                // What macOS itself reports, when it differs from our unrounded
+                // figure. Anyone who cross-checks System Settings will see the
+                // gap; better they see it explained here than conclude we are
+                // wrong. Ours is the gauge's raw estimate, Apple's is rounded
+                // and smoothed.
+                if let appleLine {
+                    Text(appleLine).scaledFont(.caption).foregroundStyle(.secondary)
                 }
                 Text(deviceTitle).scaledFont(.caption).foregroundStyle(.tertiary)
                 if let subtitle = deviceSubtitle {
@@ -463,6 +478,15 @@ private struct OverviewCard: View {
     private var deviceTitle: String {
         if let name = identity?.marketingName, !name.isEmpty { return name }
         return snapshot.deviceModel
+    }
+
+    /// "macOS reports 99%", shown only when Apple's whole-percent figure and our
+    /// unrounded one would actually read differently. When they agree there is
+    /// nothing to reconcile and the line is noise.
+    private var appleLine: String? {
+        guard let apple = appleHealth.maximumCapacityPercent else { return nil }
+        guard let ours = snapshot.healthPercent, Int(ours.rounded()) != apple else { return nil }
+        return "macOS reports \(apple)%"
     }
 
     /// "Mac17,2 (A3434) · Apple M5", omitting whatever is unavailable.

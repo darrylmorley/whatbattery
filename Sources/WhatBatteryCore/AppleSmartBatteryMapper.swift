@@ -45,7 +45,10 @@ public enum AppleSmartBatteryMapper {
             timeToEmptyMinutes: intVal(d["AvgTimeToEmpty"]),
             timeRemainingMinutes: intVal(d["TimeRemaining"]),
             chargerData: parseChargerData(d["ChargerData"]),
-            adapter: parseAdapterDetails(d["AdapterDetails"])
+            adapter: parseAdapterDetails(d["AdapterDetails"]),
+            // Same blob, same parser as the Mac's IOKit read: an iPhone's relay
+            // dictionary carries BatteryData in the identical shape.
+            packDetail: BatteryPackDetail.from(batteryData: d["BatteryData"] as? [String: Any])
         )
     }
 

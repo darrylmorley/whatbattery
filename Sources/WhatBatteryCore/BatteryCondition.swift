@@ -19,13 +19,7 @@ public enum BatteryCondition: String, Sendable, Equatable {
     /// Pull the "Condition:" value out of `system_profiler SPPowerDataType` text
     /// and map it. Returns `.unknown` when there is no Condition line.
     public static func from(systemProfilerOutput output: String) -> BatteryCondition {
-        for rawLine in output.split(separator: "\n") {
-            let line = rawLine.trimmingCharacters(in: .whitespaces)
-            guard line.hasPrefix("Condition:") else { continue }
-            let value = line.dropFirst("Condition:".count).trimmingCharacters(in: .whitespaces)
-            return from(conditionLabel: value)
-        }
-        return .unknown
+        SystemProfilerBatteryHealth.from(systemProfilerOutput: output).condition
     }
 
     /// Map a macOS condition label to a condition. Covers the current and older

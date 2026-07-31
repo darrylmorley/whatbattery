@@ -56,6 +56,8 @@ public struct AppleSmartBattery: Equatable, Sendable {
     // Sub-structures
     public let chargerData: ChargerData?
     public let adapter: AdapterInfo?
+    /// Per-cell and lifetime figures from the gauge's `BatteryData` blob.
+    public let packDetail: BatteryPackDetail?
 
     public init(
         batteryInstalled: Bool = false,
@@ -82,7 +84,8 @@ public struct AppleSmartBattery: Equatable, Sendable {
         timeToEmptyMinutes: Int = 0,
         timeRemainingMinutes: Int = 0,
         chargerData: ChargerData? = nil,
-        adapter: AdapterInfo? = nil
+        adapter: AdapterInfo? = nil,
+        packDetail: BatteryPackDetail? = nil
     ) {
         self.batteryInstalled = batteryInstalled
         self.deviceName = deviceName
@@ -109,6 +112,7 @@ public struct AppleSmartBattery: Equatable, Sendable {
         self.timeRemainingMinutes = timeRemainingMinutes
         self.chargerData = chargerData
         self.adapter = adapter
+        self.packDetail = packDetail
     }
 
     /// The best available full-charge capacity in mAh. Prefers

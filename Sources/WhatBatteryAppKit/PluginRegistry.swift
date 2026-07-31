@@ -64,6 +64,15 @@ public final class PluginRegistry {
         historySectionBuilder = historySection
     }
 
+    // A short advisory pinned above the This Mac overview when the recorded
+    // history shows a habit worth acting on. Deliberately has no upsell
+    // fallback: an advert at the top of the free app's first screen would be
+    // obnoxious, and the section renders nothing when there is nothing to say.
+    public private(set) var advisorySectionBuilder: (@MainActor () -> AnyView)?
+    public func register(advisorySection: @escaping @MainActor () -> AnyView) {
+        advisorySectionBuilder = advisorySection
+    }
+
     // The charging-session / charger-verdict view injected into the main window's
     // This Mac tab, below the Lifetime Analyzer, gated by licence. Nil in the free
     // build (the public mirror's no-op bootstrap never registers it), so the

@@ -63,7 +63,8 @@ public enum AppleSmartBatteryReader {
             timeToFullMinutes: intVal(read("AvgTimeToFull")),
             timeToEmptyMinutes: intVal(read("AvgTimeToEmpty")),
             chargerData: parseChargerData(read("ChargerData")),
-            adapter: parseAdapterDetails(read("AdapterDetails"))
+            adapter: parseAdapterDetails(read("AdapterDetails")),
+            packDetail: BatteryPackDetail.from(batteryData: read("BatteryData") as? [String: Any])
         )
         return Result(isDesktopMac: false, battery: battery)
     }

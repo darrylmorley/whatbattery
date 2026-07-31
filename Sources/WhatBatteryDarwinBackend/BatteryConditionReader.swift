@@ -11,9 +11,25 @@ import WhatBatteryCore
 /// second), so callers run it off the main actor.
 public enum BatteryConditionReader {
     public static func read() -> BatteryCondition {
-        guard let output = systemProfilerPower() else { return .unknown }
-        return BatteryCondition.from(systemProfilerOutput: output)
+        readHealth().condition
     }
+
+    /// Both of macOS's own figures: the service condition and the "Maximum
+    /// Capacity" percentage System Settings shows.
+    ///
+    /// Cached briefly. Spawning `system_profiler` costs a noticeable fraction of
+    /// a second, and this is hit on every overview appearance and every report
+    /// build; neither value moves faster than the gauge updates, so a short TTL
+    /// costs nothing in freshness.
+    public static func readHealth() -> SystemProfilerBatteryHealth {
+        if let cached = cache.value() { return cached }
+        guard let output = systemProfilerPower() else { return .unknown }
+        let parsed = SystemProfilerBatteryHealth.from(systemProfilerOutput: output)
+        cache.store(parsed)
+        return parsed
+    }
+
+    private static let cache = TimedCache(ttl: 60)
 
     private static func systemProfilerPower() -> String? {
         let process = Process()
@@ -57,4 +73,27 @@ public enum BatteryConditionReader {
 /// semaphore (which provides the happens-before ordering).
 private final class DataBox: @unchecked Sendable {
     var data = Data()
+}
+
+/// A last-value-wins cache with a time to live. Locked rather than actor-based
+/// because callers read it from a detached task and expect a synchronous answer.
+private final class TimedCache: @unchecked Sendable {
+    private let ttl: TimeInterval
+    private let lock = NSLock()
+    private var stored: (value: SystemProfilerBatteryHealth, at: Date)?
+
+    init(ttl: TimeInterval) { self.ttl = ttl }
+
+    func value() -> SystemProfilerBatteryHealth? {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let stored, Date().timeIntervalSince(stored.at) < ttl else { return nil }
+        return stored.value
+    }
+
+    func store(_ value: SystemProfilerBatteryHealth) {
+        lock.lock()
+        defer { lock.unlock() }
+        stored = (value, Date())
+    }
 }
