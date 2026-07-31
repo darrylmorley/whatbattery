@@ -20,24 +20,8 @@ enum AccessoryFormatting {
         accessory.levelSummary
     }
 
-    /// "About 5h left" from a projected time-to-empty in seconds; for
-    /// headphones, "About 5h of listening left", the framing that actually
-    /// answers the AirPods question. "About" is doing real work here: the
-    /// discharge rate varies with volume and ANC, so the estimate is honest
-    /// but rough.
+    /// "About 5h left" / "About 40m of listening left" for headphones.
     static func timeToEmpty(_ seconds: TimeInterval, kind: Accessory.Kind = .other) -> String {
-        kind == .headphones
-            ? "About \(duration(seconds)) of listening left"
-            : "About \(duration(seconds)) left"
-    }
-
-    /// "<1h", "5h", "3 days", "3 weeks".
-    private static func duration(_ seconds: TimeInterval) -> String {
-        let hours = seconds / 3600
-        if hours < 1 { return "<1h" }
-        if hours < 48 { return "\(Int(hours.rounded()))h" }
-        let days = hours / 24
-        if days < 14 { return "\(Int(days.rounded())) days" }
-        return "\(Int((days / 7).rounded())) weeks"
+        AccessoryRuntimeFormatting.timeToEmpty(seconds, kind: kind)
     }
 }

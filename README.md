@@ -57,7 +57,7 @@ WhatBattery is free and open source. The free app shows battery health, live pow
 - **Threshold notifications:** alerts for charge high/low, temperature, and health milestones.
 - **Smart alerts:** the wear-driven ones too: sat plugged in at 100% for hours, no full charge cycle in a long while, health dropping faster than the battery's own trend, and running warm while charging.
 - **Anonymous wear comparison (opt-in):** see where your battery's health sits among other readings of the same model and cycle band. One anonymous reading a week: model identifier, cycle count rounded to the hundred below, health percent, and a coarse age figure. No serial, no device name, no OS version, nothing tied to your licence, and contributions age out after 13 months.
-- **Accessory history and alerts:** a per-device level history for your keyboard, mouse, trackpad, and AirPods, with an estimated time-till-empty, a low-battery alert before they die, and the option to show an accessory's level right in the menu bar.
+- **Accessory forecast and alerts:** a per-device level history for your keyboard, mouse, trackpad, and AirPods, with a runtime forecast from the real discharge trend: how long until it dies ("about 3 days left", listening time for AirPods) and roughly how long a full charge lasts. The low-battery alert fires before the accessory dies and says how long is left, and you can show an accessory's level right in the menu bar.
 
 ![WhatBattery showing accessory battery levels in the menu bar](src/img/screenshot-menubar-strip.png)
 
