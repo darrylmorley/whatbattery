@@ -13,3 +13,4 @@ DerivedData/
 # Website
 /node_modules
 .cache
+.DS_Store
