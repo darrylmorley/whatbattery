@@ -19,6 +19,7 @@ public enum IDeviceBatteryReader {
         public let connectionType: String   // "USB" or "Network"
 
         public var marketingName: String { IDeviceModelName.marketingName(for: productType) }
+        public var kind: IDeviceKind { IDeviceModelName.kind(for: productType) }
     }
 
     public struct Reading: Sendable {
@@ -89,7 +90,12 @@ public enum IDeviceBatteryReader {
     private static func deviceInfo(from device: MobileDeviceBridge.RawDevice) -> DeviceInfo {
         DeviceInfo(
             udid: device.udid,
-            name: device.deviceName.isEmpty ? "iPhone" : device.deviceName,
+            // A device that reports no name must not be guessed at: calling an
+            // unnamed iPad "iPhone" is exactly the confusion this view exists
+            // to avoid. Fall back to its own family instead.
+            name: device.deviceName.isEmpty
+                ? IDeviceModelName.kind(for: device.productType).fallbackName
+                : device.deviceName,
             productType: device.productType,
             productVersion: device.productVersion,
             serial: device.serial,

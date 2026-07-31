@@ -172,4 +172,39 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         XCTAssertEqual(IDeviceModelName.marketingName(for: "iPhone12,1"), "iPhone 11")
         XCTAssertEqual(IDeviceModelName.marketingName(for: "iPhone99,9"), "iPhone99,9")
     }
+
+    func testMarketingNameIsNeverBlank() {
+        // A failed identity read leaves the product type empty; a blank name
+        // would render as a blank title in the UI.
+        XCTAssertFalse(IDeviceModelName.marketingName(for: "").isEmpty)
+    }
+
+    func testKindFromProductTypePrefix() {
+        XCTAssertEqual(IDeviceModelName.kind(for: "iPad13,4"), .iPad)
+        XCTAssertEqual(IDeviceModelName.kind(for: "iPhone12,1"), .iPhone)
+        XCTAssertEqual(IDeviceModelName.kind(for: "iPod9,1"), .iPod)
+    }
+
+    func testKindResolvesUnknownModelsByFamily() {
+        // A model too new for the name table still has to get the right icon.
+        XCTAssertEqual(IDeviceModelName.kind(for: "iPad99,9"), .iPad)
+        XCTAssertEqual(IDeviceModelName.kind(for: "Watch7,1"), .unknown)
+        XCTAssertEqual(IDeviceModelName.kind(for: ""), .unknown)
+    }
+
+    func testEveryKindHasASymbolAndLabel() {
+        for kind in IDeviceKind.allCases {
+            XCTAssertFalse(kind.symbolName.isEmpty)
+            XCTAssertFalse(kind.label.isEmpty)
+            XCTAssertFalse(kind.fallbackName.isEmpty)
+        }
+    }
+
+    func testFallbackNameIsANounNotAPairOfOptions() {
+        // It stands where a real device name goes ("<name> is connected"), so
+        // an unnamed iPad must never fall back to "iPhone".
+        XCTAssertEqual(IDeviceKind.iPad.fallbackName, "iPad")
+        XCTAssertEqual(IDeviceKind.iPhone.fallbackName, "iPhone")
+        XCTAssertEqual(IDeviceKind.unknown.fallbackName, "Device")
+    }
 }
