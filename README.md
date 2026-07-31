@@ -11,7 +11,7 @@ System Settings rounds battery health to a whole number and hides almost everyth
 [![Latest release](https://img.shields.io/github/v/release/darrylmorley/whatbattery)](https://github.com/darrylmorley/whatbattery/releases/latest)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%2B%20Apple%20Silicon-blue)](https://github.com/darrylmorley/whatbattery)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![WhatBattery Pro](https://img.shields.io/badge/WhatBattery%20Pro-%C2%A39.99-orange)](https://www.whatbattery.app/#pro)
+[![WhatBattery Pro](https://img.shields.io/badge/WhatBattery%20Pro-%C2%A39.99-orange)](https://www.whatbattery.app/pro/)
 
 <img src="src/img/screenshot-menubar.png" width="320" alt="WhatBattery menu bar dropdown showing battery health, live power, and connected Bluetooth accessory levels" />
 
@@ -42,7 +42,7 @@ Click the **gear icon** in the dropdown to open Settings, where you can enter a 
 
 ## WhatBattery Pro
 
-WhatBattery is free and open source. The free app shows battery health, live power, and the service condition for your Mac. [WhatBattery Pro](https://www.whatbattery.app/#pro) unlocks the long-term and multi-device features:
+WhatBattery is free and open source. The free app shows battery health, live power, and the service condition for your Mac. [WhatBattery Pro](https://www.whatbattery.app/pro/) unlocks the long-term and multi-device features:
 
 - **Lifetime Analyzer:** a live history of charge, temperature, voltage, and power, with charts and min/avg/max stats over a selectable range.
 - **iPhone and iPad battery:** read the health and cycle count of a connected device straight from your Mac, over USB or Wi-Fi.
@@ -60,9 +60,9 @@ WhatBattery is free and open source. The free app shows battery health, live pow
 
 <img src="src/img/screenshot-menubar-strip.png" width="380" alt="WhatBattery showing accessory battery levels in the menu bar" />
 
-One-time purchase, works on up to 2 Macs. See [whatbattery.app](https://www.whatbattery.app/#pro) for details.
+One-time purchase, works on up to 2 Macs. See [whatbattery.app](https://www.whatbattery.app/pro/) for details.
 
-[![Buy WhatBattery Pro](https://img.shields.io/badge/Buy%20WhatBattery%20Pro-%C2%A39.99-orange?style=for-the-badge)](https://www.whatbattery.app/#pro)
+[![Buy WhatBattery Pro](https://img.shields.io/badge/Buy%20WhatBattery%20Pro-%C2%A39.99-orange?style=for-the-badge)](https://www.whatbattery.app/pro/)
 
 ## Install
 
