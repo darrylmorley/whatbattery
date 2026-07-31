@@ -1,0 +1,63 @@
+---
+layout: base.njk
+title: Press
+permalink: /press/
+description: Press resources for WhatBattery, the macOS menu bar app for real battery health, live power, and replacement forecasting. Boilerplate, assets, and contact.
+---
+
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><span>Press</span></nav><span class="section-tag">Press</span><h1>Everything you need to write about WhatBattery.</h1><p class="lede">Boilerplate, screenshots, and the parts worth knowing, including what the app deliberately will not tell you. Questions and Pro review keys: <a href="mailto:hello@bitmoor.co.uk">hello@bitmoor.co.uk</a>.</p></div></header>
+
+<section class="prose-section"><div class="wrap prose">
+
+  <h2>In one line</h2>
+  <p>WhatBattery is a macOS menu bar app that shows what your Mac, iPhone, iPad and Bluetooth accessories' batteries are actually doing: unrounded health, live power draw in watts, per-cell detail, and a forecast of when a battery is likely to need replacing. Read-only, Apple Silicon, macOS 14 or later. Free, with an optional £9.99 one-time Pro tier covering two Macs.</p>
+
+  <h2>About the app</h2>
+  <p>macOS tells you a rounded percentage and a one-word condition. WhatBattery reads the same battery and power interfaces Apple exposes through IOKit and the SMC, and reports what they actually say: capacity against design capacity unrounded, cycle count, live watts in and out, temperature, voltage, and the charger's negotiated wattage. It reads a tethered iPhone or iPad's battery from the Mac over the same connection Finder uses, with nothing installed on the device.</p>
+
+  <p>The part that took the longest is knowing when to say nothing. A battery's health figure is the fuel gauge's own revisable estimate: it holds steady for weeks, then steps when the gauge relearns the pack. Fit a line through a few of those steps and you can confidently tell someone with a nearly new battery to plan a replacement. WhatBattery tests whether a decline is statistically real before it will name anything, gives a date range rather than a single month, and stays quiet when the history cannot support a claim. It also shows macOS's own capacity figure alongside its own whenever the two disagree, rather than leaving you to wonder which is wrong.</p>
+
+  <p>Pro adds the long-term record: health history per device across years, the replacement forecast, per-app power in real watts (from the same kernel energy counters behind Activity Monitor's Energy tab, but in units rather than a score), charging sessions with a verdict on whether your charger keeps up, per-cell voltage and pack internals the gauge keeps and macOS never surfaces, PDF and CSV export for warranty claims and resale, and alerts.</p>
+
+  <h2>What it does not do</h2>
+  <p>It is read-only and never changes how anything charges: no charge limiting, no daemon, no kernel extension, no root access. It does not invent numbers when the hardware reports nothing, and it does not claim per-app figures are a share of your battery, because the display, the radios and system processes are not attributable per app. It is not on the Mac App Store, because the sandbox blocks the low-level reads it depends on, so it ships signed and notarised outside the store.</p>
+
+  <h2>Privacy</h2>
+  <p>No tracking, no telemetry, no accounts. Battery data stays on the Mac. The one exception is opt-in and off by default: an anonymous wear comparison that sends a model identifier, a cycle count rounded down to the hundred, a health percentage and a coarse age, with no serial, no device name and nothing tied to a licence. Contributions age out after 13 months.</p>
+
+  <h2>About the developer</h2>
+  <p>Darryl Morley is a self-taught developer based in the UK. He works in e-commerce by day and builds Mac utilities in his spare time under Bitmoor Ltd. WhatBattery joins <a href="https://www.whatcable.uk">WhatCable</a> and <a href="https://www.whatport.app">WhatPort</a>, a family of small Mac tools that explain what the hardware is actually doing.</p>
+
+  <h2>Press kit</h2>
+  <ul>
+    <li><a href="/press/whatbattery-icon-1024.png">App icon</a> (1024&times;1024 PNG)</li>
+    <li><a href="/press/whatbattery-apps.gif">Apps tab recording</a> (animated GIF, live per-app power)</li>
+    <li><a href="{{ site.download }}" download>Download WhatBattery</a> (latest release, .zip)</li>
+    <li><a href="{{ site.repo }}">Source on GitHub</a></li>
+  </ul>
+
+  <div class="press-shots">
+    <img src="/img/screenshot-mac.png" alt="WhatBattery This Mac tab: unrounded battery health, capacity, condition and live readings" loading="lazy" />
+    <img src="/img/screenshot-apps.png" alt="WhatBattery Apps tab: apps ranked by live watts with a power trace" loading="lazy" />
+    <img src="/img/screenshot-charging.png" alt="WhatBattery Charging tab: charging habits, sessions and charger verdicts" loading="lazy" />
+    <img src="/img/screenshot-history.png" alt="WhatBattery Health tab: long-term battery health per device" loading="lazy" />
+    <img src="/img/screenshot-idevice.png" alt="WhatBattery iPhone and iPad tab: connected device battery read from the Mac" loading="lazy" />
+    <img src="/img/screenshot-accessories.png" alt="WhatBattery Accessories tab: Bluetooth accessory levels and history" loading="lazy" />
+    <img src="/img/screenshot-menubar.png" alt="WhatBattery menu bar dropdown" loading="lazy" />
+  </div>
+
+  <h2>Contact</h2>
+  <p>For press enquiries, a review key for Pro, or anything else: <a href="mailto:hello@bitmoor.co.uk">hello@bitmoor.co.uk</a>. Bug reports are best as <a href="{{ site.repo }}/issues">a GitHub issue</a>, where they get tracked.</p>
+
+</div></section>
+
+<style>
+  .press-shots { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0 28px; }
+  .press-shots img {
+    width: 230px; max-width: 45%; height: auto;
+    border-radius: 8px; border: 1px solid var(--line-soft, #e5e7eb);
+  }
+  @media (max-width: 560px) {
+    .press-shots img { width: 100%; max-width: 100%; }
+  }
+</style>
