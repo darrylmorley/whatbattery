@@ -13,7 +13,7 @@ System Settings rounds battery health to a whole number and hides almost everyth
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![WhatBattery Pro](https://img.shields.io/badge/WhatBattery%20Pro-%C2%A39.99-orange)](https://www.whatbattery.app/#pro)
 
-![WhatBattery menu bar dropdown showing battery health, live power, and connected Bluetooth accessory levels](src/img/screenshot-menubar.png)
+<img src="src/img/screenshot-menubar.png" width="320" alt="WhatBattery menu bar dropdown showing battery health, live power, and connected Bluetooth accessory levels" />
 
 ## What it shows
 
@@ -27,7 +27,7 @@ For your Mac, in the menu bar dropdown and the main window:
 - **Device detail:** marketing model name ("MacBook Pro (14-inch, M5)"), model identifier, regulatory model number, chip, serial, and Low Power Mode status, alongside the battery serial and adapter.
 - **What's using power (Pro):** the Apps tab ranks your apps by live watts, from the same kernel energy counters behind Activity Monitor's Energy tab but in real units instead of a unitless score, plus the top power users over the last day, week, or month. Honest framing: the display, radios, and system processes aren't attributable per app, so the figures are never dressed up as a share of the battery.
 
-![WhatBattery Apps tab showing apps ranked by live watts and the top power users over 24 hours](src/img/screenshot-apps.png)
+<img src="src/img/screenshot-mac.png" width="560" alt="WhatBattery This Mac tab: battery health, service condition, live power, and the Lifetime Analyzer charts" />
 
 For a connected **iPhone or iPad (Pro)**:
 
@@ -37,8 +37,6 @@ For your **Bluetooth accessories**:
 
 - The live battery level of a connected keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case (L / R / Case). Devices that only publish battery over Bluetooth Low Energy, like Logitech's MX mice, are read over the GATT Battery Service, matching what System Settings sees. A few devices publish nothing at all, and those show "Battery unavailable" rather than a guess. This is free.
 - Devices appear the moment they connect and leave when they disconnect, no waiting on a poll.
-
-![WhatBattery Accessories tab showing keyboard, AirPods, and mouse levels with a history chart](src/img/screenshot-accessories.png)
 
 Click the **gear icon** in the dropdown to open Settings, where you can enter a Pro licence key and configure threshold notifications.
 
@@ -60,9 +58,7 @@ WhatBattery is free and open source. The free app shows battery health, live pow
 - **Anonymous wear comparison (opt-in):** see where your battery's health sits among other readings of the same model and cycle band. One anonymous reading a week: model identifier, cycle count rounded to the hundred below, health percent, and a coarse age figure. No serial, no device name, no OS version, nothing tied to your licence, and contributions age out after 13 months.
 - **Accessory forecast and alerts:** a per-device level history for your keyboard, mouse, trackpad, and AirPods, with a runtime forecast from the real discharge trend: how long until it dies ("about 3 days left", listening time for AirPods) and roughly how long a full charge lasts. The low-battery alert fires before the accessory dies and says how long is left, and you can show an accessory's level right in the menu bar.
 
-![WhatBattery Pro Cells and internals card: per-cell voltage, capacity and resistance with the pack balance called out](src/img/screenshot-cells.png)
-
-![WhatBattery showing accessory battery levels in the menu bar](src/img/screenshot-menubar-strip.png)
+<img src="src/img/screenshot-menubar-strip.png" width="380" alt="WhatBattery showing accessory battery levels in the menu bar" />
 
 One-time purchase, works on up to 2 Macs. See [whatbattery.app](https://www.whatbattery.app/#pro) for details.
 
