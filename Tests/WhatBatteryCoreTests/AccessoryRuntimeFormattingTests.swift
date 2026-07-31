@@ -28,6 +28,17 @@ final class AccessoryRuntimeFormattingTests: XCTestCase {
         XCTAssertEqual(AccessoryRuntimeFormatting.duration(13.9 * 86_400), "2 weeks")
     }
 
+    func testJustBelowBoundariesStayInTheirUnit() {
+        XCTAssertEqual(AccessoryRuntimeFormatting.duration(59.4 * 60), "59m")
+        XCTAssertEqual(AccessoryRuntimeFormatting.duration(47.4 * 3_600), "47h")
+        XCTAssertEqual(AccessoryRuntimeFormatting.duration(13.4 * 86_400), "13 days")
+    }
+
+    func testZeroAndNegativeFloorAtOneMinute() {
+        XCTAssertEqual(AccessoryRuntimeFormatting.duration(0), "1m")
+        XCTAssertEqual(AccessoryRuntimeFormatting.duration(-300), "1m")
+    }
+
     func testTimeToEmptyDefaultFraming() {
         XCTAssertEqual(AccessoryRuntimeFormatting.timeToEmpty(5 * 3_600), "About 5h left")
     }
