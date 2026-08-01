@@ -211,10 +211,9 @@ final class UpdateChecker: ObservableObject {
     }
 
     /// Only accept download URLs from GitHub's release asset CDN.
+    ///
+    /// The list itself lives in `GitHubReleaseHost` (Core) so it can be tested.
     nonisolated static func isTrustedDownloadURL(_ url: URL) -> Bool {
-        guard url.scheme == "https",
-              let host = url.host else { return false }
-        let trusted = ["objects.githubusercontent.com", "github.com", "releases.githubusercontent.com"]
-        return trusted.contains(host)
+        GitHubReleaseHost.isTrusted(url)
     }
 }
