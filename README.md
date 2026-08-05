@@ -17,7 +17,7 @@ System Settings rounds battery health to a whole number and hides almost everyth
 
 ## What it shows
 
-Everything below is free unless it's marked **(Pro)**. The full Pro list is in [its own section](#whatbattery-pro); Pro is a one-time licence.
+Everything below is free unless it's marked **(Pro)**. The full Pro list is in [its own section](#whatbattery-pro); Pro is a one-time licence. Every number here is one WhatBattery can back up: if a reading can't be trusted, it says so instead of guessing.
 
 For your Mac, in the menu bar dropdown and the main window:
 
@@ -28,6 +28,13 @@ For your Mac, in the menu bar dropdown and the main window:
 - **What's using power (Pro):** the Apps tab ranks your apps by live watts, from the same kernel energy counters behind Activity Monitor's Energy tab but in real units instead of a unitless score, plus the top power users over the last day, week, or month. Honest framing: the display, radios, and system processes aren't attributable per app, so the figures are never dressed up as a share of the battery.
 
 <img src="src/img/screenshot-mac.png" width="560" alt="WhatBattery This Mac tab: battery health, service condition, live power, and the Lifetime Analyzer charts" />
+
+For **sleep and wake analysis (Pro)**:
+
+- The Sleep tab explains what happened during the last sleep: charge lost, how long, and how many times the Mac woke, with the same numbers for recent sleeps before it. Wake reasons are macOS's own internal strings; WhatBattery translates only the handful whose meaning is documented and unambiguous, and always shows the raw string underneath.
+- What's holding the Mac awake right now, by process, split into what blocks idle sleep and what doesn't. When the readings at each end disagree it says the power source is unclear rather than guessing, and a failed read says so rather than showing an empty "nothing is holding your Mac awake".
+
+<img src="src/img/screenshot-sleep.png" width="560" alt="WhatBattery Sleep tab: the last sleep held steady for 23 minutes with two wakes, recent sleeps with drain and wake counts, and wake reasons counted across the last five sleeps" />
 
 For a connected **iPhone or iPad (Pro)**:
 
@@ -44,10 +51,11 @@ Click the **gear icon** in the dropdown to open Settings, where you can enter a 
 
 WhatBattery is free and open source. The free app shows battery health, live power, and the service condition for your Mac. [WhatBattery Pro](https://www.whatbattery.app/pro/) unlocks the long-term and multi-device features:
 
-- **Lifetime Analyzer:** a live history of charge, temperature, voltage, and power, with charts and min/avg/max stats over a selectable range.
+- **Lifetime Analyzer:** a live history of charge, temperature, voltage, and power, with charts and min/avg/max stats over a selectable range. On a fresh install, the charge chart also backfills days or weeks of history from macOS's own sleep/wake log, drawn as a distinct line from anything WhatBattery has measured itself, so you see a real trend from day one instead of "check back later".
+- **Sleep diagnosis:** what happened during the last sleep and the ones before it (drain, duration, wake count), wake reasons grouped and translated where the meaning is certain, and what's holding the Mac awake right now. Says so honestly when a reading can't be trusted, instead of guessing.
 - **iPhone and iPad battery:** read the health and cycle count of a connected device straight from your Mac, over USB or Wi-Fi.
 - **Battery Health History:** a long-term, per-device record of monthly health and cycles, for your Mac and every device you connect, kept for years, with backup and restore.
-- **Battery runway:** a forecast, not just today's number. The wear rate ("down 4% over the last 90 days"), the window in which your battery is projected to reach 80% health, and a flag when it starts ageing faster than its own trend. Built from the long-term health history, Macs first. No other battery app projects forward. It also knows when not to: the health reading is the fuel gauge's own revisable estimate, which steps when the gauge recalibrates, so a few weeks of readings can imply a steep decline that is not real. WhatBattery tests whether the trend is statistically distinguishable from that noise, and stays quiet when it is not.
+- **Battery runway:** a forecast, not just today's number. The wear rate ("down 4% over the last 90 days"), the window in which your battery is projected to reach 80% health, and a flag when it starts ageing faster than its own trend. Built from the long-term health history, Macs first. It also knows when not to: the health reading is the fuel gauge's own revisable estimate, which steps when the gauge recalibrates, so a few weeks of readings can imply a steep decline that is not real. WhatBattery tests whether the trend is statistically distinguishable from that noise, and stays quiet when it is not.
 - **Cells and internals:** the per-cell data the gauge keeps and macOS never shows. Each cell's voltage, learned capacity and resistance, how far apart they are drifting (a failing pack shows one cell pulling away long before the health figure moves), the cycle count at the gauge's last recalibration, and lifetime temperature, voltage and current extremes going back before you installed the app.
 - **Charging sessions:** every charge recorded with how fast it ran, how hot it got, and a charger verdict ("58W of 96W"). A charger is flagged as underpowered when what it advertises falls clearly below what your Mac can fast-charge at; the judgement is on the charger's own claim, never on how fast a session happened to run, so a good charger loafing through an overnight charge is never wrongly accused.
 - **What's using power:** apps ranked by live watts, plus the recorded top power users over the last day, week, or month.

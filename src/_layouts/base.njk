@@ -20,18 +20,49 @@
     <meta name="twitter:description" content="{{ description or site.tagline }}" />
     <meta name="twitter:image" content="{{ site.url }}/img/og-whatbattery.png" />
 
-{% if page.url == '/' %}
+{% if page.url == '/' or page.url == '/pro/' %}
+    {# One entity, emitted on the two pages that sell the app. The shared @id
+       tells a parser these are the same thing described twice, not two apps.
+       softwareVersion comes from site.json, which scripts/release.sh patches
+       in the same commit as the app's own version: a literal here would be
+       stale from the first release after it was written. Note the site builds
+       on the public mirror, where scripts/ does not exist, so the version has
+       to travel in mirrored data rather than be read from the release script. #}
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
+      "@id": "{{ site.url }}/#app",
       "name": "WhatBattery",
+      "softwareVersion": "{{ site.version }}",
       "operatingSystem": "macOS 14 or later, Apple Silicon",
       "applicationCategory": "UtilitiesApplication",
+      "applicationSubCategory": "Battery health and power monitoring",
       "url": "{{ site.url }}/",
       "downloadUrl": "{{ site.download }}",
+      "installUrl": "{{ site.url }}/#install",
+      "releaseNotes": "{{ site.releases }}",
       "description": "{{ site.tagline | safe }}",
       "image": "{{ site.url }}/img/og-whatbattery.png",
+      "screenshot": [
+        "{{ site.url }}/img/screenshot-mac.png",
+        "{{ site.url }}/img/screenshot-sleep.png",
+        "{{ site.url }}/img/screenshot-apps.png",
+        "{{ site.url }}/img/screenshot-charging.png",
+        "{{ site.url }}/img/screenshot-history.png"
+      ],
+      "featureList": [
+        "True battery health from the fuel gauge, with the service condition macOS reports",
+        "Live charge and discharge power in watts, with the connected adapter",
+        "Battery runway: wear rate and a projected replacement window",
+        "Sleep and wake diagnosis: overnight drain, wake reasons, and what is holding the Mac awake",
+        "Per-app power use in real watts, live and historical",
+        "Charging sessions with a verdict on each charger",
+        "Per-cell voltage, capacity and resistance from the pack",
+        "Long-term health history for Macs, iPhones and iPads",
+        "Bluetooth accessory battery levels with time-to-empty estimates",
+        "PDF report and CSV or JSON export"
+      ],
       "author": { "@type": "Person", "name": "Darryl Morley" },
       "offers": [
         { "@type": "Offer", "name": "WhatBattery", "price": "0", "priceCurrency": "GBP" },

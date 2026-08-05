@@ -329,10 +329,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             // Open tall enough to show the full This Mac tab without scrolling;
             // still resizable, and the content scrolls if shrunk or on a short
             // display.
-            // 760 matches MainWindowView's own minWidth (six tabs need it);
+            // 840 matches MainWindowView's own minWidth (seven tabs need it);
             // a smaller opening size would be silently corrected up to the
-            // SwiftUI minimum on the next run-loop tick anyway.
-            let window = makeWindow(title: "WhatBattery", width: 760, height: 880, resizable: true) {
+            // SwiftUI minimum on the next run-loop tick anyway, but opening at
+            // the right size avoids a visible snap on first launch.
+            let window = makeWindow(title: "WhatBattery", width: 840, height: 880, resizable: true) {
                 MainWindowView(monitor: monitor)
             }
             mainWindow = window

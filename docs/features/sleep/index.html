@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Why your Mac lost charge overnight · WhatBattery</title>
+    <meta name="description" content="See what happened during your Mac&#39;s last sleep, charge lost, wake count, wake reasons in plain English, and what is holding it awake right now. WhatBattery Pro." />
+    <link rel="canonical" href="https://www.whatbattery.app/features/sleep/" />
+    <link rel="icon" href="/img/favicon.ico?v=51cb979ea5b4" sizes="any" />
+    <link rel="icon" href="/img/icon.png?v=6628f904ad22" type="image/png" />
+    <link rel="apple-touch-icon" href="/img/icon.png?v=6628f904ad22" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.whatbattery.app/features/sleep/" />
+    <meta property="og:title" content="Why your Mac lost charge overnight · WhatBattery" />
+    <meta property="og:description" content="See what happened during your Mac&#39;s last sleep, charge lost, wake count, wake reasons in plain English, and what is holding it awake right now. WhatBattery Pro." />
+    <meta property="og:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Why your Mac lost charge overnight · WhatBattery" />
+    <meta name="twitter:description" content="See what happened during your Mac&#39;s last sleep, charge lost, wake count, wake reasons in plain English, and what is holding it awake right now. WhatBattery Pro." />
+    <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
+
+
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/style.css?v=049d00fb9cba" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <nav class="nav" aria-label="Primary">
+      <div class="wrap nav-inner">
+        <a class="brand" href="/" aria-label="WhatBattery home">
+          <img class="mark" src="/img/icon.png?v=6628f904ad22" alt="" aria-hidden="true" width="30" height="30" />
+          <span>WhatBattery</span>
+        </a>
+        <div class="nav-links">
+          <a href="/features/">Features</a>
+          <a href="/pro/">Pro</a>
+          <a href="/docs/">Guides</a>
+          <a href="/cli/">CLI</a>
+          <a href="/blog/">Blog</a>
+          <a href="https://github.com/darrylmorley/whatbattery">GitHub</a>
+          <a class="button nav-cta" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download free</a>
+        </div>
+      </div>
+    </nav>
+
+    <main id="main">
+
+<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/features/">Features</a><span>/</span><span>Sleep</span></nav><span class="section-tag">Sleep · Pro</span><h1>Why did your Mac lose charge overnight?</h1><p class="lede">The Sleep tab shows what happened while your Mac slept: charge lost, how long, and how many times it woke. Then it shows what's holding it awake right now, honestly, including when it can't be sure.</p><div class="actions"><a class="button primary" href="/pro/">Get WhatBattery Pro</a><a class="button secondary" href="#awake">See what's holding it awake</a></div></div></header>
+
+<section><div class="wrap feature-lead"><div class="feature-copy"><span class="section-tag">The last sleep, explained</span><h2>Not just that it slept. What happened while it did.</h2><p>System Settings tells you the Mac slept. It doesn't tell you what happened: how much charge you lost, how long it took, or how many times something woke it. The Sleep tab's headline answers exactly that for the last sleep, then keeps the same numbers, drain, duration, wake count, and power source, for the sleeps before it.</p><p>When the readings at each end disagree, WhatBattery won't guess. A Mac that reads battery at both sleep and wake but somehow gained charge can't actually be right, a battery doesn't charge itself, so the power source shows as unclear rather than a wrong answer stated with confidence.</p><ul class="benefit-list"><li>Charge lost, duration, and wake count for the last sleep</li><li>Recent sleeps listed with drain, duration, wake count, and power source</li><li>Power source shown honestly, including when the readings don't agree</li><li>Built to answer "why did I lose charge overnight", not just "that it slept"</li></ul></div><img src="/img/screenshot-sleep.png?v=0b3b6db12b0f" alt="WhatBattery Sleep tab: the last sleep held steady for 23 minutes with two wakes, a list of recent sleeps each showing charge drain, duration, wake count and power source, and wake reasons counted across the last five sleeps" width="440" /></div></section>
+
+<section id="awake" class="soft-section"><div class="wrap feature-lead"><img src="/img/screenshot-sleep-awake.png?v=31ec0c326647" alt="WhatBattery Sleep tab scrolled to wake reasons and the list of what's currently holding the Mac awake, split into apps blocking idle sleep, like Amphetamine and powerd, and other active assertions, each with how long they've held it and the raw macOS reason underneath" width="440" loading="lazy" /><div class="feature-copy"><span class="section-tag">Wake reasons and what's awake now</span><h2>Plain English when it can prove it. The raw string always underneath.</h2><p>Wake reasons come out of macOS as its own internal strings: hardware paths and interrupt codes, not anything written for a person to read. WhatBattery translates the handful whose meaning is documented and unambiguous, so a reason containing “rtc/Maintenance” reads as “Scheduled maintenance”, and opening the lid, a USB-C device being plugged in, and a notification arriving each get a label of their own. It groups and counts them across recent sleeps, and the original string sits underneath every one, translated or not.</p><p>Below that, WhatBattery shows what's holding the Mac awake right now, by process, with how long each has held it, split into what's actually blocking idle sleep and what isn't, with a filter to switch between the two.</p><ul class="benefit-list"><li>Wake reasons grouped and counted, most common first</li><li>Plain-English label only where the mapping is certain</li><li>The raw system string shown underneath every reason</li><li>Awake-holders split into blocking idle sleep and not, with a filter</li></ul></div></div></section>
+
+<section><div class="wrap"><div class="section-head center"><span class="section-tag">The promise behind every number</span><h2>It says when it doesn't know, instead of showing a confident zero.</h2><p>Every reading on this tab is one WhatBattery will withhold rather than guess at. It would rather tell you it can't be sure than hand you a wrong answer that looks certain.</p></div><div class="card-grid"><article class="card"><h3>No power source it can't back up</h3><p>If a Mac reads battery at both sleep and wake but the charge went up, that's not possible, a battery can't gain charge on its own. WhatBattery calls the power source unclear rather than naming one anyway.</p></article><article class="card"><h3>Only the wake reasons it can prove</h3><p>Wake reasons are macOS's own internal strings. WhatBattery translates only the ones whose meaning is documented and unambiguous, and always shows the original underneath. It doesn't guess at the rest.</p></article><article class="card"><h3>A failed read says so</h3><p>If reading what's holding the Mac awake fails, WhatBattery says the read failed. It never shows an empty list as “nothing is holding your Mac awake”, a claim about the machine that our reading can't actually support.</p></article></div></div></section>
+
+<section class="cta-band"><div class="wrap cta-grid"><div><h2>Stop guessing why the battery was lower this morning.</h2><p>Sleep diagnosis, wake reasons, and what's holding your Mac awake are included in WhatBattery Pro.</p></div><a class="button primary" href="/pro/">Get WhatBattery Pro</a></div></section>
+
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-grid">
+        <div class="footer-brand">
+          <a class="brand footer-logo" href="/">
+            <img class="mark" src="/img/icon.png?v=6628f904ad22" alt="" aria-hidden="true" width="30" height="30" />
+            <span>WhatBattery</span>
+          </a>
+          <p>Know your battery's real health, live power use, and where it is heading.</p>
+          <p class="footer-small">A <a href="https://www.bitmoor.co.uk">Bitmoor</a> product by <a href="https://github.com/darrylmorley">Darryl Morley</a>.</p>
+        </div>
+        <div>
+          <h2>Product</h2>
+          <a href="/features/">Features</a>
+          <a href="/pro/">WhatBattery Pro</a>
+          <a href="/cli/">CLI</a>
+          <a href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download</a>
+        </div>
+        <div>
+          <h2>Resources</h2>
+          <a href="/docs/">Guides</a>
+          <a href="/faq/">FAQ</a>
+          <a href="/blog/">Blog</a>
+          <a href="/press/">Press</a>
+          <a href="https://github.com/darrylmorley/whatbattery">Source on GitHub</a>
+        </div>
+        <div>
+          <h2>Family</h2>
+          <a href="https://www.whatcable.uk">WhatCable</a>
+          <a href="https://www.whatport.app">WhatPort</a>
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </div>
+      </div>
+      <div class="wrap footer-bottom">
+        <span>MIT licensed. Read-only: it never changes how your devices charge.</span>
+        <span>Apple Silicon · macOS 14+</span>
+      </div>
+    </footer>
+
+    <script>
+      (function () {
+        var buttons = document.querySelectorAll("[data-buy-pro]");
+        var errorSlots = document.querySelectorAll("[data-buy-error]");
+        buttons.forEach(function (button) {
+          var originalHTML = button.innerHTML;
+          button.addEventListener("click", async function () {
+            buttons.forEach(function (candidate) { candidate.disabled = true; });
+            button.textContent = "Starting secure checkout…";
+            errorSlots.forEach(function (slot) { slot.hidden = true; slot.textContent = ""; });
+            try {
+              var res = await fetch("https://www.whatbattery.app/api/checkout", { method: "POST" });
+              var data = await res.json();
+              if (res.ok && data.url) {
+                window.location.href = data.url;
+              } else {
+                throw new Error(data.error || "Could not start checkout. Please try again.");
+              }
+            } catch (err) {
+              errorSlots.forEach(function (slot) { slot.textContent = err.message || "Could not start checkout. Please try again."; slot.hidden = false; });
+              buttons.forEach(function (candidate) { candidate.disabled = false; });
+              button.innerHTML = originalHTML;
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

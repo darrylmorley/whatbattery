@@ -21,17 +21,42 @@
     <meta name="twitter:image" content="https://www.whatbattery.app/img/og-whatbattery.png" />
 
 
+    
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
+      "@id": "https://www.whatbattery.app/#app",
       "name": "WhatBattery",
+      "softwareVersion": "1.4.1",
       "operatingSystem": "macOS 14 or later, Apple Silicon",
       "applicationCategory": "UtilitiesApplication",
+      "applicationSubCategory": "Battery health and power monitoring",
       "url": "https://www.whatbattery.app/",
       "downloadUrl": "https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip",
+      "installUrl": "https://www.whatbattery.app/#install",
+      "releaseNotes": "https://github.com/darrylmorley/whatbattery/releases",
       "description": "Know your Mac, iPhone, and iPad's real battery health, live power use, and where each battery is heading. Read-only and open source.",
       "image": "https://www.whatbattery.app/img/og-whatbattery.png",
+      "screenshot": [
+        "https://www.whatbattery.app/img/screenshot-mac.png",
+        "https://www.whatbattery.app/img/screenshot-sleep.png",
+        "https://www.whatbattery.app/img/screenshot-apps.png",
+        "https://www.whatbattery.app/img/screenshot-charging.png",
+        "https://www.whatbattery.app/img/screenshot-history.png"
+      ],
+      "featureList": [
+        "True battery health from the fuel gauge, with the service condition macOS reports",
+        "Live charge and discharge power in watts, with the connected adapter",
+        "Battery runway: wear rate and a projected replacement window",
+        "Sleep and wake diagnosis: overnight drain, wake reasons, and what is holding the Mac awake",
+        "Per-app power use in real watts, live and historical",
+        "Charging sessions with a verdict on each charger",
+        "Per-cell voltage, capacity and resistance from the pack",
+        "Long-term health history for Macs, iPhones and iPads",
+        "Bluetooth accessory battery levels with time-to-empty estimates",
+        "PDF report and CSV or JSON export"
+      ],
       "author": { "@type": "Person", "name": "Darryl Morley" },
       "offers": [
         { "@type": "Offer", "name": "WhatBattery", "price": "0", "priceCurrency": "GBP" },
@@ -72,8 +97,8 @@
   <div class="wrap hero-grid">
     <div>
       <span class="eyebrow"><span class="dot-accent" aria-hidden="true"></span>macOS battery intelligence</span>
-      <h1>Know your battery's real health and <span class="accent">where it's heading.</span></h1>
-      <p class="lede">See unrounded health, live power use, charger performance, and when your battery is likely to need replacing. For your Mac, iPhone, iPad, and Bluetooth accessories.</p>
+      <h1>What's your battery's real health, <span class="accent">and where is it heading?</span></h1>
+      <p class="lede">Unrounded health, live power, charger performance, and a replacement forecast, for your Mac, iPhone, iPad, and Bluetooth accessories.</p>
       <div class="actions">
         <a class="button primary" href="https://github.com/darrylmorley/whatbattery/releases/latest/download/WhatBattery.zip">Download WhatBattery free <span aria-hidden="true">↓</span></a>
         <a class="button secondary" href="/pro/">Explore WhatBattery Pro <span aria-hidden="true">→</span></a>
@@ -100,7 +125,7 @@
     <div class="section-head center">
       <span class="section-tag">Answers, not a wall of numbers</span>
       <h2>Understand the battery you have today. Plan for the one you'll need tomorrow.</h2>
-      <p>WhatBattery turns the data macOS already holds into three useful answers: how healthy the battery really is, where the power is going, and how quickly the battery is wearing.</p>
+      <p>WhatBattery turns the data macOS already holds into answers you can act on: how worn the battery really is, where the power is going, why it drained overnight, and when it's likely to need replacing. Every one of those is something WhatBattery can actually back up, and it says so plainly on the days it can't.</p>
     </div>
 
     <div class="story-stack">
@@ -133,8 +158,21 @@
       <article class="story">
         <div class="story-copy">
           <span class="number">3</span>
+          <h3>Why did it lose charge overnight?</h3>
+          <p>Pro's Sleep tab shows what happened during the last sleep: charge lost, how long, and how many times the Mac woke. Wake reasons are grouped and counted in plain English, with the raw macOS string underneath, and a live list shows what's holding the Mac awake right now.</p>
+          <p class="result">A confident zero would be the easy answer. WhatBattery says when it genuinely doesn't know instead.</p>
+          <a class="text-link" href="/features/sleep/">See what happened while it slept →</a>
+        </div>
+        <figure class="story-media">
+          <img src="/img/screenshot-sleep.png?v=0b3b6db12b0f" alt="WhatBattery Sleep tab showing the last sleep held steady over 23 minutes with two wakes, recent sleeps with drain and wake counts, and wake reasons counted across recent sleeps" width="420" loading="lazy" />
+        </figure>
+      </article>
+
+      <article class="story">
+        <div class="story-copy">
+          <span class="number">4</span>
           <h3>When might it need replacing?</h3>
-          <p>Pro builds a long-term health record, measures the wear rate, and projects the window in which your Mac is likely to reach 80% health. If the battery starts ageing faster than its own trend, WhatBattery flags the change.</p>
+          <p>Pro builds a long-term health record and projects the window in which your Mac is likely to reach 80% health, then flags it if wear starts accelerating past its own trend. That record doesn't start empty: the pack's lifetime extremes and the gauge's last recalibration count have been sitting on the chip since before you installed anything, and WhatBattery reads them straight out.</p>
           <p class="result">Not just “91% today”, but a replacement window you can budget around, and silence when the history is too thin to support one.</p>
           <a class="text-link" href="/features/history/">See battery history and runway →</a>
         </div>
@@ -151,7 +189,7 @@
     <div class="section-head">
       <span class="section-tag">More than the Mac</span>
       <h2>Every rechargeable thing on your desk, in one place.</h2>
-      <p>Start with the Mac. Add the iPhone or iPad you connect to it, then keep an eye on the accessories around it.</p>
+      <p>Start with the Mac. Add the iPhone or iPad you connect to it. Keep an eye on the accessories around it too.</p>
     </div>
     <div class="card-grid">
       <article class="card">
@@ -198,7 +236,7 @@
     <div class="section-head center">
       <span class="section-tag">Free or Pro</span>
       <h2>Start with today's numbers. Add the long view when you need it.</h2>
-      <p>The free app is a useful battery monitor on its own. Pro adds history, forecasts, multi-device analysis, and evidence you can export.</p>
+      <p>The free app is a useful battery monitor on its own: unrounded health, live watts, and Bluetooth accessory levels. Pro adds history, forecasts, connected-device tracking, and evidence you can export.</p>
     </div>
     <div class="comparison" role="table" aria-label="WhatBattery Free and Pro comparison">
       <div class="comparison-row" role="row"><span role="columnheader">Capability</span><span role="columnheader">Free</span><span role="columnheader">Pro · £9.99</span></div>
@@ -207,7 +245,7 @@
       <div class="comparison-row" role="row"><span role="cell">Battery history and replacement forecast</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
       <div class="comparison-row" role="row"><span role="cell">Accessory history, runtime forecast, and low-battery alerts</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
       <div class="comparison-row" role="row"><span role="cell">iPhone and iPad battery health</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
-      <div class="comparison-row" role="row"><span role="cell">Apps by watts, charging sessions, habits, and alerts</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
+      <div class="comparison-row" role="row"><span role="cell">Apps by watts, charging sessions, sleep diagnosis, habits, and alerts</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
       <div class="comparison-row" role="row"><span role="cell">Raw mAh capacities, per-cell detail, and pack lifetime extremes</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
       <div class="comparison-row" role="row"><span role="cell">PDF report, print, CSV, and JSON export</span><span class="dash" role="cell">Not included</span><span class="yes" role="cell">Included</span></div>
     </div>

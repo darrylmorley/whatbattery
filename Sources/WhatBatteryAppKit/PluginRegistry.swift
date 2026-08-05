@@ -99,6 +99,15 @@ public final class PluginRegistry {
         iDeviceSectionBuilder = iDeviceSection
     }
 
+    // The Sleep view (sleep/wake sessions, overnight drain, wake reasons, and
+    // what's holding the Mac awake right now) injected into the main window's
+    // Sleep tab, gated by licence. Nil in the free build (the public mirror's
+    // no-op bootstrap never registers it), so the window shows a Pro upsell.
+    public private(set) var sleepSectionBuilder: (@MainActor () -> AnyView)?
+    public func register(sleepSection: @escaping @MainActor () -> AnyView) {
+        sleepSectionBuilder = sleepSection
+    }
+
     // The long-term Battery Health History view injected into the main window's
     // History tab, gated by licence. Nil in the free build (the public mirror's
     // no-op bootstrap never registers it), so the window shows a Pro upsell.

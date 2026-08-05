@@ -1,5 +1,6 @@
 {
   "name": "WhatBattery",
+  "version": "1.5.0",
   "tagline": "Know your Mac, iPhone, and iPad's real battery health, live power use, and where each battery is heading. Read-only and open source.",
   "domain": "whatbattery.app",
   "url": "https://www.whatbattery.app",

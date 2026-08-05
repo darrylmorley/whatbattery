@@ -3,12 +3,13 @@ import WhatBatteryCore
 import WhatBatteryAppKit
 import WhatBatteryDarwinBackend
 
-/// The main window opened from the menu bar dropdown. Six tabs: "This Mac" (a
+/// The main window opened from the menu bar dropdown. Seven tabs: "This Mac" (a
 /// free live Overview plus the Pro history section), "Apps" (the Pro per-app
 /// power monitor, live and historical), "Charging" (the Pro charging sessions
-/// and charger verdict), "iPhone / iPad" (the Pro iDevice battery view),
-/// "Accessories" (free live levels plus Pro history), and "History" (long-term
-/// per-device health, Pro).
+/// and charger verdict), "Sleep" (the Pro sleep/wake analysis: overnight drain,
+/// wake reasons, what's holding the Mac awake now), "iPhone / iPad" (the Pro
+/// iDevice battery view), "Accessories" (free live levels plus Pro history),
+/// and "History" (long-term per-device health, Pro).
 ///
 /// Deliberately does **not** observe `monitor`. The monitor republishes every 5
 /// seconds, and this body builds the Pro sections by calling the registry's
@@ -35,7 +36,7 @@ struct MainWindowView: View {
         _hasBattery = State(initialValue: monitor.hasBattery)
     }
 
-    private enum Tab: Hashable { case mac, apps, charging, iDevice, accessories, history }
+    private enum Tab: Hashable { case mac, apps, charging, sleep, iDevice, accessories, history }
 
     private var tempUnit: BatteryFormatter.TemperatureUnit {
         temperatureUnit == "F" ? .fahrenheit : .celsius
@@ -52,6 +53,9 @@ struct MainWindowView: View {
             chargingTab
                 .tabItem { Label("Charging", systemImage: "bolt.fill") }
                 .tag(Tab.charging)
+            sleepTab
+                .tabItem { Label("Sleep", systemImage: "moon.zzz.fill") }
+                .tag(Tab.sleep)
             iDeviceTab
                 .tabItem { Label("iPhone / iPad", systemImage: "iphone") }
                 .tag(Tab.iDevice)
@@ -64,8 +68,9 @@ struct MainWindowView: View {
                 .tabItem { Label("Health", systemImage: "heart.text.square") }
                 .tag(Tab.history)
         }
-        // 760 fits six tab labels; 680 was sized for five, 600 for four.
-        .frame(minWidth: 760, minHeight: 440)
+        // 840 fits seven tab labels; 760 was sized for six, 680 for five, 600
+        // for four.
+        .frame(minWidth: 840, minHeight: 440)
         .environment(\.fontScale, FontScale.clamp(fontScale))
         .navigationTitle("WhatBattery")
         // Fallback start for the Bluetooth watcher (and its one-time
@@ -206,6 +211,38 @@ struct MainWindowView: View {
                 title: "Charging sessions",
                 systemImage: "lock.fill",
                 message: "See each charge as a session: peak and sustained wattage, a verdict on whether your charger keeps up with your Mac, and a comparison across the chargers you use. A WhatBattery Pro feature."
+            )
+        }
+    }
+
+    // MARK: - Sleep
+
+    private var sleepTab: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Theme.sectionSpacing) {
+                sleepSection
+            }
+            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    @ViewBuilder
+    private var sleepSection: some View {
+        // Sleep/wake analysis is Pro and lives in the plugins module, so the
+        // builder is nil in the free public build. Deliberately no hasBattery
+        // gate here (unlike Charging): a desktop Mac still sleeps and wakes, it
+        // just has no drain figure to report, which the Sleep view already
+        // handles by omitting the figure rather than showing a fake one.
+        if proStatus.isUnlocked, let build = PluginRegistry.shared.sleepSectionBuilder {
+            build()
+                // Pauses the pmset reload loops while another tab is frontmost.
+                .environment(\.sleepTabActive, selectedTab == .sleep)
+        } else {
+            UpsellCard(
+                title: "Sleep & overnight drain",
+                systemImage: "lock.fill",
+                message: "See how much charge you lost overnight, how long your Mac slept, how often it woke and why, and what's holding it awake right now. A WhatBattery Pro feature."
             )
         }
     }

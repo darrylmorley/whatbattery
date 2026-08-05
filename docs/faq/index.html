@@ -103,6 +103,11 @@
         <p>When you charge your Mac, <a href="/pro/">Pro</a> records how fast the session ran, how hot the battery became, and what the charger advertised. On supported 14-inch and 16-inch MacBook Pro models, it compares that advertised wattage with the Mac's fast-charge rating and flags a charger that is clearly underpowered, such as a 20W phone brick. The judgement uses the charger's own claim, never one slow moment during Optimized Charging or an overnight trickle. WhatBattery also notes power drops consistent with possible thermal throttling.</p>
       </div>
 
+      <div class="faq-item" id="sleep">
+        <h3>Why does the Sleep tab say a power source or wake reason is “unclear”?</h3>
+        <p>Because it would rather say that than guess. If a sleep's readings contradict each other, for instance a Mac that reads battery at both sleep and wake but somehow gained charge, that can't actually be right, a battery doesn't charge itself, so <a href="/features/sleep/">Pro's Sleep tab</a> shows the power source as unclear instead of naming one anyway. Wake reasons work the same way: they're macOS's own internal strings, and only the handful with a documented, unambiguous meaning get a plain-English label, with the raw string always shown underneath. If a read of what's holding the Mac awake fails, it says the read failed rather than showing an empty list.</p>
+      </div>
+
       <div class="faq-item" id="accessories">
         <h3>What about my keyboard, mouse, and AirPods?</h3>
         <p>WhatBattery shows the live battery level of connected Bluetooth accessories, a keyboard, mouse, trackpad, or AirPods, in the dropdown and the Accessories tab. AirPods are broken out per bud and case. Since 1.2 it also reads devices that only publish battery over Bluetooth Low Energy, like Logitech's MX mice, matching what System Settings sees. A few devices publish nothing at all, and those show <em>"Battery unavailable"</em> rather than a guess. Showing the levels is free. <a href="/pro/">Pro</a> adds a per-device history, a runtime forecast from the real discharge trend ("about 3 days left" for a mouse, listening time for AirPods), a low-battery alert that says how long is left, and the option to show an accessory's level in the menu bar. See <a href="/features/accessories/">accessory forecasts</a> for the full story.</p>
@@ -151,6 +156,11 @@
       "@type": "Question",
       "name": "How does the charger verdict work?",
       "acceptedAnswer": { "@type": "Answer", "text": "When you charge your Mac, Pro records how fast the session ran, how hot the battery became, and what the charger advertised. On supported 14-inch and 16-inch MacBook Pro models, it compares that advertised wattage with the Mac's fast-charge rating and flags a charger that is clearly underpowered. The judgement uses the charger's own claim, never one slow moment during Optimized Charging or an overnight trickle. WhatBattery also notes power drops consistent with possible thermal throttling." }
+    },
+    {
+      "@type": "Question",
+      "name": "Why does the Sleep tab say a power source or wake reason is \"unclear\"?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Because it would rather say that than guess. If a sleep's readings contradict each other, for instance a Mac that reads battery at both sleep and wake but somehow gained charge, that can't actually be right, so Pro's Sleep tab shows the power source as unclear instead of naming one anyway. Wake reasons work the same way: they are macOS's own internal strings, and only the handful with a documented, unambiguous meaning get a plain-English label, with the raw string always shown underneath. If a read of what is holding the Mac awake fails, it says the read failed rather than showing an empty list." }
     },
     {
       "@type": "Question",
