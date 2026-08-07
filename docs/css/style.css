@@ -134,6 +134,17 @@ section { padding: 88px 0; }
 .family-proof { display: grid; grid-template-columns: .8fr 1.2fr; gap: 55px; align-items: center; }
 .family-proof blockquote { font-size: clamp(24px,3vw,34px); line-height: 1.25; letter-spacing: -.025em; font-weight: 750; }
 .family-proof cite { display: block; margin-top: 14px; color: var(--muted); font-size: 14px; font-style: normal; }
+.family-apps { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 40px; }
+.family-app {
+  display: flex; gap: 16px; align-items: flex-start;
+  padding: 20px 22px; border: 1px solid var(--line);
+  border-radius: 12px; text-decoration: none; color: inherit;
+  transition: border-color .15s ease, transform .15s ease;
+}
+.family-app:hover { border-color: var(--accent); transform: translateY(-2px); }
+.family-app .family-icon { width: 48px; height: 48px; flex-shrink: 0; margin-top: 2px; }
+.family-app h3 { font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.family-app p { color: var(--ink-soft); font-size: 14px; line-height: 1.5; margin-bottom: 6px; }
 .press-logos { display: flex; flex-wrap: wrap; gap: 12px; }
 .press-logos span { padding: 10px 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); color: var(--ink-soft); font-size: 14px; font-weight: 750; }
 
@@ -248,6 +259,7 @@ section { padding: 88px 0; }
   .comparison { overflow-x: auto; }
   .comparison-row { min-width: 610px; }
   .family-proof { grid-template-columns: 1fr; gap: 28px; }
+  .family-apps { grid-template-columns: 1fr; }
   .cta-grid { align-items: flex-start; flex-direction: column; }
   .page-hero { padding: 54px 0 45px; }
   .page-hero h1 { font-size: 38px; }
