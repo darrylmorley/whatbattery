@@ -17,9 +17,12 @@ public enum WidgetSharedStore {
             .appendingPathComponent("batterySnapshot.json")
     }
 
-    private static var encoder: JSONEncoder {
+    private static func encoder(includeProDetail: Bool) -> JSONEncoder {
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
+        if !includeProDetail {
+            encoder.userInfo[.omitProDetail] = true
+        }
         return encoder
     }
 
@@ -31,8 +34,19 @@ public enum WidgetSharedStore {
 
     /// Writes the snapshot. Returns false (no-op) when the container is
     /// unavailable, so dev builds degrade quietly instead of crashing.
+    ///
+    /// `includeProDetail` carries the licence state. The widget extension cannot
+    /// check a licence itself, so the Pro figures are withheld here, at the only
+    /// point that knows: an unlicensed write leaves them out of the file
+    /// entirely, and the widget's own `> 0` guard drops the capacity line.
+    /// Without this the widget would print figures the window beside it hides.
+    ///
+    /// Deliberately not defaulted. This is the parameter that decides whether
+    /// paid data lands in a file a free build can read, and a default would make
+    /// forgetting it fail open and silently. Every caller states its intent.
     @discardableResult
-    public static func write(_ snapshot: BatterySnapshot) -> Bool {
+    public static func write(_ snapshot: BatterySnapshot, includeProDetail: Bool) -> Bool {
+        let encoder = encoder(includeProDetail: includeProDetail)
         guard let url = sharedFileURL, let data = try? encoder.encode(snapshot) else { return false }
         do {
             try data.write(to: url, options: .atomic)

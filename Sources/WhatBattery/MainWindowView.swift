@@ -525,6 +525,14 @@ private struct OverviewCard: View {
                 tile("Charger", adapter)
             }
             tile("Voltage", BatteryFormatter.voltage(snapshot.voltageMillivolts))
+            // "Battery current", not "Current": the power reading above comes
+            // from the SMC's live rail and this comes from the gauge, so the two
+            // will not always multiply out and the label has to say which is
+            // which before anyone reaches for a calculator.
+            MetricTile("Battery current") {
+                Text(BatteryFormatter.current(snapshot)).scaledFont(.callout, monospacedDigit: true)
+            }
+            .help("The battery gauge's own current reading. Power above is measured on the system's live power rail, so the two can disagree while the load is moving.")
             // Identity extras are a Pro touch, like the capacity line.
             if isPro {
                 // A serial is a long unbroken string; at tile width it wrapped
@@ -538,6 +546,11 @@ private struct OverviewCard: View {
                             .minimumScaleFactor(0.8)
                             .textSelection(.enabled)
                     }
+                }
+                // Month, not a date: see BatteryManufactureMonth for why the day
+                // is read but never shown.
+                if let month = snapshot.manufactureMonth {
+                    tile("Manufactured", month.label)
                 }
                 if let identity { tile("Low Power Mode", identity.lowPowerMode ? "Enabled" : "Disabled") }
             }

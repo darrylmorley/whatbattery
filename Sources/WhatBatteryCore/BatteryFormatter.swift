@@ -23,9 +23,15 @@ public enum BatteryFormatter {
         "\(grouped(mAh)) mAh"
     }
 
-    public static func health(_ snapshot: BatterySnapshot) -> String {
+    /// Health as a percentage, with the raw capacities in brackets.
+    ///
+    /// `includeCapacities: false` drops the bracketed mAh, which is what an
+    /// unlicensed reader gets: the app has always hidden those figures behind a
+    /// licence, and this is the only reason the CLI could ever print them when
+    /// the window would not.
+    public static func health(_ snapshot: BatterySnapshot, includeCapacities: Bool = true) -> String {
         let pct = healthPercent(snapshot.healthPercent)
-        guard snapshot.fullChargeCapacitymAh > 0, snapshot.designCapacitymAh > 0 else { return pct }
+        guard includeCapacities, snapshot.fullChargeCapacitymAh > 0, snapshot.designCapacitymAh > 0 else { return pct }
         return "\(pct) (\(grouped(snapshot.fullChargeCapacitymAh)) / \(grouped(snapshot.designCapacitymAh)) mAh)"
     }
 
@@ -76,6 +82,38 @@ public enum BatteryFormatter {
         String(format: "%.2f V", Double(millivolts) / 1000)
     }
 
+    /// The current the gauge reports, signed the same way as power: positive into
+    /// the battery, negative out of it.
+    ///
+    /// The gauge keeps two figures, an averaged one and an unaveraged one. The
+    /// averaged figure is the reading; the unaveraged one is only worth showing
+    /// when the load has moved enough that the two would visibly disagree, which
+    /// is exactly the moment someone comparing us against another tool sees two
+    /// different numbers and wonders which is wrong.
+    ///
+    /// This will not always multiply out against the power reading beside it, and
+    /// that is why every surface labels it as the battery's own current: on Apple
+    /// Silicon the discharge watts come from the SMC's live rail while this comes
+    /// from the gauge, so a load that has just moved shows up in one before the
+    /// other.
+    public static func current(_ snapshot: BatterySnapshot) -> String {
+        var text = amps(snapshot.amperageMilliamps)
+        let instant = snapshot.instantAmperageMilliamps
+        if instant != 0, abs(instant - snapshot.amperageMilliamps) >= instantAmperageGapMA {
+            text += ", \(amps(instant)) now"
+        }
+        return text
+    }
+
+    /// Below this the averaged and unaveraged currents are the same reading with
+    /// rounding noise between them, and showing both would be clutter.
+    private static let instantAmperageGapMA = 100
+
+    private static func amps(_ milliamps: Int) -> String {
+        let sign = milliamps > 0 ? "+" : (milliamps < 0 ? "-" : "")
+        return String(format: "%@%.2f A", sign, abs(Double(milliamps)) / 1000)
+    }
+
     public static func temperature(_ celsius: Double, unit: TemperatureUnit = .celsius) -> String {
         switch unit {
         case .celsius:
@@ -104,6 +142,10 @@ public enum BatteryFormatter {
             if includeTimeEstimate, let eta = duration(minutes: snapshot.timeToFullMinutes) { line += ", \(eta) to full" }
         case .discharging:
             line += ", on battery"
+            // The battery's own critical flag, not our low-charge threshold: the
+            // gauge decides this from voltage under load, so it can fire at a
+            // percentage that still looks comfortable.
+            if snapshot.atCriticalLevel { line += ", critically low" }
             if includeTimeEstimate, let eta = duration(minutes: snapshot.timeToEmptyMinutes) { line += ", \(eta) remaining" }
         case .full:
             line += ", fully charged"

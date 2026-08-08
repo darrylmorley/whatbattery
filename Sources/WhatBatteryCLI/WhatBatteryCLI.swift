@@ -53,19 +53,21 @@ struct WhatBatteryCLI {
             return
         }
 
+        let isPro = PluginRegistry.shared.proStatus.isUnlocked
+
         if args.contains("--json") {
             guard let snapshot = provider.currentSnapshot() else { exitNoBattery(provider) }
-            print(encodeJSON(snapshot))
+            print(encodeJSON(snapshot, omitProDetail: !isPro))
             return
         }
 
         if args.contains("--watch") {
-            await runWatch(provider)
+            await runWatch(provider, isPro: isPro)
             return
         }
 
         guard let snapshot = provider.currentSnapshot() else { exitNoBattery(provider) }
-        print(renderSummary(snapshot))
+        print(renderSummary(snapshot, includeCapacities: isPro))
         for footer in PluginRegistry.shared.cliOutputFooterContributors {
             if let line = footer() {
                 print("\n" + line)
@@ -96,11 +98,11 @@ private func rejectUnknownFlags(_ args: [String]) {
 }
 
 @MainActor
-private func runWatch(_ provider: DarwinSnapshotProvider) async {
+private func runWatch(_ provider: DarwinSnapshotProvider, isPro: Bool) async {
     while true {
         guard let snapshot = provider.currentSnapshot() else { exitNoBattery(provider) }
         print("\u{001B}[2J\u{001B}[H", terminator: "")
-        print(renderSummary(snapshot))
+        print(renderSummary(snapshot, includeCapacities: isPro))
         print("\nRefreshing every 2s. Ctrl-C to stop.")
         try? await Task.sleep(nanoseconds: 2_000_000_000)
     }
@@ -125,6 +127,8 @@ private func runIDevice(json: Bool) {
             }
             exit(2)
         }
+        // The dispatch site already refused this mode unless Pro is unlocked, so
+        // the capacities are not gated again here.
         if json {
             print(encodeJSON(result.readings.map { $0.snapshot }))
             return
@@ -133,7 +137,7 @@ private func runIDevice(json: Bool) {
             if index > 0 { print("") }
             let d = reading.device
             print(deviceLabel(d, connection: d.connectionType))
-            print(renderSummary(reading.snapshot))
+            print(renderSummary(reading.snapshot, includeCapacities: true))
         }
     } catch {
         errln("whatbattery: \(error)")
@@ -192,26 +196,41 @@ private func exitNoBattery(_ provider: DarwinSnapshotProvider) -> Never {
 
 // MARK: - Rendering
 
-private func renderSummary(_ snapshot: BatterySnapshot) -> String {
+/// The plain-text summary. `includeCapacities` carries the licence state: the
+/// raw mAh figures are a Pro line in the app, so they are a Pro line here too.
+private func renderSummary(_ snapshot: BatterySnapshot, includeCapacities: Bool) -> String {
     var lines: [String] = ["WhatBattery \(cliVersion)\n"]
     lines.append(pad("Model") + snapshot.deviceModel)
-    lines.append(pad("Health") + BatteryFormatter.health(snapshot))
+    lines.append(pad("Health") + BatteryFormatter.health(snapshot, includeCapacities: includeCapacities))
     lines.append(pad("Charge") + BatteryFormatter.chargeLine(snapshot))
     lines.append(pad("Cycles") + "\(snapshot.cycleCount)" + (snapshot.designCycleCount > 0 ? " (design \(snapshot.designCycleCount))" : ""))
     lines.append(pad("Temperature") + BatteryFormatter.temperature(snapshot.temperatureCelsius))
     lines.append(pad("Power") + BatteryFormatter.powerLine(snapshot))
     lines.append(pad("Voltage") + BatteryFormatter.voltage(snapshot.voltageMillivolts))
+    lines.append(pad("Current") + BatteryFormatter.current(snapshot) + " (gauge)")
     return lines.joined(separator: "\n")
 }
 
+/// `padding(toLength:)` truncates as readily as it pads, so a label at or over
+/// the column width would run straight into its value. No label here is that
+/// long today; this is so the next one added cannot quietly reintroduce the bug
+/// `BatteryReport.pad` was just fixed for.
 private func pad(_ label: String) -> String {
-    label.padding(toLength: 14, withPad: " ", startingAt: 0)
+    let column = 14
+    guard label.count < column else { return label + " " }
+    return label.padding(toLength: column, withPad: " ", startingAt: 0)
 }
 
-private func encodeJSON<T: Encodable>(_ value: T) -> String {
+/// `omitProDetail` is the JSON half of the same licence gate the summary
+/// applies: without it `--json` hands out figures the app hides, which is the
+/// widest of the two leaks, not the narrowest.
+private func encodeJSON<T: Encodable>(_ value: T, omitProDetail: Bool = false) -> String {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
     encoder.dateEncodingStrategy = .iso8601
+    if omitProDetail {
+        encoder.userInfo[.omitProDetail] = true
+    }
     guard let data = try? encoder.encode(value), let json = String(data: data, encoding: .utf8) else {
         return "{}"
     }

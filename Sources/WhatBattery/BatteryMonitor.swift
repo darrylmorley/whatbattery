@@ -129,6 +129,13 @@ final class BatteryMonitor: ObservableObject {
         // every-tick path; the snapshot itself is persisted every tick either
         // way, so the widget's 5-minute backstop still reads exact values.
         let health = Int((snapshot.healthPercent ?? 0).rounded())
+        // The capacity line the widget draws is Pro, like the one in the window,
+        // and the extension cannot check a licence itself. The flag is part of
+        // the signature as well as the write: activating or deactivating a
+        // licence changes what the widget should show without moving a single
+        // reading, and without this the widget would keep the old face until an
+        // unrelated value happened to change.
+        let isPro = PluginRegistry.shared.proStatus.isUnlocked
         let signature = [
             "\(snapshot.currentChargePercent)",
             snapshot.chargingState.rawValue,
@@ -140,10 +147,18 @@ final class BatteryMonitor: ObservableObject {
             snapshot.adapter?.label ?? "-",
             "\(snapshot.timeToFullMinutes ?? -1)",
             "\(snapshot.timeToEmptyMinutes ?? -1)",
+            "\(isPro)",
         ].joined(separator: "|")
+        // Record the signature only once the file is actually on disk. Recording
+        // it first means a transient write failure is remembered as a success:
+        // the next tick sees no change, pushes no reload, and the widget keeps
+        // showing the previous face until its own timer comes round. That is
+        // merely stale for a reading, but for a licence that has just lapsed it
+        // is paid data still on screen.
         let changed = signature != lastWidgetSignature
-        lastWidgetSignature = signature
-        WidgetDataWriter.update(snapshot, reload: changed)
+        if WidgetDataWriter.update(snapshot, reload: changed, includeProDetail: isPro) {
+            lastWidgetSignature = signature
+        }
     }
 
     private func startWatching() {

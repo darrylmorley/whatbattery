@@ -27,10 +27,15 @@ public struct BatterySnapshot: Codable, Equatable, Sendable {
     public let chargingState: ChargingState
     public let timeToFullMinutes: Int?
     public let timeToEmptyMinutes: Int?
+    /// The gauge's own critical-charge flag, not a threshold we picked.
+    public let atCriticalLevel: Bool
 
     // Live electrical
     public let voltageMillivolts: Int
-    public let amperageMilliamps: Int      // signed
+    public let amperageMilliamps: Int      // signed, the gauge's averaged figure
+    /// The gauge's unaveraged current, signed. Moves with the load; the averaged
+    /// figure above is what a reading should normally quote.
+    public let instantAmperageMilliamps: Int
     public let powerWatts: Double          // + charging, - discharging, 0 idle/full
     public let temperatureCelsius: Double
 
@@ -40,7 +45,9 @@ public struct BatterySnapshot: Codable, Equatable, Sendable {
     // Identity
     public let deviceModel: String
     public let batterySerial: String?
-    public let manufactureDate: Date?
+    /// When the pack was made, to the month, or nil when the gauge's encoding is
+    /// one we cannot read. See `BatteryManufactureMonth`.
+    public let manufactureMonth: BatteryManufactureMonth?
 
     public init(
         timestamp: Date,
@@ -54,14 +61,16 @@ public struct BatterySnapshot: Codable, Equatable, Sendable {
         chargingState: ChargingState,
         timeToFullMinutes: Int?,
         timeToEmptyMinutes: Int?,
+        atCriticalLevel: Bool = false,
         voltageMillivolts: Int,
         amperageMilliamps: Int,
+        instantAmperageMilliamps: Int = 0,
         powerWatts: Double,
         temperatureCelsius: Double,
         adapter: AdapterInfo?,
         deviceModel: String,
         batterySerial: String?,
-        manufactureDate: Date?
+        manufactureMonth: BatteryManufactureMonth? = nil
     ) {
         self.timestamp = timestamp
         self.designCapacitymAh = designCapacitymAh
@@ -74,14 +83,107 @@ public struct BatterySnapshot: Codable, Equatable, Sendable {
         self.chargingState = chargingState
         self.timeToFullMinutes = timeToFullMinutes
         self.timeToEmptyMinutes = timeToEmptyMinutes
+        self.atCriticalLevel = atCriticalLevel
         self.voltageMillivolts = voltageMillivolts
         self.amperageMilliamps = amperageMilliamps
+        self.instantAmperageMilliamps = instantAmperageMilliamps
         self.powerWatts = powerWatts
         self.temperatureCelsius = temperatureCelsius
         self.adapter = adapter
         self.deviceModel = deviceModel
         self.batterySerial = batterySerial
-        self.manufactureDate = manufactureDate
+        self.manufactureMonth = manufactureMonth
+    }
+}
+
+// MARK: - Coding
+
+public extension CodingUserInfoKey {
+    /// Set on a `JSONEncoder` to leave the Pro-only figures out of the encoded
+    /// snapshot: the raw mAh capacities and the pack's manufacture month. The
+    /// window hides both behind a licence, so every other surface fed by an
+    /// encoder has to be able to do the same.
+    static let omitProDetail = CodingUserInfoKey(rawValue: "app.whatbattery.omitProDetail")!
+}
+
+public extension BatterySnapshot {
+    private enum CodingKeys: String, CodingKey {
+        case timestamp
+        case designCapacitymAh, fullChargeCapacitymAh, healthPercent, cycleCount, designCycleCount
+        case currentChargePercent, currentChargemAh, chargingState
+        case timeToFullMinutes, timeToEmptyMinutes, atCriticalLevel
+        case voltageMillivolts, amperageMilliamps, instantAmperageMilliamps
+        case powerWatts, temperatureCelsius
+        case adapter, deviceModel, batterySerial, manufactureMonth
+    }
+
+    /// Hand-written so the Pro figures can be dropped for an unlicensed reader.
+    ///
+    /// `currentChargemAh` goes with the capacities: on its own it looks
+    /// harmless, but divided by the charge percent it hands back the full-charge
+    /// capacity the other two were withheld to protect. `manufactureMonth` is
+    /// here because the window treats it as Pro, and `--json` handing it out
+    /// free would put the two surfaces straight back into the disagreement this
+    /// work exists to end.
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        let includeProDetail = encoder.userInfo[.omitProDetail] as? Bool != true
+        try container.encode(timestamp, forKey: .timestamp)
+        if includeProDetail {
+            try container.encode(designCapacitymAh, forKey: .designCapacitymAh)
+            try container.encode(fullChargeCapacitymAh, forKey: .fullChargeCapacitymAh)
+            try container.encode(currentChargemAh, forKey: .currentChargemAh)
+        }
+        try container.encode(healthPercent, forKey: .healthPercent)
+        try container.encode(cycleCount, forKey: .cycleCount)
+        try container.encode(designCycleCount, forKey: .designCycleCount)
+        try container.encode(currentChargePercent, forKey: .currentChargePercent)
+        try container.encode(chargingState, forKey: .chargingState)
+        try container.encode(timeToFullMinutes, forKey: .timeToFullMinutes)
+        try container.encode(timeToEmptyMinutes, forKey: .timeToEmptyMinutes)
+        try container.encode(atCriticalLevel, forKey: .atCriticalLevel)
+        try container.encode(voltageMillivolts, forKey: .voltageMillivolts)
+        try container.encode(amperageMilliamps, forKey: .amperageMilliamps)
+        try container.encode(instantAmperageMilliamps, forKey: .instantAmperageMilliamps)
+        try container.encode(powerWatts, forKey: .powerWatts)
+        try container.encode(temperatureCelsius, forKey: .temperatureCelsius)
+        try container.encode(adapter, forKey: .adapter)
+        try container.encode(deviceModel, forKey: .deviceModel)
+        try container.encode(batterySerial, forKey: .batterySerial)
+        if includeProDetail {
+            try container.encode(manufactureMonth, forKey: .manufactureMonth)
+        }
+    }
+
+    /// Every field the encoder can legitimately omit decodes as absent rather
+    /// than as a failure: the capacities because a redacted payload must still
+    /// round-trip, the newer fields because the widget can be reading a file the
+    /// previous app version wrote.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(
+            timestamp: try container.decode(Date.self, forKey: .timestamp),
+            designCapacitymAh: try container.decodeIfPresent(Int.self, forKey: .designCapacitymAh) ?? 0,
+            fullChargeCapacitymAh: try container.decodeIfPresent(Int.self, forKey: .fullChargeCapacitymAh) ?? 0,
+            healthPercent: try container.decodeIfPresent(Double.self, forKey: .healthPercent),
+            cycleCount: try container.decode(Int.self, forKey: .cycleCount),
+            designCycleCount: try container.decode(Int.self, forKey: .designCycleCount),
+            currentChargePercent: try container.decode(Int.self, forKey: .currentChargePercent),
+            currentChargemAh: try container.decodeIfPresent(Int.self, forKey: .currentChargemAh) ?? 0,
+            chargingState: try container.decode(ChargingState.self, forKey: .chargingState),
+            timeToFullMinutes: try container.decodeIfPresent(Int.self, forKey: .timeToFullMinutes),
+            timeToEmptyMinutes: try container.decodeIfPresent(Int.self, forKey: .timeToEmptyMinutes),
+            atCriticalLevel: try container.decodeIfPresent(Bool.self, forKey: .atCriticalLevel) ?? false,
+            voltageMillivolts: try container.decode(Int.self, forKey: .voltageMillivolts),
+            amperageMilliamps: try container.decode(Int.self, forKey: .amperageMilliamps),
+            instantAmperageMilliamps: try container.decodeIfPresent(Int.self, forKey: .instantAmperageMilliamps) ?? 0,
+            powerWatts: try container.decode(Double.self, forKey: .powerWatts),
+            temperatureCelsius: try container.decode(Double.self, forKey: .temperatureCelsius),
+            adapter: try container.decodeIfPresent(AdapterInfo.self, forKey: .adapter),
+            deviceModel: try container.decode(String.self, forKey: .deviceModel),
+            batterySerial: try container.decodeIfPresent(String.self, forKey: .batterySerial),
+            manufactureMonth: try container.decodeIfPresent(BatteryManufactureMonth.self, forKey: .manufactureMonth)
+        )
     }
 }
 
@@ -126,14 +228,20 @@ public enum BatterySnapshotBuilder {
             timeToEmptyMinutes: state == .discharging
                 ? (BatteryHealth.minutesOrNil(battery.timeToEmptyMinutes) ?? BatteryHealth.minutesOrNil(battery.timeRemainingMinutes))
                 : nil,
+            atCriticalLevel: battery.atCriticalLevel,
             voltageMillivolts: battery.voltage,
             amperageMilliamps: battery.amperage,
+            instantAmperageMilliamps: battery.instantAmperage,
             powerWatts: powerWatts(for: battery, state: state, smcDischargeWatts: smcDischargeWatts),
             temperatureCelsius: BatteryHealth.celsius(fromCentiCelsius: battery.temperature),
             adapter: battery.adapter,
             deviceModel: deviceModel,
             batterySerial: battery.serial.isEmpty ? nil : battery.serial,
-            manufactureDate: nil   // best-effort; not yet parsed (see SPEC, "Manufacture date")
+            manufactureMonth: BatteryManufactureMonth.decode(
+                raw: battery.packDetail?.manufactureRaw,
+                gaugeName: battery.deviceName,
+                now: now
+            )
         )
     }
 

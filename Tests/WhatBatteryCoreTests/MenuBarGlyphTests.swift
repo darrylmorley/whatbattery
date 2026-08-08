@@ -21,8 +21,7 @@ final class MenuBarGlyphTests: XCTestCase {
             temperatureCelsius: 30,
             adapter: nil,
             deviceModel: "Mac17,2",
-            batterySerial: nil,
-            manufactureDate: nil
+            batterySerial: nil
         )
     }
 

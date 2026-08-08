@@ -27,6 +27,11 @@ public struct BatteryPackDetail: Equatable, Sendable {
 
     public let lifetime: BatteryLifetime?
 
+    /// The gauge's raw `ManufactureDate`, passed through undecoded. It is not a
+    /// date in any standard encoding; `BatteryManufactureMonth.decode` is the
+    /// only thing that should interpret it, and it needs the gauge name too.
+    public let manufactureRaw: Int?
+
     public init(
         cellVoltagesMV: [Int] = [],
         cellQmax: [Int] = [],
@@ -34,7 +39,8 @@ public struct BatteryPackDetail: Equatable, Sendable {
         dailyMinSoc: Int? = nil,
         dailyMaxSoc: Int? = nil,
         cycleCountAtLastQmax: Int? = nil,
-        lifetime: BatteryLifetime? = nil
+        lifetime: BatteryLifetime? = nil,
+        manufactureRaw: Int? = nil
     ) {
         self.cellVoltagesMV = cellVoltagesMV
         self.cellQmax = cellQmax
@@ -43,13 +49,14 @@ public struct BatteryPackDetail: Equatable, Sendable {
         self.dailyMaxSoc = dailyMaxSoc
         self.cycleCountAtLastQmax = cycleCountAtLastQmax
         self.lifetime = lifetime
+        self.manufactureRaw = manufactureRaw
     }
 
     /// Nothing worth showing: every field came back empty.
     public var isEmpty: Bool {
         cellVoltagesMV.isEmpty && cellQmax.isEmpty && cellResistance.isEmpty
             && dailyMinSoc == nil && dailyMaxSoc == nil && cycleCountAtLastQmax == nil
-            && lifetime == nil
+            && lifetime == nil && manufactureRaw == nil
     }
 
     /// Millivolts between the highest and lowest cell. The number that matters:
@@ -78,7 +85,8 @@ public struct BatteryPackDetail: Equatable, Sendable {
             dailyMinSoc: percentValue(data["DailyMinSoc"]),
             dailyMaxSoc: percentValue(data["DailyMaxSoc"]),
             cycleCountAtLastQmax: positiveInt(data["CycleCountLastQmax"]),
-            lifetime: BatteryLifetime.from(lifetimeData: data["LifetimeData"] as? [String: Any])
+            lifetime: BatteryLifetime.from(lifetimeData: data["LifetimeData"] as? [String: Any]),
+            manufactureRaw: positiveInt(data["ManufactureDate"])
         )
         return detail.isEmpty ? nil : detail
     }

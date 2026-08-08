@@ -23,12 +23,12 @@ struct BatteryEntry: TimelineEntry {
             timeToEmptyMinutes: nil,
             voltageMillivolts: 13228,
             amperageMilliamps: 1500,
+            instantAmperageMilliamps: 1500,
             powerWatts: 38.6,
             temperatureCelsius: 30.1,
             adapter: AdapterInfo(watts: 100, description: "pd charger"),
             deviceModel: "Mac17,2",
-            batterySerial: nil,
-            manufactureDate: nil
+            batterySerial: nil
         )
     )
 }

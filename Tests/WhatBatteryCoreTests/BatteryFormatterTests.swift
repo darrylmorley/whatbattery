@@ -37,13 +37,85 @@ final class BatteryFormatterTests: XCTestCase {
             temperatureCelsius: 30,
             adapter: nil,
             deviceModel: "Mac17,2",
-            batterySerial: nil,
-            manufactureDate: nil
+            batterySerial: nil
         )
         let line = BatteryFormatter.health(snapshot)
         XCTAssertTrue(line.hasPrefix("99.5%"), "expected 99.5% prefix, got: \(line)")
         XCTAssertTrue(line.contains("6,220"))
         XCTAssertTrue(line.contains("6,249"))
+    }
+
+    /// The app hides the raw capacities behind a licence, so the CLI has to be
+    /// able to hide them too. The percentage itself is free either way.
+    func testHealthLineWithoutCapacitiesIsPercentageOnly() {
+        let line = BatteryFormatter.health(
+            snapshot(watts: 0, state: .full, adapter: nil),
+            includeCapacities: false
+        )
+        XCTAssertEqual(line, "99.5%")
+    }
+
+    // MARK: - Current
+
+    func testCurrentLineShowsSignedAmps() {
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: -1850)), "-1.85 A")
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: 1500, instant: 1500)), "+1.50 A")
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: 0, instant: 0)), "0.00 A")
+    }
+
+    /// The unaveraged reading earns its place only when the load has actually
+    /// moved; small gaps are rounding noise between two views of one number.
+    func testCurrentLineAddsInstantOnlyWhenItDiffers() {
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: -1900)), "-1.85 A")
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: -3200)), "-1.85 A, -3.20 A now")
+    }
+
+    /// A gauge that reports no instant figure at all must not read as 0 A of
+    /// draw sitting next to a real one.
+    func testCurrentLineIgnoresAbsentInstantReading() {
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: 0)), "-1.85 A")
+    }
+
+    // MARK: - Charge line
+
+    /// The gauge's own critical flag, which can fire at a percentage that still
+    /// looks comfortable, so the line has to say so.
+    func testChargeLineSurfacesCriticalFlag() {
+        let critical = snapshot(amperage: -1850, instant: -1850, state: .discharging, atCriticalLevel: true)
+        XCTAssertEqual(BatteryFormatter.chargeLine(critical), "6%, on battery, critically low")
+
+        let normal = snapshot(amperage: -1850, instant: -1850, state: .discharging, atCriticalLevel: false)
+        XCTAssertEqual(BatteryFormatter.chargeLine(normal), "6%, on battery")
+    }
+
+    private func snapshot(
+        amperage: Int,
+        instant: Int,
+        state: ChargingState = .discharging,
+        atCriticalLevel: Bool = false
+    ) -> BatterySnapshot {
+        BatterySnapshot(
+            timestamp: Date(timeIntervalSince1970: 0),
+            designCapacitymAh: 6249,
+            fullChargeCapacitymAh: 6220,
+            healthPercent: 99.5,
+            cycleCount: 42,
+            designCycleCount: 1000,
+            currentChargePercent: 6,
+            currentChargemAh: 380,
+            chargingState: state,
+            timeToFullMinutes: nil,
+            timeToEmptyMinutes: nil,
+            atCriticalLevel: atCriticalLevel,
+            voltageMillivolts: 13222,
+            amperageMilliamps: amperage,
+            instantAmperageMilliamps: instant,
+            powerWatts: -24.5,
+            temperatureCelsius: 30,
+            adapter: nil,
+            deviceModel: "Mac17,2",
+            batterySerial: nil
+        )
     }
 
     // MARK: - Power line
@@ -67,8 +139,7 @@ final class BatteryFormatterTests: XCTestCase {
             temperatureCelsius: 30,
             adapter: adapter,
             deviceModel: "Mac17,2",
-            batterySerial: nil,
-            manufactureDate: nil
+            batterySerial: nil
         )
     }
 

@@ -28,6 +28,27 @@ final class BatterySnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot.currentChargePercent, 70)
     }
 
+    /// These two were read from IOKit on every refresh and dropped on the floor
+    /// before the snapshot; the builder is where that was fixed.
+    func testCarriesInstantCurrentAndCriticalFlag() {
+        let battery = AppleSmartBattery(
+            batteryInstalled: true,
+            designCapacity: 4382,
+            nominalChargeCapacity: 4021,
+            rawCurrentCapacity: 260,
+            currentCapacity: 6,
+            maxCapacity: 100,
+            voltage: 11200,
+            amperage: -1850,
+            instantAmperage: -3200,
+            externalConnected: false,
+            atCriticalLevel: true
+        )
+        let snapshot = BatterySnapshotBuilder.build(battery: battery, deviceModel: "x", smcDischargeWatts: nil, now: epoch)
+        XCTAssertEqual(snapshot.instantAmperageMilliamps, -3200)
+        XCTAssertTrue(snapshot.atCriticalLevel)
+    }
+
     func testDischargingFallsBackToGaugeWhenNoSMC() {
         let battery = AppleSmartBattery(
             batteryInstalled: true,

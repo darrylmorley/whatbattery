@@ -21,10 +21,11 @@ Everything below is free unless it's marked **(Pro)**. The full Pro list is in [
 
 For your Mac, in the menu bar dropdown and the main window:
 
-- **True battery health:** health to one decimal and the cycle count, computed from the raw mAh figures (`NominalChargeCapacity / DesignCapacity`) rather than the whole number macOS shows, so a worn battery can't hide as "100%". The percentage and the cycle count are free. The underlying mAh capacities are a Pro line in the app (the CLI prints them either way).
+- **True battery health:** health to one decimal and the cycle count, computed from the raw mAh figures (`NominalChargeCapacity / DesignCapacity`) rather than the whole number macOS shows, so a worn battery can't hide as "100%". The percentage and the cycle count are free. The underlying mAh capacities are Pro, in the app and in the CLI alike (including `--json`).
 - **Live power:** watts in and out in real time, taken from the SMC power rail rather than the stale fuel-gauge reading, plus the charger your Mac negotiated, the voltage, and the temperature.
 - **Service condition:** the same Normal / Service Recommended / Service Battery verdict macOS uses, read from the system so it matches System Settings. macOS's own "Maximum Capacity" percentage is shown alongside WhatBattery's unrounded figure whenever the two differ, so you can see why rather than wonder which to believe: ours is the gauge's raw estimate, Apple's is rounded and smoothed.
-- **Device detail:** marketing model name ("MacBook Pro (14-inch, M5)"), model identifier, regulatory model number, chip, serial, and Low Power Mode status, alongside the battery serial and adapter.
+- **Device detail:** marketing model name ("MacBook Pro (14-inch, M5)"), model identifier, regulatory model number, chip, Mac serial, and the adapter.
+- **Pack identity (Pro):** the battery serial, Low Power Mode status, and the month the pack was made. The manufacture month is decoded from the battery's own gauge and shown to the month, never the day: the encoding was worked out across 810 real machines, and the day it also carries is used only to check the reading, not to make a claim we can't stand behind. A gauge whose encoding we haven't proven shows nothing rather than a guess.
 - **What's using power (Pro):** the Apps tab ranks your apps by live watts, from the same kernel energy counters behind Activity Monitor's Energy tab but in real units instead of a unitless score, plus the top power users over the last day, week, or month. Honest framing: the display, radios, and system processes aren't attributable per app, so the figures are never dressed up as a share of the battery.
 
 <img src="src/img/screenshot-mac.png" width="560" alt="WhatBattery This Mac tab: battery health, service condition, live power, and the Lifetime Analyzer charts" />
@@ -108,7 +109,13 @@ Cycles        42 (design 1000)
 Temperature   30.4°C
 Power         0.0 W  (100W pd charger)
 Voltage       13.21 V
+Current       +0.00 A (gauge)
 ```
+
+The bracketed mAh capacities on the Health line are Pro, matching the app; without
+a licence that line is the percentage alone. `Current` is the battery gauge's own
+reading, so it will not always multiply out against `Power`, which is measured on
+the system's live power rail.
 
 Flags:
 

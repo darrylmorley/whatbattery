@@ -11,11 +11,18 @@ import WhatBatteryCore
 /// a reload on), while `reloadAllTimelines()` is pushed only when the caller
 /// says something coarse changed, because WidgetKit budgets reloads.
 enum WidgetDataWriter {
-    /// Persist the snapshot; push a WidgetKit reload only when asked.
-    static func update(_ snapshot: BatterySnapshot, reload: Bool) {
-        guard WidgetSharedStore.write(snapshot) else { return }
+    /// Persist the snapshot; push a WidgetKit reload only when asked. Returns
+    /// whether the file was actually written, so the caller can tell a real
+    /// update from a no-op and avoid recording state for a write that never
+    /// landed.
+    /// `includeProDetail` is the caller's licence state: see
+    /// `WidgetSharedStore.write`.
+    @discardableResult
+    static func update(_ snapshot: BatterySnapshot, reload: Bool, includeProDetail: Bool) -> Bool {
+        guard WidgetSharedStore.write(snapshot, includeProDetail: includeProDetail) else { return false }
         if reload {
             WidgetCenter.shared.reloadAllTimelines()
         }
+        return true
     }
 }
