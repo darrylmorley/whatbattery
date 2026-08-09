@@ -23,7 +23,11 @@ final class SnapshotProviderSmokeTests: XCTestCase {
             XCTAssert((1.0...110.0).contains(health), "implausible health: \(health)")
         }
 
-        // Temperature on a live battery sits well within these bounds.
-        XCTAssert((0.0...80.0).contains(snapshot.temperatureCelsius), "implausible temperature: \(snapshot.temperatureCelsius)")
+        // Temperature on a live battery sits well within these bounds. Absent is
+        // allowed (a machine whose pack reports nothing usable), a wrong number
+        // is not: that distinction is the whole point of the optional.
+        if let temperature = snapshot.temperatureCelsius {
+            XCTAssert((0.0...80.0).contains(temperature), "implausible temperature: \(temperature)")
+        }
     }
 }

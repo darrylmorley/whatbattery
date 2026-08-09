@@ -127,4 +127,40 @@ final class BatterySnapshotCodingTests: XCTestCase {
         XCTAssertNil(decoded.batterySerial)
         XCTAssertEqual(decoded.fullChargeCapacitymAh, 6220)
     }
+    /// An absent temperature is absent from the payload, not zero in it. The
+    /// widget and any `--json` consumer must be able to tell "no reading" from
+    /// "0.0°C", which is the whole point of the optional.
+    func testAbsentTemperatureIsOmittedAndRoundTrips() throws {
+        var snapshot = makeSnapshot()
+        snapshot = BatterySnapshot(
+            timestamp: snapshot.timestamp,
+            designCapacitymAh: snapshot.designCapacitymAh,
+            fullChargeCapacitymAh: snapshot.fullChargeCapacitymAh,
+            healthPercent: snapshot.healthPercent,
+            cycleCount: snapshot.cycleCount,
+            designCycleCount: snapshot.designCycleCount,
+            currentChargePercent: snapshot.currentChargePercent,
+            currentChargemAh: snapshot.currentChargemAh,
+            chargingState: snapshot.chargingState,
+            timeToFullMinutes: snapshot.timeToFullMinutes,
+            timeToEmptyMinutes: snapshot.timeToEmptyMinutes,
+            atCriticalLevel: snapshot.atCriticalLevel,
+            voltageMillivolts: snapshot.voltageMillivolts,
+            amperageMilliamps: snapshot.amperageMilliamps,
+            instantAmperageMilliamps: snapshot.instantAmperageMilliamps,
+            powerWatts: snapshot.powerWatts,
+            temperatureCelsius: nil,
+            adapter: snapshot.adapter,
+            deviceModel: snapshot.deviceModel,
+            batterySerial: snapshot.batterySerial,
+            manufactureMonth: snapshot.manufactureMonth
+        )
+        let data = try JSONEncoder().encode(snapshot)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        XCTAssertNil(object["temperatureCelsius"])
+
+        let decoder = JSONDecoder()
+        XCTAssertNil(try decoder.decode(BatterySnapshot.self, from: data).temperatureCelsius)
+    }
+
 }

@@ -114,6 +114,13 @@ public enum BatteryFormatter {
         return String(format: "%@%.2f A", sign, abs(Double(milliamps)) / 1000)
     }
 
+    /// A pack that reported no usable temperature says so, rather than being
+    /// printed as a believable 0.0°C.
+    public static func temperature(_ celsius: Double?, unit: TemperatureUnit = .celsius) -> String {
+        guard let celsius else { return "Unknown" }
+        return temperature(celsius, unit: unit)
+    }
+
     public static func temperature(_ celsius: Double, unit: TemperatureUnit = .celsius) -> String {
         switch unit {
         case .celsius:

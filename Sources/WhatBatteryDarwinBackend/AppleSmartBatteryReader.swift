@@ -39,6 +39,27 @@ public enum AppleSmartBatteryReader {
             return Result(isDesktopMac: true, battery: nil)
         }
 
+        // Read once, convert once, and keep the "absent" case distinct from a
+        // real zero: the pack-detail cross-check needs to know the difference,
+        // while the model's own field is non-optional and takes 0 for missing as
+        // it always has.
+        //
+        // `Temperature` is tenths of a Kelvin here, not centi-Celsius: macOS
+        // publishes the raw SmartBattery value (DAR-329). Converting at the edge
+        // means `AppleSmartBattery.temperature` means the same thing whichever
+        // reader filled it, which is what the rest of the app assumes.
+        // `VirtualTemperature` is the same measurement compensated by the gauge,
+        // and the driver publishes it in centi-Celsius on every platform, so it
+        // is a usable stand-in when the main reading is missing or nonsense. On
+        // this hardware the two agree to a fraction of a degree. Without it, an
+        // unusable reading became a confident 0°C downstream, which then reached
+        // the display, the history statistics and the report.
+        let virtualCentiC = optionalIntVal(read("VirtualTemperature"))
+            .flatMap { BatteryHealth.isPlausibleCentiCelsius($0) ? $0 : nil }
+        let temperatureCentiC = optionalIntVal(read("Temperature"))
+            .flatMap { BatteryHealth.centiCelsius(fromDeciKelvin: $0) }
+            ?? virtualCentiC
+
         let battery = AppleSmartBattery(
             batteryInstalled: true,
             deviceName: (read("DeviceName") as? String) ?? "",
@@ -54,8 +75,11 @@ public enum AppleSmartBatteryReader {
             voltage: intVal(read("Voltage")),
             amperage: signedIntVal(read("Amperage")),
             instantAmperage: signedIntVal(read("InstantAmperage")),
-            temperature: intVal(read("Temperature")),
-            virtualTemperature: intVal(read("VirtualTemperature")),
+            temperature: temperatureCentiC ?? 0,
+            // The validated value, not a second raw read: the gauge's 65535
+            // sentinel would otherwise clear the `> 0` display gate and show the
+            // pack at 655.4°C.
+            virtualTemperature: virtualCentiC ?? 0,
             isCharging: boolVal(read("IsCharging")),
             fullyCharged: boolVal(read("FullyCharged")),
             externalConnected: boolVal(read("ExternalConnected")),
@@ -64,7 +88,14 @@ public enum AppleSmartBatteryReader {
             timeToEmptyMinutes: intVal(read("AvgTimeToEmpty")),
             chargerData: parseChargerData(read("ChargerData")),
             adapter: parseAdapterDetails(read("AdapterDetails")),
-            packDetail: BatteryPackDetail.from(batteryData: read("BatteryData") as? [String: Any])
+            packDetail: BatteryPackDetail.from(
+                batteryData: read("BatteryData") as? [String: Any],
+                // The node's own thermometer, in a scale we know, so the pack's
+                // undeclared lifetime temperatures can be checked against it.
+                // Absent stays absent: 0 would read as 0°C and veto every real
+                // range, which is the opposite of degrading gracefully.
+                currentTemperatureCentiC: temperatureCentiC
+            )
         )
         return Result(isDesktopMac: false, battery: battery)
     }
@@ -112,6 +143,14 @@ public enum AppleSmartBatteryReader {
 
     /// Unsigned-style read (most keys). Negative values from a signed gauge are
     /// not expected here.
+    /// Nil when the key is absent or not a number, so a caller that cares about
+    /// the difference between "missing" and "zero" can tell them apart.
+    private static func optionalIntVal(_ value: Any?) -> Int? {
+        if let n = value as? NSNumber { return n.intValue }
+        if let i = value as? Int { return i }
+        return nil
+    }
+
     private static func intVal(_ value: Any?) -> Int {
         if let n = value as? NSNumber { return n.intValue }
         if let i = value as? Int { return i }

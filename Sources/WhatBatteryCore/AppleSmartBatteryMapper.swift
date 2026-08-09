@@ -35,8 +35,15 @@ public enum AppleSmartBatteryMapper {
             voltage: intVal(d["Voltage"]) > 0 ? intVal(d["Voltage"]) : intVal(d["AppleRawBatteryVoltage"]),
             amperage: intVal(d["Amperage"]),
             instantAmperage: intVal(d["InstantAmperage"]),
-            temperature: intVal(d["Temperature"]),
-            virtualTemperature: intVal(d["VirtualTemperature"]),
+            // Centi-Celsius already on iOS (the driver converts on every platform
+            // but macOS), so no deci-Kelvin conversion here. It does still need
+            // the plausibility gate the Mac reader gets for free on its way
+            // through `centiCelsius(fromDeciKelvin:)`: this is a private,
+            // undocumented relay whose keys drift between iOS versions, and an
+            // out-of-band value would otherwise reach the display and, worse,
+            // become the cross-check that resolves the lifetime scale.
+            temperature: plausibleCentiCelsius(d["Temperature"]) ?? 0,
+            virtualTemperature: plausibleCentiCelsius(d["VirtualTemperature"]) ?? 0,
             isCharging: boolVal(d["IsCharging"]),
             fullyCharged: boolVal(d["FullyCharged"]),
             externalConnected: boolVal(d["ExternalConnected"]) || boolVal(d["AppleRawExternalConnected"]),
@@ -48,11 +55,38 @@ public enum AppleSmartBatteryMapper {
             adapter: parseAdapterDetails(d["AdapterDetails"]),
             // Same blob, same parser as the Mac's IOKit read: an iPhone's relay
             // dictionary carries BatteryData in the identical shape.
-            packDetail: BatteryPackDetail.from(batteryData: d["BatteryData"] as? [String: Any])
+            //
+            // The temperature is deliberately NOT converted from deci-Kelvin
+            // the way the Mac reader converts it: iOS falls under
+            // `!TARGET_OS_OSX` in Apple's driver, so the phone's own kernel has
+            // already published centi-Celsius (DAR-329).
+            //
+            // Confirmed on a real iPhone 15 (iOS 26.6) over the relay: it
+            // reported Temperature 2809 while charging, which is 28.1°C read as
+            // centi-Celsius and an impossible 7.8°C read as deci-Kelvin. Its
+            // lifetime extremes came back 86 to 452, deci-degrees, so an iDevice
+            // needs the scale resolution as much as an M1 does. Pinned in
+            // AppleSmartBatteryMapperTests.
+            packDetail: BatteryPackDetail.from(
+                batteryData: d["BatteryData"] as? [String: Any],
+                // Optional, not intVal: a missing key must arrive as "unknown",
+                // not as 0°C. A relay that renames or drops this key between iOS
+                // versions would otherwise fail the cross-check against every
+                // real range and suppress the row, on exactly the devices that
+                // need it, since the iPhone measured here reports its lifetime
+                // extremes in deci-degrees.
+                currentTemperatureCentiC: plausibleCentiCelsius(d["Temperature"])
+            )
         )
     }
 
     // MARK: - Sub-parsers
+
+    /// A relay temperature in centi-Celsius, or nil when it is absent or outside
+    /// the band a battery could actually be at.
+    private static func plausibleCentiCelsius(_ value: Any?) -> Int? {
+        optionalIntVal(value).flatMap { BatteryHealth.isPlausibleCentiCelsius($0) ? $0 : nil }
+    }
 
     private static func parseChargerData(_ value: Any?) -> ChargerData? {
         guard let c = value as? [String: Any] else { return nil }

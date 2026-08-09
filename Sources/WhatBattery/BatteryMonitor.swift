@@ -140,7 +140,7 @@ final class BatteryMonitor: ObservableObject {
             "\(snapshot.currentChargePercent)",
             snapshot.chargingState.rawValue,
             "\(health)",
-            "\(Int(snapshot.temperatureCelsius.rounded()))",
+            snapshot.temperatureCelsius.map { "\(Int($0.rounded()))" } ?? "-",
             "\(snapshot.cycleCount)",
             "\(snapshot.fullChargeCapacitymAh)",
             "\(snapshot.designCapacitymAh)",

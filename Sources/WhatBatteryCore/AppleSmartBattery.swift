@@ -36,8 +36,13 @@ public struct AppleSmartBattery: Equatable, Sendable {
     public let voltage: Int                 // mV
     public let amperage: Int                // mA, signed
     public let instantAmperage: Int         // mA, signed
-    public let temperature: Int             // centi-degrees Celsius (divide by 100)
-    public let virtualTemperature: Int      // centi-degrees Celsius
+    /// Centi-degrees Celsius, normalised by whichever reader filled this in. The
+    /// raw IOKit key is NOT this unit on a Mac: it is tenths of a Kelvin, and
+    /// `AppleSmartBatteryReader` converts it (DAR-329). 0 means no reading.
+    public let temperature: Int
+    /// Centi-degrees Celsius. The driver publishes this one already converted on
+    /// every platform, so it is passed through untouched.
+    public let virtualTemperature: Int
 
     // State
     public let isCharging: Bool

@@ -118,7 +118,7 @@ public struct BatteryManufactureMonth: Equatable, Sendable, Codable {
     ///
     /// TI's `bq` family covers 798 of the 810 corpus machines and every one of
     /// them decodes into a sane window. The three Apple `A19xx` gauges do too (5
-    /// machines). `SN7038`, the gauge in the corpus iPhone, decodes to 2082, so
+    /// machines). `SN7038`, a gauge seen on the A18 Pro MacBooks, decodes to 2082, so
     /// it is a different format and is excluded rather than guessed at: an
     /// unknown gauge gets no date, not a wrong one.
     ///

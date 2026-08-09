@@ -37,7 +37,9 @@ public struct BatterySnapshot: Codable, Equatable, Sendable {
     /// figure above is what a reading should normally quote.
     public let instantAmperageMilliamps: Int
     public let powerWatts: Double          // + charging, - discharging, 0 idle/full
-    public let temperatureCelsius: Double
+    /// nil when the pack reported no usable temperature. Never 0.0 for absent:
+    /// see `BatteryHealth.celsiusOrNil(fromCentiCelsius:)`.
+    public let temperatureCelsius: Double?
 
     // Adapter
     public let adapter: AdapterInfo?
@@ -66,7 +68,7 @@ public struct BatterySnapshot: Codable, Equatable, Sendable {
         amperageMilliamps: Int,
         instantAmperageMilliamps: Int = 0,
         powerWatts: Double,
-        temperatureCelsius: Double,
+        temperatureCelsius: Double?,
         adapter: AdapterInfo?,
         deviceModel: String,
         batterySerial: String?,
@@ -146,7 +148,7 @@ public extension BatterySnapshot {
         try container.encode(amperageMilliamps, forKey: .amperageMilliamps)
         try container.encode(instantAmperageMilliamps, forKey: .instantAmperageMilliamps)
         try container.encode(powerWatts, forKey: .powerWatts)
-        try container.encode(temperatureCelsius, forKey: .temperatureCelsius)
+        try container.encodeIfPresent(temperatureCelsius, forKey: .temperatureCelsius)
         try container.encode(adapter, forKey: .adapter)
         try container.encode(deviceModel, forKey: .deviceModel)
         try container.encode(batterySerial, forKey: .batterySerial)
@@ -178,7 +180,7 @@ public extension BatterySnapshot {
             amperageMilliamps: try container.decode(Int.self, forKey: .amperageMilliamps),
             instantAmperageMilliamps: try container.decodeIfPresent(Int.self, forKey: .instantAmperageMilliamps) ?? 0,
             powerWatts: try container.decode(Double.self, forKey: .powerWatts),
-            temperatureCelsius: try container.decode(Double.self, forKey: .temperatureCelsius),
+            temperatureCelsius: try container.decodeIfPresent(Double.self, forKey: .temperatureCelsius),
             adapter: try container.decodeIfPresent(AdapterInfo.self, forKey: .adapter),
             deviceModel: try container.decode(String.self, forKey: .deviceModel),
             batterySerial: try container.decodeIfPresent(String.self, forKey: .batterySerial),
@@ -233,7 +235,7 @@ public enum BatterySnapshotBuilder {
             amperageMilliamps: battery.amperage,
             instantAmperageMilliamps: battery.instantAmperage,
             powerWatts: powerWatts(for: battery, state: state, smcDischargeWatts: smcDischargeWatts),
-            temperatureCelsius: BatteryHealth.celsius(fromCentiCelsius: battery.temperature),
+            temperatureCelsius: BatteryHealth.celsiusOrNil(fromCentiCelsius: battery.temperature),
             adapter: battery.adapter,
             deviceModel: deviceModel,
             batterySerial: battery.serial.isEmpty ? nil : battery.serial,

@@ -33,6 +33,76 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         ]
     }
 
+    /// A real iPhone 15 (iOS 26.6) read over the relay on 2026-08-08, charging.
+    /// Captured specifically to settle the question DAR-329 left open, since the
+    /// probe corpus contains no iDevice dumps at all.
+    private func iPhone15Fixture() -> [String: Any] {
+        [
+            "DesignCapacity": 3329,
+            "NominalChargeCapacity": 3331,
+            "AppleRawCurrentCapacity": 2045,
+            "CycleCount": 90,
+            "Temperature": 2809,
+            "VirtualTemperature": 2550,
+            "Voltage": 4205,
+            "Amperage": 1504,
+            "InstantAmperage": 1491,
+            "IsCharging": true,
+            "AtCriticalLevel": false,
+            "BatteryData": [
+                "CellVoltage": [4205],
+                "LifetimeData": [
+                    "MinimumTemperature": 86,
+                    "MaximumTemperature": 452,
+                    "AverageTemperature": 20,
+                ] as [String: Any],
+            ] as [String: Any],
+        ]
+    }
+
+    /// iOS publishes `Temperature` in centi-Celsius, unlike macOS, because iOS
+    /// falls under `!TARGET_OS_OSX` in Apple's driver and gets the conversion
+    /// applied on-device. So the mapper must NOT convert from deci-Kelvin the
+    /// way the Mac reader does (DAR-329).
+    ///
+    /// The raw value proves it on its own: 2809 read as centi-Celsius is 28.1°C,
+    /// which is what a charging phone feels like. Read as deci-Kelvin it is
+    /// 7.8°C, which it plainly was not.
+    func testIDeviceTemperatureIsCentiCelsiusNotDeciKelvin() throws {
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: iPhone15Fixture()))
+        XCTAssertEqual(battery.temperature, 2809, "passed through, not converted")
+
+        let snapshot = BatterySnapshotBuilder.build(
+            battery: battery, deviceModel: "iPhone15,4", smcDischargeWatts: nil,
+            now: Date(timeIntervalSince1970: 1_786_000_000)
+        )
+        XCTAssertEqual(try XCTUnwrap(snapshot.temperatureCelsius), 28.09, accuracy: 0.001)
+    }
+
+    /// The same phone reports its LIFETIME extremes in deci-degrees, so it needs
+    /// the DAR-326 scale resolution as much as an M1 does, and the cross-check
+    /// gets a current reading in the units it expects.
+    func testIDeviceLifetimeTemperaturesAreResolvedAsDeciDegrees() throws {
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: iPhone15Fixture()))
+        let lifetime = try XCTUnwrap(battery.packDetail?.lifetime)
+        XCTAssertEqual(lifetime.minimumTemperatureC, 9)      // 8.6, not 86
+        XCTAssertEqual(lifetime.maximumTemperatureC, 45)     // 45.2, not 452
+        // The average is whole degrees on this device, and only fits the range
+        // when the pair has been normalised.
+        XCTAssertEqual(try XCTUnwrap(lifetime.averageTemperatureC), 20, accuracy: 0.001)
+    }
+
+    /// One cell, so pack voltage and per-cell voltage are the same number, and
+    /// charge power comes out right from the pack figures (DAR-323).
+    func testIDeviceChargePowerFromThePack() throws {
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: iPhone15Fixture()))
+        let snapshot = BatterySnapshotBuilder.build(
+            battery: battery, deviceModel: "iPhone15,4", smcDischargeWatts: nil,
+            now: Date(timeIntervalSince1970: 1_786_000_000)
+        )
+        XCTAssertEqual(snapshot.powerWatts, 6.32, accuracy: 0.02)   // 4.205 V * 1.504 A
+    }
+
     func testMapsRealIDeviceReadIntoModel() throws {
         let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: iPhone11Fixture()))
 
@@ -207,4 +277,35 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         XCTAssertEqual(IDeviceKind.iPhone.fallbackName, "iPhone")
         XCTAssertEqual(IDeviceKind.unknown.fallbackName, "Device")
     }
+    /// The relay is a private, undocumented interface whose keys drift between
+    /// iOS versions. The Mac reader gets a plausibility gate for free on the way
+    /// through `centiCelsius(fromDeciKelvin:)`; this path had none, so an
+    /// out-of-band value reached the display and, worse, became the cross-check
+    /// that resolves the lifetime temperature scale.
+    func testImplausibleRelayTemperatureIsRejected() throws {
+        var fixture = iPhone15Fixture()
+        fixture["Temperature"] = 65535
+        fixture["VirtualTemperature"] = 65535
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: fixture))
+        XCTAssertEqual(battery.temperature, 0, "the sentinel is absent, not 655.35°C")
+        XCTAssertEqual(battery.virtualTemperature, 0)
+
+        let snapshot = BatterySnapshotBuilder.build(
+            battery: battery, deviceModel: "iPhone15,4", smcDischargeWatts: nil,
+            now: Date(timeIntervalSince1970: 1_786_000_000)
+        )
+        XCTAssertNil(snapshot.temperatureCelsius)
+    }
+
+    /// What the gate buys on the lifetime path: a garbage thermometer reading
+    /// fits no candidate range, so the cross-check suppresses a range it could
+    /// otherwise have resolved. Rejecting the reading up front turns it into
+    /// "absent", where the magnitude rule stands alone and still gets it right.
+    func testGarbageReadingWouldSuppressAResolvableRange() throws {
+        XCTAssertNil(BatteryLifetime.temperatureRange(minRaw: 87, maxRaw: 454, currentC: 200))
+
+        let resolved = try XCTUnwrap(BatteryLifetime.temperatureRange(minRaw: 87, maxRaw: 454, currentC: nil))
+        XCTAssertEqual(resolved.max, 45.4, accuracy: 0.001)
+    }
+
 }

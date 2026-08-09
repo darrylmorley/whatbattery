@@ -185,4 +185,11 @@ final class BatteryFormatterTests: XCTestCase {
             "+58.2 W (100W pd charger)"
         )
     }
+    func testAbsentTemperatureSaysSoRatherThanPrintingZero() {
+        XCTAssertEqual(BatteryFormatter.temperature(Double?.none), "Unknown")
+        XCTAssertEqual(BatteryFormatter.temperature(Double?.none, unit: .fahrenheit), "Unknown")
+        // A genuine 0.0°C is a reading, and still prints as one.
+        XCTAssertEqual(BatteryFormatter.temperature(Double?.some(0)), "0.0°C")
+    }
+
 }
