@@ -18,7 +18,17 @@ public enum IDeviceBatteryReader {
         public let serial: String           // the device's hardware serial
         public let connectionType: String   // "USB" or "Network"
 
-        public var marketingName: String { IDeviceModelName.marketingName(for: productType) }
+        /// The system's table leads, so the name matches what Finder shows and a
+        /// device released after this build is still named. `IDeviceModelName`
+        /// covers the case where that private bundle has moved or changed shape,
+        /// and keeps the more specific name where it has one (macOS calls both
+        /// iPhone SE generations plain "iPhone SE").
+        public var marketingName: String {
+            IDeviceModelName.marketingName(
+                for: productType,
+                systemName: IDeviceMarketingNames.name(for: productType)
+            )
+        }
         public var kind: IDeviceKind { IDeviceModelName.kind(for: productType) }
     }
 
