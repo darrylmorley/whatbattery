@@ -222,9 +222,10 @@ final class BatteryPackDetailTests: XCTestCase {
         XCTAssertEqual(resolved.max, 45, accuracy: 0.001)
     }
 
-    /// The temperature correction (DAR-329) moved every Mac reading by 2-3°C,
-    /// and this cross-check consumes it, so a range whose edge sits within that
-    /// shift can flip. No corpus machine does, but the behaviour should change
+    /// The temperature correction (DAR-329) moves every Mac reading, by 2-3°C
+    /// near 30°C and by much more further out (it is a scale change, not an
+    /// offset), and this cross-check consumes it, so a range whose edge sits
+    /// within that shift can flip. No corpus machine does, but the behaviour should change
     /// only on purpose: these pin both directions.
     func testTheTemperatureCorrectionCanFlipABoundaryCase() {
         // Raw 3050 meant 30.50°C under the old conversion and means 31.85°C now.
