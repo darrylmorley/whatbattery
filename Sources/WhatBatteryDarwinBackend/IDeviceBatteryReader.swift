@@ -32,6 +32,48 @@ public enum IDeviceBatteryReader {
         public var kind: IDeviceKind { IDeviceModelName.kind(for: productType) }
     }
 
+    /// Why a connected device gave no usable battery.
+    ///
+    /// The states were indistinguishable before: everything that failed for any
+    /// reason arrived as "connected but not readable", which is no use to
+    /// anybody trying to work out whether an iPad is unsupported, locked, or
+    /// simply was not reached. A user reported an iPad missing from the app
+    /// while Finder listed it, and the app could not say which of these it was.
+    public enum UnreadableReason: Error, Sendable, Equatable {
+        /// Connect or the lockdown session failed. Usually locked, not trusted,
+        /// or reachable to Finder over WiFi but not to us right now.
+        case notReached
+        /// Reached, but the diagnostics relay returned nothing for the battery.
+        case relaySilent
+        /// The relay answered in a shape the mapper does not recognise.
+        case unrecognisedShape
+        /// Mapped, but the values are not a battery we would believe.
+        case implausibleValues
+
+        public var description: String {
+            switch self {
+            case .notReached:
+                // Deliberately not "connected but could not be reached", which
+                // is how this used to compose and reads as a contradiction. It
+                // is connected in the sense the Mac can see it, and unreachable
+                // in the sense lockdown would not open a session.
+                return "did not accept a connection (it may be locked, or not trusted on this Mac)"
+            case .relaySilent:
+                return "was reached but reported no battery"
+            case .unrecognisedShape:
+                return "reported its battery in a shape this version does not recognise"
+            case .implausibleValues:
+                return "reported battery values that did not look right"
+            }
+        }
+    }
+
+    /// A device that is present but gave no usable battery, and why.
+    public struct Unreadable: Sendable {
+        public let device: DeviceInfo
+        public let reason: UnreadableReason
+    }
+
     public struct Reading: Sendable {
         public let device: DeviceInfo
         public let snapshot: BatterySnapshot
@@ -43,7 +85,10 @@ public enum IDeviceBatteryReader {
     /// caller can then say "connected, but not readable" instead of "no device".
     public struct ReadResult: Sendable {
         public let readings: [Reading]
-        public let unreadable: [DeviceInfo]
+        public let unreadable: [Unreadable]
+
+        /// The devices alone, for callers that only need to name them.
+        public var unreadableDevices: [DeviceInfo] { unreadable.map(\.device) }
     }
 
     public enum ReaderError: Error, CustomStringConvertible {
@@ -71,14 +116,16 @@ public enum IDeviceBatteryReader {
         guard !raw.isEmpty else { throw ReaderError.noDevices }
 
         var readings: [Reading] = []
-        var unreadable: [DeviceInfo] = []
+        var unreadable: [Unreadable] = []
         for device in raw {
             let info = deviceInfo(from: device)
-            guard let dict = device.batteryDictionary,
-                  let battery = AppleSmartBatteryMapper.from(dictionary: dict),
-                  battery.isPlausible else {
-                unreadable.append(info)
+            let battery: AppleSmartBattery
+            switch classify(reached: device.reached, batteryDictionary: device.batteryDictionary) {
+            case .failure(let reason):
+                unreadable.append(Unreadable(device: info, reason: reason))
                 continue
+            case .success(let mapped):
+                battery = mapped
             }
             let snapshot = BatterySnapshotBuilder.build(
                 battery: battery,
@@ -89,6 +136,31 @@ public enum IDeviceBatteryReader {
             readings.append(Reading(device: info, snapshot: snapshot))
         }
         return ReadResult(readings: readings, unreadable: unreadable)
+    }
+
+    /// A usable battery, or why there is not one. Split out from `readAll` so
+    /// the classification can be tested without a device on the other end of a
+    /// cable, which is the only reason it was previously untestable.
+    ///
+    /// `reached` comes from the bridge, which knows whether connect and the
+    /// lockdown session actually succeeded. An earlier version inferred it from
+    /// an empty product type, which is a side effect of a different call: a
+    /// locked device that still answered `ProductType` would have been reported
+    /// as "reached but reported no battery", sending its owner looking in the
+    /// wrong place. That is the exact failure this reason exists to end, so it
+    /// is not inferred from anything.
+    static func classify(
+        reached: Bool,
+        batteryDictionary: [String: Any]?
+    ) -> Result<AppleSmartBattery, UnreadableReason> {
+        guard let dict = batteryDictionary else {
+            return .failure(reached ? .relaySilent : .notReached)
+        }
+        guard let battery = AppleSmartBatteryMapper.from(dictionary: dict) else {
+            return .failure(.unrecognisedShape)
+        }
+        guard battery.isPlausible else { return .failure(.implausibleValues) }
+        return .success(battery)
     }
 
     /// List connected/paired devices without reading their batteries (for a

@@ -24,6 +24,14 @@ enum MobileDeviceBridge {
         let deviceName: String
         let serial: String           // the device's hardware serial (lockdown "SerialNumber")
         let connectionType: String   // "USB", "Network", or ""
+        /// Connect AND a lockdown session both succeeded, so the diagnostics
+        /// relay was actually available. Reported rather than inferred: the
+        /// caller used to guess this from an empty product type, which is a
+        /// side effect of a different call and not something this code
+        /// guarantees. `AMDeviceCopyValue("ProductType")` answering without a
+        /// validated session would have made a locked device report "reached
+        /// but silent", which is the wrong advice for the commonest cause.
+        let reached: Bool
         let batteryDictionary: [String: Any]?
     }
 
@@ -111,13 +119,87 @@ enum MobileDeviceBridge {
         let count = CFArrayGetCount(list)
         guard count > 0 else { return [] }
 
-        var devices: [RawDevice] = []
+        // Identity first, then group, then read. One physical device can be
+        // listed twice: a phone that is plugged in AND WiFi-paired appears once
+        // per interface with the same UDID (observed on a Mac with a single
+        // iPhone 15, interface types 1 and 2). Reading both meant two lockdown
+        // sessions and two diagnostics relays for one device, and the duplicate
+        // reached the GUI, where the picker keys on UDID and a repeated id is
+        // not something SwiftUI can render sensibly.
+        var candidates: [(udid: String, interface: Int32, device: UnsafeMutableRawPointer)] = []
         for i in 0..<count {
             guard let dev = UnsafeMutableRawPointer(mutating: CFArrayGetValueAtIndex(list, i)) else { continue }
-            devices.append(read(device: dev, symbols: s))
+            let udid = s.copyID(dev)?.takeRetainedValue() as String? ?? ""
+            candidates.append((udid: udid, interface: s.interfaceType(dev), device: dev))
         }
-        return devices
+
+        // `withExtendedLifetime`, because the device handles above are owned by
+        // `list` and are used after the loop that reads them out of it. ARC
+        // releases a strong local at its last apparent use, not at end of scope,
+        // and after that loop nothing mentions `list` again. Releasing it there
+        // would free every element the array retained, and the reads below would
+        // be operating on dead handles. The previous version read each device
+        // inside the same loop, which kept the array alive by accident; splitting
+        // discovery from reading is what put that at risk.
+        return withExtendedLifetime(list) {
+            interfacesPerDevice(candidates).compactMap { read(anyOf: $0, symbols: s) }
+        }
     }
+
+    /// Read a device, trying each of its interfaces until one answers.
+    ///
+    /// Preferring USB and discarding the rest was wrong: if the USB entry is
+    /// stale (a cable half out, a device mid-reconnect) the network entry that
+    /// would have worked was thrown away before anything was attempted, turning a
+    /// readable device unreadable. Preference decides the ORDER, not the only
+    /// candidate.
+    ///
+    /// When every interface fails, the most informative attempt is reported: one
+    /// that reached the device says more about why than one that never got there.
+    private static func read(anyOf interfaces: [UnsafeMutableRawPointer], symbols s: Symbols) -> RawDevice? {
+        var best: RawDevice?
+        for dev in interfaces {
+            let attempt = read(device: dev, symbols: s)
+            if attempt.batteryDictionary != nil { return attempt }
+            if best == nil || (attempt.reached && !(best?.reached ?? false)) { best = attempt }
+        }
+        return best
+    }
+
+    /// The interfaces of each physical device, grouped by UDID, USB first.
+    ///
+    /// USB leads because the relay read is blocking I/O and a cabled device
+    /// answers it more reliably than one over WiFi. Groups keep the order the
+    /// framework gave, so the device list does not reshuffle under the user. A
+    /// device with an empty UDID gets its own group: two devices that failed to
+    /// identify are not evidence of being the same device.
+    static func interfacesPerDevice<T>(_ candidates: [(udid: String, interface: Int32, device: T)]) -> [[T]] {
+        var groupIndexByUDID: [String: Int] = [:]
+        var groups: [[(interface: Int32, device: T)]] = []
+        for candidate in candidates {
+            let entry = (interface: candidate.interface, device: candidate.device)
+            guard !candidate.udid.isEmpty else { groups.append([entry]); continue }
+            if let existing = groupIndexByUDID[candidate.udid] {
+                groups[existing].append(entry)
+            } else {
+                groupIndexByUDID[candidate.udid] = groups.count
+                groups.append([entry])
+            }
+        }
+        // Stable sort by preference: `enumerated` keeps equal elements in the
+        // order the framework listed them, which a bare `sorted(by:)` would not.
+        return groups.map { group in
+            group.enumerated()
+                .sorted { lhs, rhs in
+                    let lhsUSB = lhs.element.interface == usbInterface
+                    let rhsUSB = rhs.element.interface == usbInterface
+                    return lhsUSB == rhsUSB ? lhs.offset < rhs.offset : lhsUSB
+                }
+                .map(\.element.device)
+        }
+    }
+
+    private static let usbInterface: Int32 = 1
 
     private static func read(device dev: UnsafeMutableRawPointer, symbols s: Symbols) -> RawDevice {
         let udid = s.copyID(dev)?.takeRetainedValue() as String? ?? ""
@@ -126,7 +208,8 @@ enum MobileDeviceBridge {
         // Connect + open a session before any value/service read.
         guard s.connect(dev) == 0 else {
             return RawDevice(udid: udid, productType: "", productVersion: "", deviceName: "",
-                             serial: "", connectionType: connection, batteryDictionary: nil)
+                             serial: "", connectionType: connection, reached: false,
+                             batteryDictionary: nil)
         }
         defer { _ = s.disconnect(dev) }
 
@@ -148,6 +231,10 @@ enum MobileDeviceBridge {
             deviceName: deviceName,
             serial: serial,
             connectionType: connection,
+            // A session is what the diagnostics relay needs, so without one the
+            // device was not reached in any sense that matters here, however
+            // much of its identity it was willing to hand over.
+            reached: sessionOK,
             batteryDictionary: battery
         )
     }

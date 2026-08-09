@@ -117,8 +117,11 @@ private func runIDevice(json: Bool) {
 
         // Notes about present-but-unreadable devices go to stderr in both modes,
         // so --json stdout stays a clean snapshot array.
-        for device in result.unreadable {
-            errln("Note: \(deviceLabel(device)) is connected but its battery could not be read.")
+        for entry in result.unreadable {
+            // The reason, not just the fact. "Could not be read" sent a user
+            // asking whether their iPadOS version was supported when the answer
+            // was somewhere else entirely.
+            errln("Note: \(deviceLabel(entry.device)) \(entry.reason.description).")
         }
 
         if result.readings.isEmpty {
