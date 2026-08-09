@@ -142,7 +142,17 @@ final class IDeviceMarketingNamesTests: XCTestCase {
                 "\(identifier): we say '\(ours)', macOS says '\(theirs)'"
             )
         }
-        // Guards against the loop above quietly comparing nothing.
+        // Guards against the loop above quietly comparing nothing: it only sees
+        // identifiers present in BOTH tables, and without a floor an empty
+        // intersection would pass as loudly as a clean one.
+        //
+        // Expect this to fail one day for a boring reason. Apple eventually drops
+        // very old devices from its table, and ours starts at the iPhone 6s, so
+        // the intersection shrinks over time (104 of our 104 today). When it
+        // crosses this floor nothing is broken: the right response is to check
+        // WHY the count fell, and if it is just macOS ageing out old models,
+        // lower the number. Do not delete the assertion, it is what stops this
+        // test rotting into a no-op.
         XCTAssertGreaterThan(compared, 80, "the system table stopped covering our entries")
     }
 

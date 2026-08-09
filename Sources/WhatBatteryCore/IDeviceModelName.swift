@@ -54,6 +54,17 @@ public enum IDeviceModelName {
     /// of the other: "iPhone SE (2nd gen)" begins with "iPhone SE", so it is the
     /// same model said in more detail rather than a disagreement. Anything else
     /// is a disagreement, and there the system is authoritative.
+    ///
+    /// Note what this does NOT check: that the extra detail is correct. A typo in
+    /// the table below reading "iPhone SE (5th gen)" still begins with Apple's
+    /// "iPhone SE", so it would still win, and the app would name a phone that
+    /// does not exist. Nothing here can catch that, because the whole premise is
+    /// that our name carries something Apple's does not.
+    ///
+    /// What catches it is `testBuiltInTableDoesNotContradictTheSystemTable`,
+    /// which walks every entry against the system table. Edit the table below
+    /// and that test is the safety net, so keep it working (see the note on its
+    /// intersection floor).
     public static func marketingName(for productType: String, systemName: String?) -> String {
         guard let systemName, !systemName.isEmpty else { return marketingName(for: productType) }
         guard let ours = table[productType], ours.hasPrefix(systemName) else { return systemName }
