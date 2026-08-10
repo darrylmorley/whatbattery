@@ -57,7 +57,14 @@ public enum IDeviceBatteryReader {
                 // is how this used to compose and reads as a contradiction. It
                 // is connected in the sense the Mac can see it, and unreachable
                 // in the sense lockdown would not open a session.
-                return "did not accept a connection (it may be locked, or not trusted on this Mac)"
+                //
+                // "Locked" was in here and came out again. Testing a locked
+                // iPhone showed it either reads normally or leaves the device
+                // list altogether (a locked device stops advertising over WiFi,
+                // and a device that is not listed cannot be reported here at
+                // all). It never once sat in the list refusing a connection, so
+                // naming it sent people to check the one thing ruled out.
+                return "did not accept a connection (it may not be trusted on this Mac, or it dropped off the network)"
             case .relaySilent:
                 return "was reached but reported no battery"
             case .unrecognisedShape:

@@ -93,4 +93,19 @@ final class IDeviceModelNameTests: XCTestCase {
         XCTAssertEqual(IDeviceModelName.marketingName(for: "iPhone10,6", systemName: ""), "iPhone X")
         XCTAssertEqual(IDeviceModelName.marketingName(for: "iPhone99,1", systemName: nil), "iPhone99,1")
     }
+    /// A device whose identity never arrived resolves to the same stand-in from
+    /// both the name and the marketing name, and both paths have to recognise
+    /// it as "we do not know what this is". A caller checking only
+    /// `marketingName != productType` sees "Device" against "" and concludes it
+    /// knows the model, which put an anonymous entry on screen as
+    /// "Waiting for iPad Air and Device".
+    func testAnIdentitylessDeviceResolvesToTheStandInOnBothPaths() {
+        XCTAssertEqual(IDeviceModelName.marketingName(for: ""), IDeviceKind.unknown.fallbackName)
+        XCTAssertEqual(IDeviceModelName.marketingName(for: "", systemName: nil), IDeviceKind.unknown.fallbackName)
+        XCTAssertEqual(IDeviceKind.unknown.fallbackName, "Device")
+        // And it is not equal to the empty product type it came from, which is
+        // exactly why the naive comparison passed.
+        XCTAssertNotEqual(IDeviceModelName.marketingName(for: ""), "")
+    }
+
 }
