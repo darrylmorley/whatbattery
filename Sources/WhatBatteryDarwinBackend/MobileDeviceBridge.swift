@@ -191,15 +191,13 @@ enum MobileDeviceBridge {
         return groups.map { group in
             group.enumerated()
                 .sorted { lhs, rhs in
-                    let lhsUSB = lhs.element.interface == usbInterface
-                    let rhsUSB = rhs.element.interface == usbInterface
+                    let lhsUSB = MobileDeviceInterface.isCable(lhs.element.interface)
+                    let rhsUSB = MobileDeviceInterface.isCable(rhs.element.interface)
                     return lhsUSB == rhsUSB ? lhs.offset < rhs.offset : lhsUSB
                 }
                 .map(\.element.device)
         }
     }
-
-    private static let usbInterface: Int32 = 1
 
     private static func read(device dev: UnsafeMutableRawPointer, symbols s: Symbols) -> RawDevice {
         let udid = s.copyID(dev)?.takeRetainedValue() as String? ?? ""

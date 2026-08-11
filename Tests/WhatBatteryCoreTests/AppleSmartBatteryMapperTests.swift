@@ -308,4 +308,63 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         XCTAssertEqual(resolved.max, 45.4, accuracy: 0.001)
     }
 
+    // MARK: - The adapter that is not there
+
+    /// An iDevice publishes AdapterDetails whether or not anything is attached.
+    /// With nothing attached it is all zeroes, and passing that through made an
+    /// iPhone on 6% battery read "Power  -0.1 W (0W)". There is no 0 W charger.
+    func testNothingPluggedInIsNotAnAdapter() {
+        var d = Self.minimalBattery
+        d["AdapterDetails"] = [
+            "Watts": 0, "AdapterVoltage": 0, "Current": 0,
+            "Description": "", "Name": "", "Manufacturer": "", "Model": "",
+        ] as [String: Any]
+        XCTAssertNil(AppleSmartBatteryMapper.from(dictionary: d)?.adapter)
+    }
+
+    /// An empty dictionary is the same thing: nothing is attached.
+    func testAnEmptyAdapterDictionaryIsNotAnAdapter() {
+        var d = Self.minimalBattery
+        d["AdapterDetails"] = [String: Any]()
+        XCTAssertNil(AppleSmartBatteryMapper.from(dictionary: d)?.adapter)
+    }
+
+    /// A real charger still comes through, wattage and all.
+    func testARealChargerIsStillReported() {
+        var d = Self.minimalBattery
+        d["AdapterDetails"] = ["Watts": 20, "Name": "USB-C Power Adapter"] as [String: Any]
+        let adapter = AppleSmartBatteryMapper.from(dictionary: d)?.adapter
+        XCTAssertEqual(adapter?.watts, 20)
+        XCTAssertEqual(adapter?.label, "20W USB-C Power Adapter")
+    }
+
+    /// A named charger reporting no wattage is still a charger: the name is
+    /// evidence something is attached, so it must not be discarded.
+    func testANamedChargerWithoutWattageIsKept() {
+        var d = Self.minimalBattery
+        d["AdapterDetails"] = ["Watts": 0, "Description": "usb host"] as [String: Any]
+        XCTAssertEqual(AppleSmartBatteryMapper.from(dictionary: d)?.adapter?.description, "usb host")
+    }
+
+    /// The fixture every adapter case builds on: enough to be a battery.
+    private static let minimalBattery: [String: Any] = [
+        "DesignCapacity": 3092, "AppleRawMaxCapacity": 2573,
+        "NominalChargeCapacity": 2573, "CycleCount": 820,
+    ]
+
+    /// A wireless charger can report no wattage and no name strings at all. It
+    /// is still a charger, and dropping it loses even the fact that the device
+    /// is on a pad.
+    func testAWirelessChargerWithNoWattageOrNameIsKept() {
+        var d = Self.minimalBattery
+        d["AdapterDetails"] = ["Watts": 0, "IsWireless": true] as [String: Any]
+        XCTAssertEqual(AppleSmartBatteryMapper.from(dictionary: d)?.adapter?.isWireless, true)
+    }
+
+    /// A charger still negotiating can show a voltage before it reports watts.
+    func testAnAdapterReportingOnlyVoltageIsKept() {
+        var d = Self.minimalBattery
+        d["AdapterDetails"] = ["Watts": 0, "AdapterVoltage": 5000] as [String: Any]
+        XCTAssertEqual(AppleSmartBatteryMapper.from(dictionary: d)?.adapter?.voltageMV, 5000)
+    }
 }

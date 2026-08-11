@@ -99,8 +99,26 @@ public enum AppleSmartBatteryMapper {
 
     private static func parseAdapterDetails(_ value: Any?) -> AdapterInfo? {
         guard let a = value as? [String: Any] else { return nil }
+        // An iDevice publishes AdapterDetails whether or not anything is
+        // attached, and with nothing attached it is all zeroes and empty
+        // strings. Passing that through produced an adapter whose only content
+        // was its wattage, so an iPhone sitting on a desk on 6% battery read
+        // "Power  -0.1 W (0W)". There is no 0 W charger; there is no charger.
+        // "Nothing attached" means no evidence of ANY kind, not just no wattage
+        // and no name. A wireless charger can report neither and still be sat
+        // on a charging pad, and a charger negotiating can show a voltage
+        // before it reports watts. Anything that says something is there keeps
+        // the adapter.
+        let watts = optionalIntVal(a["Watts"])
+        let names = [a["Description"], a["Name"], a["Manufacturer"], a["Model"]]
+            .compactMap { stringVal($0) }
+            .filter { !$0.isEmpty }
+        let wireless = (a["IsWireless"] as? NSNumber)?.boolValue ?? false
+        let live = (optionalIntVal(a["AdapterVoltage"]) ?? 0) != 0
+            || (optionalIntVal(a["Current"]) ?? 0) != 0
+        if (watts ?? 0) == 0, names.isEmpty, !wireless, !live { return nil }
         return AdapterInfo(
-            watts: optionalIntVal(a["Watts"]),
+            watts: watts,
             voltageMV: optionalIntVal(a["AdapterVoltage"]),
             currentMA: optionalIntVal(a["Current"]),
             description: stringVal(a["Description"]),

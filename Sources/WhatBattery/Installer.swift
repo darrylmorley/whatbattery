@@ -96,8 +96,8 @@ final class Installer: ObservableObject {
     /// uncompressed total. The real app zip is ~10 MB, so 300 MB is an order
     /// of magnitude of slack, not a limit anyone legitimate will meet.
     static let maxDownloadBytes: Int64 = 300 * 1_024 * 1_024
-    static let maxUncompressedBytes: Int64 = 600 * 1_024 * 1_024
-    static let maxArchiveEntries = 5_000
+    static let maxUncompressedBytes = UpdateInstallChecks.maxUncompressedBytes
+    static let maxArchiveEntries = UpdateInstallChecks.maxArchiveEntries
 
     private func download(from url: URL, into dir: URL) async throws -> URL {
         let (tmpURL, response) = try await URLSession.shared.download(from: url)
@@ -140,42 +140,19 @@ final class Installer: ObservableObject {
     // Reject unsafe archives before extracting. Two listings, because the cheap
     // names-only `-Z1` listing hides symlinks (which `unzip` would follow during
     // extraction to write outside the work dir, before any signature check runs).
+    //
+    // The decision itself lives in `UpdateInstallChecks` in Core, where it can be
+    // tested; this only gathers the input.
     private func validateZipEntries(_ zip: URL) async throws {
         let names = try await run("/usr/bin/unzip", ["-Z1", zip.path])
-        for entry in names.split(separator: "\n") {
-            let path = String(entry)
-            if path.hasPrefix("/") || path.contains("../") || path.contains("/..") {
-                throw InstallError("Zip contains unsafe path: \(path)")
-            }
-        }
-        // The long zipinfo listing prints a leading mode string per entry whose
-        // first character is the file type: "l" for a symlink, "-" for a regular
-        // file, "d" for a directory. Match on that type character alone, NOT on
-        // "lrwx": the rwx are permission bits the archive author chooses freely,
-        // so a crafted symlink stored without owner-execute lists as "lrw-------"
-        // and would slip past an "lrwx" prefix while still being followed during
-        // extraction. A symlink in the archive is never something a legitimate
-        // WhatBattery release contains, so reject the whole zip.
         let modes = try await run("/usr/bin/unzip", ["-Z", zip.path])
-        for line in modes.split(separator: "\n") {
-            if line.trimmingCharacters(in: .whitespaces).hasPrefix("l") {
-                throw InstallError("Zip contains a symlink; refusing to install")
-            }
-        }
-
-        // Zip-bomb bounds: cap the entry count and the archive's own declared
-        // uncompressed total before extraction ever runs. zipinfo's summary
-        // line reads "NNN files, XXX bytes uncompressed, YYY bytes compressed".
-        let entryCount = names.split(separator: "\n").count
-        guard entryCount <= Self.maxArchiveEntries else {
-            throw InstallError("Zip contains implausibly many entries (\(entryCount))")
-        }
-        if let summary = modes.split(separator: "\n").last(where: { $0.contains("bytes uncompressed") }),
-           let match = summary.range(of: #"(\d+) bytes uncompressed"#, options: .regularExpression),
-           let declared = Int64(String(summary[match]).split(separator: " ").first ?? "") {
-            guard declared <= Self.maxUncompressedBytes else {
-                throw InstallError("Zip declares an implausibly large uncompressed size")
-            }
+        if let rejection = UpdateInstallChecks.rejectArchive(
+            names: names,
+            modes: modes,
+            maxEntries: Self.maxArchiveEntries,
+            maxUncompressed: Self.maxUncompressedBytes
+        ) {
+            throw rejection
         }
     }
 
@@ -186,11 +163,10 @@ final class Installer: ObservableObject {
     /// this runs first purely as a cheap sanity gate.
     private func verifyNotDowngrade(app: URL, advertised: String) throws {
         let embedded = (Bundle(url: app)?.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String) ?? ""
-        guard embedded == advertised else {
-            throw InstallError("Version mismatch: release claims \(advertised) but the bundle is \(embedded.isEmpty ? "unknown" : embedded)")
-        }
-        guard AppInfo.isNewer(remote: embedded, current: AppInfo.version) else {
-            throw InstallError("Not an upgrade: \(embedded) is not newer than \(AppInfo.version)")
+        if let rejection = UpdateInstallChecks.rejectBundleVersion(
+            embedded: embedded, advertised: advertised, current: AppInfo.version
+        ) {
+            throw rejection
         }
     }
 
@@ -228,12 +204,10 @@ final class Installer: ObservableObject {
         // the parse is robust to that (and to any future change in which stream
         // it uses).
         let combined = result.stderr + "\n" + result.stdout
-        for line in combined.split(separator: "\n") {
-            if line.hasPrefix("TeamIdentifier=") {
-                return String(line.dropFirst("TeamIdentifier=".count))
-            }
+        guard let team = UpdateInstallChecks.teamIdentifier(inCodesignOutput: combined) else {
+            throw InstallError("Could not read TeamIdentifier from \(app.lastPathComponent)")
         }
-        throw InstallError("Could not read TeamIdentifier from \(app.lastPathComponent)")
+        return team
     }
 
     private func launchSwapScript(newApp: URL, currentApp: URL, workDir: URL) throws {
@@ -328,68 +302,17 @@ final class Installer: ObservableObject {
         }
     }
 
-    private nonisolated static func shellQuote(_ s: String) -> String {
-        "'" + s.replacingOccurrences(of: "'", with: "'\\''") + "'"
-    }
-
-    /// Builds the detached bundle-swap script. Pure (no I/O), so the deletion
-    /// target can be asserted in tests without running anything destructive.
-    ///
-    /// The cleanup at the end removes `workDirPath` and nothing else. The download
-    /// zip, the extracted bundle and this script itself all live inside that
-    /// per-update folder, so one removal cleans everything we created. It must
-    /// never widen to the folder's parent (the shared temp root).
-    nonisolated static func makeSwapScript(pid: Int32, newPath: String, oldPath: String, workDirPath: String, backupSuffix: String = UUID().uuidString) -> String {
-        """
-        #!/bin/bash
-        set -e
-        PID=\(pid)
-        NEW=\(shellQuote(newPath))
-        OLD=\(shellQuote(oldPath))
-        BACKUP="${OLD}.backup-\(backupSuffix)"
-
-        # Wait up to 30s for the running app to exit
-        for _ in $(seq 1 60); do
-            if ! kill -0 "$PID" 2>/dev/null; then break; fi
-            sleep 0.5
-        done
-
-        # If the app is somehow still running, do NOT swap a live bundle (moving it
-        # out from under the running process could corrupt it). Leave everything
-        # intact, clean up, and bail.
-        if kill -0 "$PID" 2>/dev/null; then
-            rm -rf \(shellQuote(workDirPath))
-            exit 0
-        fi
-
-        # Move old bundle to a backup this invocation owns. The path carries a
-        # fresh UUID, so it never collides with (and never deletes) anything a
-        # user or an earlier update left behind; if it exists anyway, something
-        # is wrong enough that touching it would be reckless, so bail intact.
-        if [ -e "$BACKUP" ]; then
-            rm -rf \(shellQuote(workDirPath))
-            exit 0
-        fi
-        mv "$OLD" "$BACKUP"
-
-        if mv "$NEW" "$OLD"; then
-            open "$OLD"
-            sleep 2
-            rm -rf "$BACKUP"
-        else
-            # Swap failed; remove any partial destination before restoring.
-            rm -rf "$OLD"
-            mv "$BACKUP" "$OLD"
-            open "$OLD"
-        fi
-
-        # Clean up the per-update folder only. The download zip, the extracted
-        # bundle and this script all live inside it, so this single removal cleans
-        # everything we created without ever touching the shared temp root.
-        # Deleting the folder this running script lives in is safe: bash has
-        # already read the script into memory.
-        rm -rf \(shellQuote(workDirPath))
-        """
+    /// The script itself is built by `UpdateInstallChecks.swapScript` in Core,
+    /// where its deletion target can be asserted in a test without running
+    /// anything destructive.
+    nonisolated static func makeSwapScript(
+        pid: Int32, newPath: String, oldPath: String, workDirPath: String,
+        backupSuffix: String = UUID().uuidString
+    ) -> String {
+        UpdateInstallChecks.swapScript(
+            pid: pid, newPath: newPath, oldPath: oldPath,
+            workDirPath: workDirPath, backupSuffix: backupSuffix
+        )
     }
 }
 
