@@ -1,4 +1,5 @@
 import Foundation
+import WhatBatteryCore
 
 /// Native bridge to Apple's private `MobileDevice.framework` for reading a
 /// tethered/WiFi iPhone or iPad's battery. This is the shipping path: it needs no
@@ -157,13 +158,29 @@ enum MobileDeviceBridge {
     /// When every interface fails, the most informative attempt is reported: one
     /// that reached the device says more about why than one that never got there.
     private static func read(anyOf interfaces: [UnsafeMutableRawPointer], symbols s: Symbols) -> RawDevice? {
+        // Only a dictionary the mapper will actually accept ends the search: a
+        // shapeless one (present but no usable capacity) must not stop a later
+        // interface from producing the real reading, or a device on USB and
+        // WiFi whose stale USB entry answered with junk would lose the WiFi
+        // read that used to work. A shapeless attempt still outranks a merely
+        // reached one when everything fails, because it says the most about
+        // why.
         var best: RawDevice?
         for dev in interfaces {
             let attempt = read(device: dev, symbols: s)
-            if attempt.batteryDictionary != nil { return attempt }
-            if best == nil || (attempt.reached && !(best?.reached ?? false)) { best = attempt }
+            if let dict = attempt.batteryDictionary, AppleSmartBatteryMapper.hasUsableCapacity(dict) {
+                return attempt
+            }
+            if best == nil || rank(attempt) > rank(best!) { best = attempt }
         }
         return best
+    }
+
+    /// How informative a failed attempt is: a battery dictionary (even a
+    /// shapeless one) beats having reached the device, which beats neither.
+    private static func rank(_ attempt: RawDevice) -> Int {
+        if attempt.batteryDictionary != nil { return 2 }
+        return attempt.reached ? 1 : 0
     }
 
     /// The interfaces of each physical device, grouped by UDID, USB first.
@@ -255,19 +272,80 @@ enum MobileDeviceBridge {
             setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
         }
 
-        let request: [String: Any] = ["Request": "IORegistry", "EntryClass": "AppleSmartBattery"]
-        guard s.send(conn, request as CFDictionary, .xmlFormat_v1_0) == 0 else { return nil }
+        // Pre-A11 hardware (e.g. the A10X iPad Pro 10,5", last supported by
+        // iPadOS 17) has no AppleSmartBattery node at all: its battery lives
+        // under the PMU as AppleARMPMUCharger, with largely the same keys. A
+        // user's iPad Pro 10,5" on iPadOS 17.7.11 answered the relay but had
+        // nothing under AppleSmartBattery, so it read as "reported no battery"
+        // while coconutBattery (which queries the older class too) showed the
+        // pack. Queried by class first, then by name, because which of the two
+        // the relay matches for this node has varied between tools/iOS
+        // versions and both are cheap on the one connection already open.
+        let requests: [[String: Any]] = [
+            ["Request": "IORegistry", "EntryClass": "AppleSmartBattery"],
+            ["Request": "IORegistry", "EntryClass": "AppleARMPMUCharger"],
+            ["Request": "IORegistry", "EntryName": "AppleARMPMUCharger"],
+        ]
+        // A response that exists but carries no usable capacity is kept only as
+        // a last resort: it lets the caller report the shape it saw rather than
+        // silence, but must not stop the next query from finding the real node.
+        // Usability is the mapper's own predicate, not key presence: a
+        // `DesignCapacity: 0` answer would otherwise end the fallback here and
+        // still map to nothing.
+        var shapelessFallback: [String: Any]? = nil
+        for request in requests {
+            switch queryIORegistry(s, conn, request) {
+            case .transportFailure:
+                // Send or receive failed, so the connection's in-flight state
+                // is unknown: a reply to this request could still arrive and
+                // be consumed as the answer to the NEXT request (replies carry
+                // no request identifier). Never reuse the connection after
+                // this; the earlier fallback, if any, was received cleanly.
+                // This also bounds the worst case at one timeout, where
+                // continuing would stack three 5-second timeouts inside a read
+                // the GUI polls every 5 seconds.
+                return shapelessFallback
+            case .noEntry:
+                continue
+            case .entry(let io):
+                if AppleSmartBatteryMapper.hasUsableCapacity(io) { return io }
+                if shapelessFallback == nil { shapelessFallback = io }
+            }
+        }
+        return shapelessFallback
+    }
+
+    private enum QueryOutcome {
+        /// The relay returned the requested node's properties.
+        case entry([String: Any])
+        /// The relay answered cleanly, but has no such node. The connection is
+        /// in a known state and safe to query again.
+        case noEntry
+        /// Send or receive failed (including a receive timeout). The
+        /// connection may still have a reply in flight, so it must not be
+        /// reused.
+        case transportFailure
+    }
+
+    private static func queryIORegistry(
+        _ s: Symbols,
+        _ conn: UnsafeMutableRawPointer,
+        _ request: [String: Any]
+    ) -> QueryOutcome {
+        guard s.send(conn, request as CFDictionary, .xmlFormat_v1_0) == 0 else { return .transportFailure }
 
         var respUM: Unmanaged<CFTypeRef>? = nil
         var fmt: CFPropertyListFormat = .xmlFormat_v1_0
         guard s.receive(conn, &respUM, &fmt) == 0,
-              let resp = respUM?.takeRetainedValue() as? [String: Any] else { return nil }
+              let resp = respUM?.takeRetainedValue() as? [String: Any] else { return .transportFailure }
 
-        // The relay nests the entry under Diagnostics.IORegistry on success.
+        // The relay nests the entry under Diagnostics.IORegistry on success. A
+        // well-formed answer without it (Status "Failure", or Success with no
+        // entry) is a clean "no such node", not a transport problem.
         guard (resp["Status"] as? String) == "Success",
               let diag = resp["Diagnostics"] as? [String: Any],
-              let io = diag["IORegistry"] as? [String: Any] else { return nil }
-        return io
+              let io = diag["IORegistry"] as? [String: Any] else { return .noEntry }
+        return .entry(io)
     }
 
     // MARK: - Helpers

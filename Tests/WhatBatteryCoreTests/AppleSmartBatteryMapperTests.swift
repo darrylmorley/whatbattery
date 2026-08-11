@@ -367,4 +367,56 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         d["AdapterDetails"] = ["Watts": 0, "AdapterVoltage": 5000] as [String: Any]
         XCTAssertEqual(AppleSmartBatteryMapper.from(dictionary: d)?.adapter?.voltageMV, 5000)
     }
+
+    /// Pre-A11 iDevices (e.g. the A10X iPad Pro 10,5", last supported by
+    /// iPadOS 17) have no AppleSmartBattery node: the battery lives under
+    /// AppleARMPMUCharger, with mostly the same keys but PMU spellings for the
+    /// serial (BatterySerialNumber) and voltage (AppleRawBatteryVoltage only).
+    ///
+    /// SYNTHETIC fixture, modelled on the AppleARMPMUCharger key set, not
+    /// captured from a real device: the probe corpus holds no iDevice dumps at
+    /// all, and no A10X device was on hand when this was written. If a real
+    /// dump ever disagrees with these spellings, trust the dump.
+    func testARMPMUChargerShapedDictionaryMaps() throws {
+        let d: [String: Any] = [
+            "DesignCapacity": 8134,
+            "AppleRawMaxCapacity": 6480,
+            "AppleRawCurrentCapacity": 5122,
+            "CurrentCapacity": 79,
+            "CycleCount": 412,
+            "Temperature": 2450,
+            "AppleRawBatteryVoltage": 3812,
+            "BatterySerialNumber": "F8Y12345ABCD",
+            "ExternalConnected": true,
+        ]
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: d))
+        XCTAssertEqual(battery.designCapacity, 8134)
+        XCTAssertEqual(battery.rawMaxCapacity, 6480)
+        XCTAssertEqual(battery.cycleCount, 412)
+        XCTAssertEqual(battery.serial, "F8Y12345ABCD", "PMU spelling of the pack serial")
+        XCTAssertEqual(battery.voltage, 3812, "no Voltage key; falls back to AppleRawBatteryVoltage")
+        XCTAssertTrue(battery.isPlausible, "must pass the reader's plausibility gate, not just map")
+    }
+
+    /// The relay bridge's class-fallback loop stops on the first response this
+    /// predicate accepts, so it must agree with `from(dictionary:)` exactly: a
+    /// capacity KEY that is present but zero is not a usable battery, and
+    /// accepting it would end the fallback on a response the mapper then
+    /// rejects anyway.
+    func testZeroCapacityIsNotUsable() {
+        XCTAssertFalse(AppleSmartBatteryMapper.hasUsableCapacity(["DesignCapacity": 0]))
+        XCTAssertFalse(AppleSmartBatteryMapper.hasUsableCapacity([:]))
+        XCTAssertNil(AppleSmartBatteryMapper.from(dictionary: ["DesignCapacity": 0, "CycleCount": 12]))
+        XCTAssertTrue(AppleSmartBatteryMapper.hasUsableCapacity(["DesignCapacity": 0, "NominalChargeCapacity": 2564]))
+        XCTAssertTrue(AppleSmartBatteryMapper.hasUsableCapacity(Self.minimalBattery))
+    }
+
+    /// The AppleSmartBattery spelling must still win when both are present, so
+    /// the fallback cannot change any reading that worked before it existed.
+    func testSerialPrefersTheSmartBatterySpelling() {
+        var d = Self.minimalBattery
+        d["Serial"] = "SMART"
+        d["BatterySerialNumber"] = "PMU"
+        XCTAssertEqual(AppleSmartBatteryMapper.from(dictionary: d)?.serial, "SMART")
+    }
 }

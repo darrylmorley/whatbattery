@@ -13,17 +13,21 @@ public enum AppleSmartBatteryMapper {
     /// Build the model from an `AppleSmartBattery` properties dictionary. Returns
     /// nil if the dictionary clearly is not a battery node (no capacity at all).
     public static func from(dictionary d: [String: Any]) -> AppleSmartBattery? {
+        // A real battery node always reports a design capacity. Bail otherwise so
+        // a stray dictionary does not become a bogus zero-capacity battery.
+        guard hasUsableCapacity(d) else { return nil }
         let design = intVal(d["DesignCapacity"])
         let rawMax = intVal(d["AppleRawMaxCapacity"])
         let nominal = intVal(d["NominalChargeCapacity"])
-        // A real battery node always reports a design capacity. Bail otherwise so
-        // a stray dictionary does not become a bogus zero-capacity battery.
-        guard design > 0 || rawMax > 0 || nominal > 0 else { return nil }
 
         return AppleSmartBattery(
             batteryInstalled: true,
             deviceName: stringVal(d["DeviceName"]) ?? "",
-            serial: stringVal(d["Serial"]) ?? "",
+            // Pre-A11 iDevices report the battery under AppleARMPMUCharger,
+            // which names the pack serial BatterySerialNumber instead of
+            // Serial. Same idea as the Voltage / AppleRawBatteryVoltage
+            // fallback below, which is also the PMU node's spelling.
+            serial: stringVal(d["Serial"]) ?? stringVal(d["BatterySerialNumber"]) ?? "",
             designCapacity: design,
             nominalChargeCapacity: nominal,
             rawMaxCapacity: rawMax,
@@ -78,6 +82,18 @@ public enum AppleSmartBatteryMapper {
                 currentTemperatureCentiC: plausibleCentiCelsius(d["Temperature"])
             )
         )
+    }
+
+    /// Whether a relay dictionary carries a capacity value `from(dictionary:)`
+    /// would accept. This is the single acceptance predicate, shared with the
+    /// relay bridge's class-fallback loop: the bridge checking mere key
+    /// presence while the mapper required a positive value meant a response
+    /// with `DesignCapacity: 0` stopped the fallback from trying the next
+    /// query, then mapped to nil anyway.
+    public static func hasUsableCapacity(_ d: [String: Any]) -> Bool {
+        intVal(d["DesignCapacity"]) > 0
+            || intVal(d["AppleRawMaxCapacity"]) > 0
+            || intVal(d["NominalChargeCapacity"]) > 0
     }
 
     // MARK: - Sub-parsers
