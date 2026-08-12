@@ -2,20 +2,24 @@ import XCTest
 @testable import WhatBatteryCore
 
 final class BatteryFormatterTests: XCTestCase {
+    // Pinned: these tests assert exact strings and must not depend on the
+    // region of the machine running them (DAR-353).
+    private let posixLocale = Locale(identifier: "en_US_POSIX")
+
     func testHealthPercentKeepsOneDecimal() {
         // The bug this guards: 99.5% must not round up to a misleading "100%".
-        XCTAssertEqual(BatteryFormatter.healthPercent(99.536), "99.5%")
-        XCTAssertEqual(BatteryFormatter.healthPercent(97.1), "97.1%")
+        XCTAssertEqual(BatteryFormatter.healthPercent(99.536, locale: posixLocale), "99.5%")
+        XCTAssertEqual(BatteryFormatter.healthPercent(97.1, locale: posixLocale), "97.1%")
     }
 
     func testHealthPercentCapsAtOneHundred() {
         // A new battery can read slightly over design; cap the display at 100.
-        XCTAssertEqual(BatteryFormatter.healthPercent(100.4), "100.0%")
-        XCTAssertEqual(BatteryFormatter.healthPercent(100.0), "100.0%")
+        XCTAssertEqual(BatteryFormatter.healthPercent(100.4, locale: posixLocale), "100.0%")
+        XCTAssertEqual(BatteryFormatter.healthPercent(100.0, locale: posixLocale), "100.0%")
     }
 
     func testHealthPercentUnknown() {
-        XCTAssertEqual(BatteryFormatter.healthPercent(nil), "unknown")
+        XCTAssertEqual(BatteryFormatter.healthPercent(nil, locale: posixLocale), "unknown")
     }
 
     func testHealthLineUsesOneDecimal() {
@@ -39,7 +43,9 @@ final class BatteryFormatterTests: XCTestCase {
             deviceModel: "Mac17,2",
             batterySerial: nil
         )
-        let line = BatteryFormatter.health(snapshot)
+        // en_US, not POSIX: POSIX defines no thousands grouping, and this test
+        // asserts the grouped capacities an English-region user sees.
+        let line = BatteryFormatter.health(snapshot, locale: Locale(identifier: "en_US"))
         XCTAssertTrue(line.hasPrefix("99.5%"), "expected 99.5% prefix, got: \(line)")
         XCTAssertTrue(line.contains("6,220"))
         XCTAssertTrue(line.contains("6,249"))
@@ -50,7 +56,8 @@ final class BatteryFormatterTests: XCTestCase {
     func testHealthLineWithoutCapacitiesIsPercentageOnly() {
         let line = BatteryFormatter.health(
             snapshot(watts: 0, state: .full, adapter: nil),
-            includeCapacities: false
+            includeCapacities: false,
+            locale: posixLocale
         )
         XCTAssertEqual(line, "99.5%")
     }
@@ -58,22 +65,22 @@ final class BatteryFormatterTests: XCTestCase {
     // MARK: - Current
 
     func testCurrentLineShowsSignedAmps() {
-        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: -1850)), "-1.85 A")
-        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: 1500, instant: 1500)), "+1.50 A")
-        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: 0, instant: 0)), "0.00 A")
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: -1850), locale: posixLocale), "-1.85 A")
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: 1500, instant: 1500), locale: posixLocale), "+1.50 A")
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: 0, instant: 0), locale: posixLocale), "0.00 A")
     }
 
     /// The unaveraged reading earns its place only when the load has actually
     /// moved; small gaps are rounding noise between two views of one number.
     func testCurrentLineAddsInstantOnlyWhenItDiffers() {
-        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: -1900)), "-1.85 A")
-        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: -3200)), "-1.85 A, -3.20 A now")
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: -1900), locale: posixLocale), "-1.85 A")
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: -3200), locale: posixLocale), "-1.85 A, -3.20 A now")
     }
 
     /// A gauge that reports no instant figure at all must not read as 0 A of
     /// draw sitting next to a real one.
     func testCurrentLineIgnoresAbsentInstantReading() {
-        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: 0)), "-1.85 A")
+        XCTAssertEqual(BatteryFormatter.current(snapshot(amperage: -1850, instant: 0), locale: posixLocale), "-1.85 A")
     }
 
     // MARK: - Charge line
@@ -148,11 +155,11 @@ final class BatteryFormatterTests: XCTestCase {
     func testPowerLineExplainsZeroWattsOnAC() {
         let charger = AdapterInfo(watts: 100, name: "pd charger")
         XCTAssertEqual(
-            BatteryFormatter.powerLine(snapshot(watts: 0, state: .full, adapter: charger)),
+            BatteryFormatter.powerLine(snapshot(watts: 0, state: .full, adapter: charger), locale: posixLocale),
             "0.0 W, fully charged  (100W pd charger)"
         )
         XCTAssertEqual(
-            BatteryFormatter.powerLine(snapshot(watts: 0, state: .acNoCharge, adapter: charger)),
+            BatteryFormatter.powerLine(snapshot(watts: 0, state: .acNoCharge, adapter: charger), locale: posixLocale),
             "0.0 W, not charging  (100W pd charger)"
         )
     }
@@ -160,11 +167,11 @@ final class BatteryFormatterTests: XCTestCase {
     func testPowerLineLeavesRealReadingsAlone() {
         let charger = AdapterInfo(watts: 100, name: "pd charger")
         XCTAssertEqual(
-            BatteryFormatter.powerLine(snapshot(watts: 58.2, state: .charging, adapter: charger)),
+            BatteryFormatter.powerLine(snapshot(watts: 58.2, state: .charging, adapter: charger), locale: posixLocale),
             "+58.2 W  (100W pd charger)"
         )
         XCTAssertEqual(
-            BatteryFormatter.powerLine(snapshot(watts: -8.5, state: .discharging, adapter: nil)),
+            BatteryFormatter.powerLine(snapshot(watts: -8.5, state: .discharging, adapter: nil), locale: posixLocale),
             "-8.5 W"
         )
     }
@@ -173,7 +180,7 @@ final class BatteryFormatterTests: XCTestCase {
     /// only the on-AC states earn an explanation.
     func testPowerLineDoesNotExplainZeroWhileDischarging() {
         XCTAssertEqual(
-            BatteryFormatter.powerLine(snapshot(watts: -0.01, state: .discharging, adapter: nil)),
+            BatteryFormatter.powerLine(snapshot(watts: -0.01, state: .discharging, adapter: nil), locale: posixLocale),
             "-0.0 W"
         )
     }
@@ -181,15 +188,15 @@ final class BatteryFormatterTests: XCTestCase {
     func testPowerLineHonoursTheReportSeparator() {
         let charger = AdapterInfo(watts: 100, name: "pd charger")
         XCTAssertEqual(
-            BatteryFormatter.powerLine(snapshot(watts: 58.2, state: .charging, adapter: charger), adapterSeparator: " "),
+            BatteryFormatter.powerLine(snapshot(watts: 58.2, state: .charging, adapter: charger), adapterSeparator: " ", locale: posixLocale),
             "+58.2 W (100W pd charger)"
         )
     }
     func testAbsentTemperatureSaysSoRatherThanPrintingZero() {
-        XCTAssertEqual(BatteryFormatter.temperature(Double?.none), "Unknown")
-        XCTAssertEqual(BatteryFormatter.temperature(Double?.none, unit: .fahrenheit), "Unknown")
+        XCTAssertEqual(BatteryFormatter.temperature(Double?.none, locale: posixLocale), "Unknown")
+        XCTAssertEqual(BatteryFormatter.temperature(Double?.none, unit: .fahrenheit, locale: posixLocale), "Unknown")
         // A genuine 0.0°C is a reading, and still prints as one.
-        XCTAssertEqual(BatteryFormatter.temperature(Double?.some(0)), "0.0°C")
+        XCTAssertEqual(BatteryFormatter.temperature(Double?.some(0), locale: posixLocale), "0.0°C")
     }
 
 }

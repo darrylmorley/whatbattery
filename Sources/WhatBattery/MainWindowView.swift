@@ -396,15 +396,15 @@ private struct DesktopPowerSection: View {
                 Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
                     GridRow {
                         Text("DC-in").foregroundStyle(.secondary).gridColumnAlignment(.leading)
-                        Text(String(format: "%.1f W", power.watts)).monospacedDigit()
+                        Text(String(format: "%.1f W", locale: .current, power.watts)).monospacedDigit()
                     }
                     GridRow {
                         Text("Voltage").foregroundStyle(.secondary)
-                        Text(String(format: "%.2f V", power.volts)).monospacedDigit()
+                        Text(String(format: "%.2f V", locale: .current, power.volts)).monospacedDigit()
                     }
                     GridRow {
                         Text("Current").foregroundStyle(.secondary)
-                        Text(String(format: "%.2f A", power.amps)).monospacedDigit()
+                        Text(String(format: "%.2f A", locale: .current, power.amps)).monospacedDigit()
                     }
                 }
                 .scaledFont(.callout)

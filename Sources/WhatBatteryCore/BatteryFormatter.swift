@@ -14,13 +14,13 @@ public enum BatteryFormatter {
     /// Battery health as a one-decimal percentage (e.g. "99.5%"), capped at 100.
     /// Health needs the decimal: rounding to a whole number lets 99.5% read as a
     /// misleading "100%" when the full-charge capacity is clearly below design.
-    public static func healthPercent(_ value: Double?) -> String {
+    public static func healthPercent(_ value: Double?, locale: Locale = .current) -> String {
         guard let value else { return "unknown" }
-        return String(format: "%.1f%%", min(value, 100))
+        return String(format: "%.1f%%", locale: locale, min(value, 100))
     }
 
-    public static func milliampHours(_ mAh: Int) -> String {
-        "\(grouped(mAh)) mAh"
+    public static func milliampHours(_ mAh: Int, locale: Locale = .current) -> String {
+        "\(grouped(mAh, locale: locale)) mAh"
     }
 
     /// Health as a percentage, with the raw capacities in brackets.
@@ -29,15 +29,15 @@ public enum BatteryFormatter {
     /// unlicensed reader gets: the app has always hidden those figures behind a
     /// licence, and this is the only reason the CLI could ever print them when
     /// the window would not.
-    public static func health(_ snapshot: BatterySnapshot, includeCapacities: Bool = true) -> String {
-        let pct = healthPercent(snapshot.healthPercent)
+    public static func health(_ snapshot: BatterySnapshot, includeCapacities: Bool = true, locale: Locale = .current) -> String {
+        let pct = healthPercent(snapshot.healthPercent, locale: locale)
         guard includeCapacities, snapshot.fullChargeCapacitymAh > 0, snapshot.designCapacitymAh > 0 else { return pct }
-        return "\(pct) (\(grouped(snapshot.fullChargeCapacitymAh)) / \(grouped(snapshot.designCapacitymAh)) mAh)"
+        return "\(pct) (\(grouped(snapshot.fullChargeCapacitymAh, locale: locale)) / \(grouped(snapshot.designCapacitymAh, locale: locale)) mAh)"
     }
 
-    public static func power(_ watts: Double) -> String {
+    public static func power(_ watts: Double, locale: Locale = .current) -> String {
         let sign = watts > 0 ? "+" : (watts < 0 ? "-" : "")
-        return String(format: "%@%.1f W", sign, abs(watts))
+        return String(format: "%@%.1f W", locale: locale, sign, abs(watts))
     }
 
     /// The full "Power" line: the live wattage, why it is zero when it is, and
@@ -53,9 +53,10 @@ public enum BatteryFormatter {
     public static func powerLine(
         _ snapshot: BatterySnapshot,
         adapterSeparator: String = "  ",
-        includeAdapter: Bool = true
+        includeAdapter: Bool = true,
+        locale: Locale = .current
     ) -> String {
-        var text = power(snapshot.powerWatts)
+        var text = power(snapshot.powerWatts, locale: locale)
         // power() prints one decimal place, so anything under 0.05 shows as 0.0.
         if abs(snapshot.powerWatts) < 0.05 {
             switch snapshot.chargingState {
@@ -74,12 +75,12 @@ public enum BatteryFormatter {
     /// CLI's no-battery fallback and the GUI's desktop power view so the two
     /// never drift. Raw doubles rather than the SMC struct because Core cannot
     /// see the Darwin backend.
-    public static func dcInPower(watts: Double, volts: Double, amps: Double) -> String {
-        String(format: "%.1f W (%.2f V, %.2f A)", watts, volts, amps)
+    public static func dcInPower(watts: Double, volts: Double, amps: Double, locale: Locale = .current) -> String {
+        String(format: "%.1f W (%.2f V, %.2f A)", locale: locale, watts, volts, amps)
     }
 
-    public static func voltage(_ millivolts: Int) -> String {
-        String(format: "%.2f V", Double(millivolts) / 1000)
+    public static func voltage(_ millivolts: Int, locale: Locale = .current) -> String {
+        String(format: "%.2f V", locale: locale, Double(millivolts) / 1000)
     }
 
     /// The current the gauge reports, signed the same way as power: positive into
@@ -96,11 +97,11 @@ public enum BatteryFormatter {
     /// Silicon the discharge watts come from the SMC's live rail while this comes
     /// from the gauge, so a load that has just moved shows up in one before the
     /// other.
-    public static func current(_ snapshot: BatterySnapshot) -> String {
-        var text = amps(snapshot.amperageMilliamps)
+    public static func current(_ snapshot: BatterySnapshot, locale: Locale = .current) -> String {
+        var text = amps(snapshot.amperageMilliamps, locale: locale)
         let instant = snapshot.instantAmperageMilliamps
         if instant != 0, abs(instant - snapshot.amperageMilliamps) >= instantAmperageGapMA {
-            text += ", \(amps(instant)) now"
+            text += ", \(amps(instant, locale: locale)) now"
         }
         return text
     }
@@ -109,24 +110,24 @@ public enum BatteryFormatter {
     /// rounding noise between them, and showing both would be clutter.
     private static let instantAmperageGapMA = 100
 
-    private static func amps(_ milliamps: Int) -> String {
+    private static func amps(_ milliamps: Int, locale: Locale) -> String {
         let sign = milliamps > 0 ? "+" : (milliamps < 0 ? "-" : "")
-        return String(format: "%@%.2f A", sign, abs(Double(milliamps)) / 1000)
+        return String(format: "%@%.2f A", locale: locale, sign, abs(Double(milliamps)) / 1000)
     }
 
     /// A pack that reported no usable temperature says so, rather than being
     /// printed as a believable 0.0°C.
-    public static func temperature(_ celsius: Double?, unit: TemperatureUnit = .celsius) -> String {
+    public static func temperature(_ celsius: Double?, unit: TemperatureUnit = .celsius, locale: Locale = .current) -> String {
         guard let celsius else { return "Unknown" }
-        return temperature(celsius, unit: unit)
+        return temperature(celsius, unit: unit, locale: locale)
     }
 
-    public static func temperature(_ celsius: Double, unit: TemperatureUnit = .celsius) -> String {
+    public static func temperature(_ celsius: Double, unit: TemperatureUnit = .celsius, locale: Locale = .current) -> String {
         switch unit {
         case .celsius:
-            return String(format: "%.1f°C", celsius)
+            return String(format: "%.1f°C", locale: locale, celsius)
         case .fahrenheit:
-            return String(format: "%.1f°F", celsius * 9 / 5 + 32)
+            return String(format: "%.1f°F", locale: locale, celsius * 9 / 5 + 32)
         }
     }
 
@@ -178,10 +179,13 @@ public enum BatteryFormatter {
         }
     }
 
-    private static func grouped(_ value: Int) -> String {
+    // Locale-driven grouping: 8,694 in en, 8.694 in nl, 8 694 in fr. The
+    // hard-coded "," this replaces was the report from a comma-decimal
+    // locale user (DAR-353).
+    private static func grouped(_ value: Int, locale: Locale) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.groupingSeparator = ","
+        formatter.locale = locale
         return formatter.string(from: NSNumber(value: value)) ?? "\(value)"
     }
 }

@@ -36,6 +36,32 @@ enum MobileDeviceBridge {
         let batteryDictionary: [String: Any]?
     }
 
+    /// One relay query and what came back, verbatim, for the diagnostic dump.
+    struct QueryDump {
+        let request: String          // e.g. "EntryClass=AppleSmartBattery"
+        let outcome: String          // human-readable: answered / no entry / transport failure
+        /// The WHOLE decoded relay reply, not the nested IORegistry entry the
+        /// production read extracts: a diagnostic that trims the response can
+        /// hide the status or metadata that explains the case it was captured
+        /// for.
+        let dictionary: [String: Any]?
+        /// True when the reply actually carried the requested registry entry.
+        /// This is what "the device answered with data" means to the
+        /// interface fallback.
+        let hasEntry: Bool
+    }
+
+    /// One device's identity plus every battery query's outcome.
+    struct RawDeviceDump {
+        let udid: String
+        let productType: String
+        let productVersion: String
+        let deviceName: String
+        let connectionType: String
+        let reached: Bool
+        let queries: [QueryDump]
+    }
+
     // MARK: - Symbol binding
 
     private typealias FnCreateList = @convention(c) () -> Unmanaged<CFArray>?
@@ -113,6 +139,23 @@ enum MobileDeviceBridge {
     /// connected. Never throws: a per-device failure yields a `RawDevice` with a
     /// nil `batteryDictionary` so identity is still reported.
     static func readAll() -> [RawDevice] {
+        enumerateDeviceGroups { read(anyOf: $0, symbols: $1) }
+    }
+
+    /// Diagnostic raw dump: every device, every battery query, every response
+    /// kept verbatim (`whatbattery --idevice-raw`). Exists so a user with
+    /// hardware we do not have can hand over the exact relay dictionaries
+    /// (DAR-352: which PMU capacity key is the measurement is unanswerable
+    /// without one of these).
+    static func dumpAll() -> [RawDeviceDump] {
+        enumerateDeviceGroups { dump(anyOf: $0, symbols: $1) }
+    }
+
+    /// Shared device enumeration for `readAll`/`dumpAll`: list, group by UDID,
+    /// and hand each physical device's interfaces to `body`.
+    private static func enumerateDeviceGroups<T>(
+        _ body: ([UnsafeMutableRawPointer], Symbols) -> T?
+    ) -> [T] {
         lock.lock()
         defer { lock.unlock() }
         guard let s = symbols, let listUM = s.createList() else { return [] }
@@ -143,7 +186,7 @@ enum MobileDeviceBridge {
         // inside the same loop, which kept the array alive by accident; splitting
         // discovery from reading is what put that at risk.
         return withExtendedLifetime(list) {
-            interfacesPerDevice(candidates).compactMap { read(anyOf: $0, symbols: s) }
+            interfacesPerDevice(candidates).compactMap { body($0, s) }
         }
     }
 
@@ -181,6 +224,103 @@ enum MobileDeviceBridge {
     private static func rank(_ attempt: RawDevice) -> Int {
         if attempt.batteryDictionary != nil { return 2 }
         return attempt.reached ? 1 : 0
+    }
+
+    // MARK: - Raw dump
+
+    /// Dump a device, trying each of its interfaces until one actually
+    /// answers a query with data. Merely reaching a session is not enough to
+    /// stop: a stale USB entry can open a session and then fail every relay
+    /// query, and stopping there would report failure for a device whose WiFi
+    /// interface answers fine, in the exact diagnostic that exists because we
+    /// cannot reproduce the device. Same principle as the production
+    /// `read(anyOf:)`: preference decides the order, not the only candidate,
+    /// and when everything fails the most informative attempt is reported.
+    private static func dump(anyOf interfaces: [UnsafeMutableRawPointer], symbols s: Symbols) -> RawDeviceDump? {
+        var best: RawDeviceDump?
+        for dev in interfaces {
+            let attempt = dump(device: dev, symbols: s)
+            if attempt.queries.contains(where: \.hasEntry) { return attempt }
+            if best == nil || dumpRank(attempt) > dumpRank(best!) { best = attempt }
+        }
+        return best
+    }
+
+    /// Informativeness of a failed dump attempt: any received response beats
+    /// having queried and got nothing, which beats a bare session, which
+    /// beats not connecting at all.
+    private static func dumpRank(_ attempt: RawDeviceDump) -> Int {
+        if attempt.queries.contains(where: { $0.dictionary != nil }) { return 3 }
+        if !attempt.queries.isEmpty { return 2 }
+        return attempt.reached ? 1 : 0
+    }
+
+    private static func dump(device dev: UnsafeMutableRawPointer, symbols s: Symbols) -> RawDeviceDump {
+        let udid = s.copyID(dev)?.takeRetainedValue() as String? ?? ""
+        let connection = connectionLabel(s.interfaceType(dev))
+
+        guard s.connect(dev) == 0 else {
+            return RawDeviceDump(udid: udid, productType: "", productVersion: "", deviceName: "",
+                                 connectionType: connection, reached: false, queries: [])
+        }
+        defer { _ = s.disconnect(dev) }
+
+        _ = s.validate(dev)
+        let sessionOK = s.startSession(dev) == 0
+        defer { if sessionOK { _ = s.stopSession(dev) } }
+
+        let dump = RawDeviceDump(
+            udid: udid,
+            productType: copyString(s, dev, "ProductType"),
+            productVersion: copyString(s, dev, "ProductVersion"),
+            deviceName: copyString(s, dev, "DeviceName"),
+            connectionType: connection,
+            reached: sessionOK,
+            queries: sessionOK ? dumpQueries(s, dev) : []
+        )
+        return dump
+    }
+
+    /// Ask every battery query and record every answer verbatim. Unlike the
+    /// production read this never stops at the first usable response, because
+    /// the whole point is seeing what ALL the nodes say (DAR-352 needs the
+    /// AppleSmartBattery and PMU answers side by side). It still stops on a
+    /// transport failure, for the same reason the production read does: the
+    /// connection's in-flight state is unknown after one.
+    private static func dumpQueries(_ s: Symbols, _ dev: UnsafeMutableRawPointer) -> [QueryDump] {
+        guard let conn = openRelay(s, dev) else {
+            return [QueryDump(request: "(open diagnostics relay)",
+                              outcome: "the diagnostics relay service did not start",
+                              dictionary: nil, hasEntry: false)]
+        }
+        defer { _ = s.invalidate(conn) }
+
+        var dumps: [QueryDump] = []
+        for request in batteryRequests {
+            let label = request
+                .filter { $0.key != "Request" }
+                .map { "\($0.key)=\($0.value)" }
+                .sorted()
+                .joined(separator: ", ")
+            switch queryIORegistryFull(s, conn, request) {
+            case .transportFailure:
+                dumps.append(QueryDump(request: label,
+                                       outcome: "transport failure (no clean reply); remaining queries skipped",
+                                       dictionary: nil, hasEntry: false))
+                return dumps
+            case .response(let resp):
+                // The whole reply is kept either way: a "no entry" answer's
+                // status and shape are evidence too.
+                let hasEntry = registryEntry(in: resp) != nil
+                dumps.append(QueryDump(
+                    request: label,
+                    outcome: hasEntry ? "answered" : "answered: no matching entry (full response kept)",
+                    dictionary: resp,
+                    hasEntry: hasEntry
+                ))
+            }
+        }
+        return dumps
     }
 
     /// The interfaces of each physical device, grouped by UDID, USB first.
@@ -254,13 +394,13 @@ enum MobileDeviceBridge {
         )
     }
 
-    private static func readBatteryDictionary(_ s: Symbols, _ dev: UnsafeMutableRawPointer) -> [String: Any]? {
+    /// Open the diagnostics relay with the socket timeouts applied. The caller
+    /// owns teardown (`invalidate`): leaking the connection exhausts lockdown
+    /// resources and makes later reads fail or hang.
+    private static func openRelay(_ s: Symbols, _ dev: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? {
         var conn: UnsafeMutableRawPointer? = nil
         let svcRC = s.secureStart(dev, "com.apple.mobile.diagnostics_relay" as CFString, nil, &conn)
         guard svcRC == 0, let conn else { return nil }
-        // Always tear the relay connection down: leaking it exhausts lockdown
-        // resources and makes later reads fail or hang.
-        defer { _ = s.invalidate(conn) }
 
         // Bound the read: if the device disconnects mid-read or the relay never
         // replies, a socket-level timeout makes ReceiveMessage fail instead of
@@ -271,21 +411,13 @@ enum MobileDeviceBridge {
             setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
             setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, socklen_t(MemoryLayout<timeval>.size))
         }
+        return conn
+    }
 
-        // Pre-A11 hardware (e.g. the A10X iPad Pro 10,5", last supported by
-        // iPadOS 17) has no AppleSmartBattery node at all: its battery lives
-        // under the PMU as AppleARMPMUCharger, with largely the same keys. A
-        // user's iPad Pro 10,5" on iPadOS 17.7.11 answered the relay but had
-        // nothing under AppleSmartBattery, so it read as "reported no battery"
-        // while coconutBattery (which queries the older class too) showed the
-        // pack. Queried by class first, then by name, because which of the two
-        // the relay matches for this node has varied between tools/iOS
-        // versions and both are cheap on the one connection already open.
-        let requests: [[String: Any]] = [
-            ["Request": "IORegistry", "EntryClass": "AppleSmartBattery"],
-            ["Request": "IORegistry", "EntryClass": "AppleARMPMUCharger"],
-            ["Request": "IORegistry", "EntryName": "AppleARMPMUCharger"],
-        ]
+    private static func readBatteryDictionary(_ s: Symbols, _ dev: UnsafeMutableRawPointer) -> [String: Any]? {
+        guard let conn = openRelay(s, dev) else { return nil }
+        defer { _ = s.invalidate(conn) }
+
         // A response that exists but carries no usable capacity is kept only as
         // a last resort: it lets the caller report the shape it saw rather than
         // silence, but must not stop the next query from finding the real node.
@@ -293,7 +425,7 @@ enum MobileDeviceBridge {
         // `DesignCapacity: 0` answer would otherwise end the fallback here and
         // still map to nothing.
         var shapelessFallback: [String: Any]? = nil
-        for request in requests {
+        for request in batteryRequests {
             switch queryIORegistry(s, conn, request) {
             case .transportFailure:
                 // Send or receive failed, so the connection's in-flight state
@@ -315,6 +447,22 @@ enum MobileDeviceBridge {
         return shapelessFallback
     }
 
+    /// The battery queries, in preference order. Pre-A11 hardware (e.g. the
+    /// A10X iPad Pro 10,5", last supported by iPadOS 17) has no
+    /// AppleSmartBattery node at all: its battery lives under the PMU as
+    /// AppleARMPMUCharger, with largely the same keys. A user's iPad Pro 10,5"
+    /// on iPadOS 17.7.11 answered the relay but had nothing under
+    /// AppleSmartBattery, so it read as "reported no battery" while
+    /// coconutBattery (which queries the older class too) showed the pack.
+    /// Queried by class first, then by name, because which of the two the
+    /// relay matches for this node has varied between tools/iOS versions and
+    /// both are cheap on the one connection already open.
+    private static let batteryRequests: [[String: Any]] = [
+        ["Request": "IORegistry", "EntryClass": "AppleSmartBattery"],
+        ["Request": "IORegistry", "EntryClass": "AppleARMPMUCharger"],
+        ["Request": "IORegistry", "EntryName": "AppleARMPMUCharger"],
+    ]
+
     private enum QueryOutcome {
         /// The relay returned the requested node's properties.
         case entry([String: Any])
@@ -327,25 +475,49 @@ enum MobileDeviceBridge {
         case transportFailure
     }
 
-    private static func queryIORegistry(
+    /// The raw exchange: a decoded reply, or a transport failure.
+    private enum FullQueryOutcome {
+        case response([String: Any])
+        case transportFailure
+    }
+
+    private static func queryIORegistryFull(
         _ s: Symbols,
         _ conn: UnsafeMutableRawPointer,
         _ request: [String: Any]
-    ) -> QueryOutcome {
+    ) -> FullQueryOutcome {
         guard s.send(conn, request as CFDictionary, .xmlFormat_v1_0) == 0 else { return .transportFailure }
 
         var respUM: Unmanaged<CFTypeRef>? = nil
         var fmt: CFPropertyListFormat = .xmlFormat_v1_0
         guard s.receive(conn, &respUM, &fmt) == 0,
               let resp = respUM?.takeRetainedValue() as? [String: Any] else { return .transportFailure }
+        return .response(resp)
+    }
 
-        // The relay nests the entry under Diagnostics.IORegistry on success. A
-        // well-formed answer without it (Status "Failure", or Success with no
-        // entry) is a clean "no such node", not a transport problem.
-        guard (resp["Status"] as? String) == "Success",
-              let diag = resp["Diagnostics"] as? [String: Any],
-              let io = diag["IORegistry"] as? [String: Any] else { return .noEntry }
-        return .entry(io)
+    /// The relay nests the entry under Diagnostics.IORegistry on success.
+    private static func registryEntry(in response: [String: Any]) -> [String: Any]? {
+        guard (response["Status"] as? String) == "Success",
+              let diag = response["Diagnostics"] as? [String: Any],
+              let io = diag["IORegistry"] as? [String: Any] else { return nil }
+        return io
+    }
+
+    private static func queryIORegistry(
+        _ s: Symbols,
+        _ conn: UnsafeMutableRawPointer,
+        _ request: [String: Any]
+    ) -> QueryOutcome {
+        switch queryIORegistryFull(s, conn, request) {
+        case .transportFailure:
+            return .transportFailure
+        case .response(let resp):
+            // A well-formed answer without the entry (Status "Failure", or
+            // Success with no entry) is a clean "no such node", not a
+            // transport problem.
+            guard let io = registryEntry(in: resp) else { return .noEntry }
+            return .entry(io)
+        }
     }
 
     // MARK: - Helpers
