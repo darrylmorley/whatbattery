@@ -3,7 +3,7 @@ import XCTest
 
 final class BatteryFormatterTests: XCTestCase {
     // Pinned: these tests assert exact strings and must not depend on the
-    // region of the machine running them (DAR-353).
+    // region of the machine running them.
     private let posixLocale = Locale(identifier: "en_US_POSIX")
 
     func testHealthPercentKeepsOneDecimal() {

@@ -181,7 +181,7 @@ public enum BatteryFormatter {
 
     // Locale-driven grouping: 8,694 in en, 8.694 in nl, 8 694 in fr. The
     // hard-coded "," this replaces was the report from a comma-decimal
-    // locale user (DAR-353).
+    // locale user.
     private static func grouped(_ value: Int, locale: Locale) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal

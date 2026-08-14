@@ -62,6 +62,22 @@ final class IDeviceUnreadableReasonTests: XCTestCase {
         XCTAssertNil(reason(reached: true, battery: realBattery()))
     }
 
+    /// `classify` must pass the bridge's PMU flag straight through to the
+    /// mapped model rather than drop it, since that flag is what makes
+    /// `fullChargeCapacitymAh` pick the right key on a pre-A11 device.
+    func testClassifyThreadsThePMUFlagThrough() throws {
+        let dict = realBattery()
+        let smart = try XCTUnwrap(
+            IDeviceBatteryReader.classify(reached: true, batteryDictionary: dict).get()
+        )
+        XCTAssertFalse(smart.isPMUSourced)
+
+        let pmu = try XCTUnwrap(
+            IDeviceBatteryReader.classify(reached: true, batteryDictionary: dict, isPMUSourced: true).get()
+        )
+        XCTAssertTrue(pmu.isPMUSourced)
+    }
+
     /// Each reason has to say something different, or splitting them bought
     /// nothing. Also guards against a copy-paste leaving two cases identical.
     func testEveryReasonReadsDifferently() {

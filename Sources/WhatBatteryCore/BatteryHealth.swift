@@ -46,7 +46,7 @@ public enum BatteryHealth {
     /// `AppleSmartBattery.temperature` is non-optional and has always taken 0 to
     /// mean absent (`virtualTemperature > 0` gates its own display the same way).
     /// Passing that 0 through `celsius(fromCentiCelsius:)` produces 0.0°C, which
-    /// is worse than the bug DAR-326 fixed: 454°C announces itself as broken,
+    /// is worse than the 454°C lifetime-scale bug: 454°C announces itself as broken,
     /// 0.0°C reads as a cold room. It reached the display, `--json`, the widget,
     /// the temperature alert and the lifetime minimum, where it would have stood
     /// as a fabricated all-time low forever.
@@ -77,7 +77,7 @@ public enum BatteryHealth {
     /// 0.06°C, while reading it as centi-Celsius is out by 2.28°C. The old
     /// reading also squeezed every machine in the corpus into 29.31°C to 31.94°C,
     /// which is not a temperature distribution; this one spans 20.0°C to 46.3°C
-    /// (DAR-329).
+    ///.
     ///
     /// Returns nil rather than a number when the result could not be a battery,
     /// so a caller can tell "no reading" from "0°C".

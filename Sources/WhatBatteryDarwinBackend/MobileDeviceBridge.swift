@@ -34,6 +34,11 @@ enum MobileDeviceBridge {
         /// but silent", which is the wrong advice for the commonest cause.
         let reached: Bool
         let batteryDictionary: [String: Any]?
+        /// True when `batteryDictionary` came from the PMU fallback query
+        /// (`AppleARMPMUCharger`), not the `AppleSmartBattery` node. Known
+        /// exactly, from which of `batteryRequests` answered: see
+        /// `readBatteryDictionary`. False whenever `batteryDictionary` is nil.
+        let batteryIsPMUSourced: Bool
     }
 
     /// One relay query and what came back, verbatim, for the diagnostic dump.
@@ -145,7 +150,7 @@ enum MobileDeviceBridge {
     /// Diagnostic raw dump: every device, every battery query, every response
     /// kept verbatim (`whatbattery --idevice-raw`). Exists so a user with
     /// hardware we do not have can hand over the exact relay dictionaries
-    /// (DAR-352: which PMU capacity key is the measurement is unanswerable
+    /// (which PMU capacity key is the measurement is unanswerable
     /// without one of these).
     static func dumpAll() -> [RawDeviceDump] {
         enumerateDeviceGroups { dump(anyOf: $0, symbols: $1) }
@@ -283,7 +288,8 @@ enum MobileDeviceBridge {
 
     /// Ask every battery query and record every answer verbatim. Unlike the
     /// production read this never stops at the first usable response, because
-    /// the whole point is seeing what ALL the nodes say (DAR-352 needs the
+    /// the whole point is seeing what ALL the nodes say (the PMU capacity
+    /// question needs the
     /// AppleSmartBattery and PMU answers side by side). It still stops on a
     /// transport failure, for the same reason the production read does: the
     /// connection's in-flight state is unknown after one.
@@ -364,7 +370,7 @@ enum MobileDeviceBridge {
         guard s.connect(dev) == 0 else {
             return RawDevice(udid: udid, productType: "", productVersion: "", deviceName: "",
                              serial: "", connectionType: connection, reached: false,
-                             batteryDictionary: nil)
+                             batteryDictionary: nil, batteryIsPMUSourced: false)
         }
         defer { _ = s.disconnect(dev) }
 
@@ -390,7 +396,8 @@ enum MobileDeviceBridge {
             // device was not reached in any sense that matters here, however
             // much of its identity it was willing to hand over.
             reached: sessionOK,
-            batteryDictionary: battery
+            batteryDictionary: battery?.dictionary,
+            batteryIsPMUSourced: battery?.isPMUSourced ?? false
         )
     }
 
@@ -414,7 +421,14 @@ enum MobileDeviceBridge {
         return conn
     }
 
-    private static func readBatteryDictionary(_ s: Symbols, _ dev: UnsafeMutableRawPointer) -> [String: Any]? {
+    /// One battery query's answer plus which node it came from, so the caller
+    /// can tell the mapper explicitly rather than have it guess from key shape.
+    private struct BatteryDictionaryResult {
+        let dictionary: [String: Any]
+        let isPMUSourced: Bool
+    }
+
+    private static func readBatteryDictionary(_ s: Symbols, _ dev: UnsafeMutableRawPointer) -> BatteryDictionaryResult? {
         guard let conn = openRelay(s, dev) else { return nil }
         defer { _ = s.invalidate(conn) }
 
@@ -424,8 +438,13 @@ enum MobileDeviceBridge {
         // Usability is the mapper's own predicate, not key presence: a
         // `DesignCapacity: 0` answer would otherwise end the fallback here and
         // still map to nothing.
-        var shapelessFallback: [String: Any]? = nil
-        for request in batteryRequests {
+        var shapelessFallback: BatteryDictionaryResult? = nil
+        for (index, request) in batteryRequests.enumerated() {
+            // Index 0 is the AppleSmartBattery query; every other entry is a
+            // PMU fallback (AppleARMPMUCharger, by class then by name). This is
+            // the one place that knows which query answered, so it is the one
+            // place the PMU flag can be set correctly.
+            let isPMUSourced = index > 0
             switch queryIORegistry(s, conn, request) {
             case .transportFailure:
                 // Send or receive failed, so the connection's in-flight state
@@ -440,8 +459,12 @@ enum MobileDeviceBridge {
             case .noEntry:
                 continue
             case .entry(let io):
-                if AppleSmartBatteryMapper.hasUsableCapacity(io) { return io }
-                if shapelessFallback == nil { shapelessFallback = io }
+                if AppleSmartBatteryMapper.hasUsableCapacity(io) {
+                    return BatteryDictionaryResult(dictionary: io, isPMUSourced: isPMUSourced)
+                }
+                if shapelessFallback == nil {
+                    shapelessFallback = BatteryDictionaryResult(dictionary: io, isPMUSourced: isPMUSourced)
+                }
             }
         }
         return shapelessFallback

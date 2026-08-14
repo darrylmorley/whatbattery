@@ -113,7 +113,7 @@ final class BatterySnapshotBuilderTests: XCTestCase {
     }
     /// The reader stores 0 when neither `Temperature` nor `VirtualTemperature`
     /// gave a usable reading. Passed through as 0.0°C it reads as a cold room,
-    /// which is a worse lie than the 454°C that started DAR-326: it reached the
+    /// which is a worse lie than the 454°C the lifetime-scale fix removed: it reached the
     /// display, `--json`, the widget, the temperature alert and the lifetime
     /// minimum, where it would have stood as an all-time low forever.
     func testAbsentTemperatureIsNilRatherThanZeroDegrees() {

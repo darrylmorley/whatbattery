@@ -45,7 +45,7 @@ public enum AppleSmartBatteryReader {
         // it always has.
         //
         // `Temperature` is tenths of a Kelvin here, not centi-Celsius: macOS
-        // publishes the raw SmartBattery value (DAR-329). Converting at the edge
+        // publishes the raw SmartBattery value. Converting at the edge
         // means `AppleSmartBattery.temperature` means the same thing whichever
         // reader filled it, which is what the rest of the app assumes.
         // `VirtualTemperature` is the same measurement compensated by the gauge,

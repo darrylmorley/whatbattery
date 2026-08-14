@@ -34,7 +34,7 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
     }
 
     /// A real iPhone 15 (iOS 26.6) read over the relay on 2026-08-08, charging.
-    /// Captured specifically to settle the question DAR-329 left open, since the
+    /// Captured specifically to settle the question the Mac temperature correction left open, since the
     /// probe corpus contains no iDevice dumps at all.
     private func iPhone15Fixture() -> [String: Any] {
         [
@@ -63,7 +63,7 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
     /// iOS publishes `Temperature` in centi-Celsius, unlike macOS, because iOS
     /// falls under `!TARGET_OS_OSX` in Apple's driver and gets the conversion
     /// applied on-device. So the mapper must NOT convert from deci-Kelvin the
-    /// way the Mac reader does (DAR-329).
+    /// way the Mac reader does.
     ///
     /// The raw value proves it on its own: 2809 read as centi-Celsius is 28.1°C,
     /// which is what a charging phone feels like. Read as deci-Kelvin it is
@@ -80,7 +80,7 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
     }
 
     /// The same phone reports its LIFETIME extremes in deci-degrees, so it needs
-    /// the DAR-326 scale resolution as much as an M1 does, and the cross-check
+    /// the deci-degree scale resolution as much as an M1 does, and the cross-check
     /// gets a current reading in the units it expects.
     func testIDeviceLifetimeTemperaturesAreResolvedAsDeciDegrees() throws {
         let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: iPhone15Fixture()))
@@ -93,7 +93,7 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
     }
 
     /// One cell, so pack voltage and per-cell voltage are the same number, and
-    /// charge power comes out right from the pack figures (DAR-323).
+    /// charge power comes out right from the pack figures.
     func testIDeviceChargePowerFromThePack() throws {
         let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: iPhone15Fixture()))
         let snapshot = BatterySnapshotBuilder.build(
@@ -396,6 +396,36 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         XCTAssertEqual(battery.serial, "F8Y12345ABCD", "PMU spelling of the pack serial")
         XCTAssertEqual(battery.voltage, 3812, "no Voltage key; falls back to AppleRawBatteryVoltage")
         XCTAssertTrue(battery.isPlausible, "must pass the reader's plausibility gate, not just map")
+    }
+
+    /// The user's iPad Pro 10,5" (A10X, iPadOS 17.7.11) that motivated the PMU
+    /// capacity fix. The PMU dictionary carried NominalChargeCapacity=6516
+    /// (static across days: a rated value) and AppleRawMaxCapacity=5336
+    /// (moved 5487 to 5336 across two days, matching coconutBattery each day:
+    /// a measured value). Design capacity 7966 was correct on both apps.
+    /// `isPMUSourced: true` must flip the preference to the measured field;
+    /// the exact same dictionary treated as AppleSmartBattery-sourced (the
+    /// default) must keep the old nominal-first preference, since that
+    /// preference is still correct on a Mac and on A11+ devices.
+    func testPMUFallbackPrefersMeasuredOverRatedCapacity() throws {
+        let d: [String: Any] = [
+            "DesignCapacity": 7966,
+            "NominalChargeCapacity": 6516,
+            "AppleRawMaxCapacity": 5336,
+            "AppleRawCurrentCapacity": 4000,
+            "CurrentCapacity": 60,
+            "CycleCount": 200,
+        ]
+
+        let pmuBattery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: d, isPMUSourced: true))
+        XCTAssertTrue(pmuBattery.isPMUSourced)
+        XCTAssertEqual(pmuBattery.fullChargeCapacitymAh, 5336, "measured AppleRawMaxCapacity must win on the PMU path")
+        let pmuHealth = Double(pmuBattery.fullChargeCapacitymAh) / Double(pmuBattery.designCapacity) * 100
+        XCTAssertEqual(pmuHealth, 67.0, accuracy: 0.5)
+
+        let smartBattery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: d))
+        XCTAssertFalse(smartBattery.isPMUSourced, "default must stay AppleSmartBattery-sourced")
+        XCTAssertEqual(smartBattery.fullChargeCapacitymAh, 6516, "rated NominalChargeCapacity still wins off the PMU path")
     }
 
     /// The relay bridge's class-fallback loop stops on the first response this

@@ -38,7 +38,7 @@ public struct AppleSmartBattery: Equatable, Sendable {
     public let instantAmperage: Int         // mA, signed
     /// Centi-degrees Celsius, normalised by whichever reader filled this in. The
     /// raw IOKit key is NOT this unit on a Mac: it is tenths of a Kelvin, and
-    /// `AppleSmartBatteryReader` converts it (DAR-329). 0 means no reading.
+    /// `AppleSmartBatteryReader` converts it. 0 means no reading.
     public let temperature: Int
     /// Centi-degrees Celsius. The driver publishes this one already converted on
     /// every platform, so it is passed through untouched.
@@ -63,6 +63,15 @@ public struct AppleSmartBattery: Equatable, Sendable {
     public let adapter: AdapterInfo?
     /// Per-cell and lifetime figures from the gauge's `BatteryData` blob.
     public let packDetail: BatteryPackDetail?
+
+    /// True when this reading came from the pre-A11 PMU fallback
+    /// (`AppleARMPMUCharger`), not the `AppleSmartBattery` node. Set explicitly
+    /// by whoever queried the relay (`MobileDeviceBridge` knows which of its
+    /// requests answered); never inferred from which keys are present, since
+    /// both nodes largely share a key set. False for every Mac reading and
+    /// every AppleSmartBattery-sourced iDevice reading. See
+    /// `fullChargeCapacitymAh` for why this flag exists.
+    public let isPMUSourced: Bool
 
     public init(
         batteryInstalled: Bool = false,
@@ -90,7 +99,8 @@ public struct AppleSmartBattery: Equatable, Sendable {
         timeRemainingMinutes: Int = 0,
         chargerData: ChargerData? = nil,
         adapter: AdapterInfo? = nil,
-        packDetail: BatteryPackDetail? = nil
+        packDetail: BatteryPackDetail? = nil,
+        isPMUSourced: Bool = false
     ) {
         self.batteryInstalled = batteryInstalled
         self.deviceName = deviceName
@@ -118,12 +128,25 @@ public struct AppleSmartBattery: Equatable, Sendable {
         self.chargerData = chargerData
         self.adapter = adapter
         self.packDetail = packDetail
+        self.isPMUSourced = isPMUSourced
     }
 
     /// The best available full-charge capacity in mAh. Prefers
-    /// `nominalChargeCapacity`, falling back to `rawMaxCapacity`.
+    /// `nominalChargeCapacity`, falling back to `rawMaxCapacity`, on a Mac and
+    /// on an AppleSmartBattery-sourced iDevice reading.
+    ///
+    /// The PMU fallback (`AppleARMPMUCharger`, pre-A11 iDevices) inverts that
+    /// preference: on a user's iPad Pro 10,5" (A10X), the PMU dictionary's
+    /// NominalChargeCapacity sat fixed at 6516 across days (a rated value),
+    /// while AppleRawMaxCapacity moved 5487 to 5336, matching coconutBattery
+    /// each day (a measured value). Design capacity (7966) was correct on both
+    /// apps, so the nominal-first preference alone was reading 82% health where
+    /// the true figure is 67%.
     public var fullChargeCapacitymAh: Int {
-        nominalChargeCapacity > 0 ? nominalChargeCapacity : rawMaxCapacity
+        if isPMUSourced {
+            return rawMaxCapacity > 0 ? rawMaxCapacity : nominalChargeCapacity
+        }
+        return nominalChargeCapacity > 0 ? nominalChargeCapacity : rawMaxCapacity
     }
 
     /// Whether this looks like a real, sane battery reading worth showing.

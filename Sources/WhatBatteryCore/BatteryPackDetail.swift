@@ -209,14 +209,14 @@ public struct BatteryLifetime: Equatable, Sendable {
     /// The gauge does not say which scale it is using, and it is not the same on
     /// every machine: 114 of the 746 corpus machines carrying `LifetimeData`
     /// report deci-degrees and 632 report whole ones. Printing them raw is what
-    /// told a MacBook Air M1 owner his battery had reached 454°C (DAR-326).
+    /// told a MacBook Air M1 owner his battery had reached 454°C.
     ///
     /// There is no field to ask. `LifetimeData` has no unit or version key, and
     /// while the fuel gauge is a strong predictor (every `bq20z451` in the corpus
     /// is deci, nearly every `bq40z651` is whole) it is not authoritative: one
     /// `bq40z651` machine reports deci, so an allowlist would ship a wrong number
     /// to somebody. The scale tracks pack and firmware revisions rather than a
-    /// name we can enumerate, exactly like `ChargingVoltage` in DAR-323.
+    /// name we can enumerate, exactly like `ChargingVoltage` before it.
     ///
     /// So it is settled from the data, with two independent signals:
     ///
@@ -311,7 +311,7 @@ public struct BatteryLifetime: Equatable, Sendable {
     ///
     /// If *both* fit, the scale is genuinely ambiguous (min 0, max 50, raw 20
     /// could be 20°C or 2°C) and we report nothing. This is the original
-    /// heuristic; what changed in DAR-326 is that it is now measured against a
+    /// heuristic; what the deci-degree fix changed is that it is now measured against a
     /// range in known units, rather than against whatever the pair happened to
     /// be reported in.
     private static func averageTemperature(_ value: Any?, range: (min: Double, max: Double)?) -> Double? {

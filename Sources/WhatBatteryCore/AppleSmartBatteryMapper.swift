@@ -12,7 +12,14 @@ import Foundation
 public enum AppleSmartBatteryMapper {
     /// Build the model from an `AppleSmartBattery` properties dictionary. Returns
     /// nil if the dictionary clearly is not a battery node (no capacity at all).
-    public static func from(dictionary d: [String: Any]) -> AppleSmartBattery? {
+    ///
+    /// `isPMUSourced` must come from the caller, which knows which relay query
+    /// actually answered (`MobileDeviceBridge` tries `AppleSmartBattery` first,
+    /// then the pre-A11 `AppleARMPMUCharger` fallback). It is deliberately not
+    /// inferred here from key presence or value ranges: the two nodes share
+    /// most of their keys, so a heuristic would be guessing at exactly the fact
+    /// the caller already has for certain. See `AppleSmartBattery.isPMUSourced`.
+    public static func from(dictionary d: [String: Any], isPMUSourced: Bool = false) -> AppleSmartBattery? {
         // A real battery node always reports a design capacity. Bail otherwise so
         // a stray dictionary does not become a bogus zero-capacity battery.
         guard hasUsableCapacity(d) else { return nil }
@@ -63,7 +70,7 @@ public enum AppleSmartBatteryMapper {
             // The temperature is deliberately NOT converted from deci-Kelvin
             // the way the Mac reader converts it: iOS falls under
             // `!TARGET_OS_OSX` in Apple's driver, so the phone's own kernel has
-            // already published centi-Celsius (DAR-329).
+            // already published centi-Celsius.
             //
             // Confirmed on a real iPhone 15 (iOS 26.6) over the relay: it
             // reported Temperature 2809 while charging, which is 28.1°C read as
@@ -80,7 +87,8 @@ public enum AppleSmartBatteryMapper {
                 // need it, since the iPhone measured here reports its lifetime
                 // extremes in deci-degrees.
                 currentTemperatureCentiC: plausibleCentiCelsius(d["Temperature"])
-            )
+            ),
+            isPMUSourced: isPMUSourced
         )
     }
 

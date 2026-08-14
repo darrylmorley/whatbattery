@@ -58,9 +58,9 @@ final class BatteryPackDetailTests: XCTestCase {
         XCTAssertEqual(lifetime.maximumTemperatureC, 41)
     }
 
-    // MARK: - Lifetime temperature scale (DAR-326)
+    // MARK: - Lifetime temperature scale
 
-    /// The customer report that opened DAR-326: a MacBook Air M1 shown as
+    /// The customer report that opened the lifetime-scale bug: a MacBook Air M1 shown as
     /// "87°C to 454°C, averaging 245.0°C". The gauge means tenths.
     func testDeciDegreeGaugeIsNotPresentedAsHundredsOfDegrees() throws {
         var data = realBatteryData()
@@ -222,7 +222,7 @@ final class BatteryPackDetailTests: XCTestCase {
         XCTAssertEqual(resolved.max, 45, accuracy: 0.001)
     }
 
-    /// The temperature correction (DAR-329) moves every Mac reading, by 2-3°C
+    /// The temperature correction moves every Mac reading, by 2-3°C
     /// near 30°C and by much more further out (it is a scale change, not an
     /// offset), and this cross-check consumes it, so a range whose edge sits
     /// within that shift can flip. No corpus machine does, but the behaviour should change

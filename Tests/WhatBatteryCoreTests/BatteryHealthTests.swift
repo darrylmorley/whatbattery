@@ -53,7 +53,7 @@ final class BatteryHealthTests: XCTestCase {
 
     /// macOS publishes `Temperature` in the raw SmartBattery format, tenths of a
     /// Kelvin, not centi-Celsius. Read the wrong way this Mac showed 30.70°C
-    /// while its own `VirtualTemperature` said 33.89°C (DAR-329).
+    /// while its own `VirtualTemperature` said 33.89°C.
     func testTemperatureIsDeciKelvinOnAMac() throws {
         XCTAssertEqual(try XCTUnwrap(BatteryHealth.centiCelsius(fromDeciKelvin: 3070)), 3385)
         XCTAssertEqual(
