@@ -90,6 +90,54 @@ final class BatterySnapshotBuilderTests: XCTestCase {
         XCTAssertEqual(snapshot.powerWatts, 0)
     }
 
+    /// FullyCharged describes the battery, not the cable, and macOS leaves it
+    /// set for a while after the cable is pulled. The cable must therefore be
+    /// checked before the fully-charged flag, or an unplugged Mac at 100%
+    /// reads as still on power. 13 of 1079 corpus machines were caught in
+    /// exactly this state at probe time.
+    func testUnpluggedAfterFullChargeDischarges() {
+        let battery = AppleSmartBattery(
+            batteryInstalled: true,
+            voltage: 12000,
+            amperage: -50,
+            fullyCharged: true,
+            externalConnected: false
+        )
+        let snapshot = BatterySnapshotBuilder.build(battery: battery, deviceModel: "x", smcDischargeWatts: nil, now: epoch)
+        XCTAssertEqual(snapshot.chargingState, .discharging)
+        // Now discharging, so power is negative rather than the old zero.
+        XCTAssertLessThan(snapshot.powerWatts, 0)
+    }
+
+    /// The full flag matrix, so the precedence (cable, then fully charged,
+    /// then charging, else holding on AC) stays explicit rather than only
+    /// implied by individual cases above.
+    func testChargingStateFlagMatrix() {
+        let cases: [(fullyCharged: Bool, isCharging: Bool, externalConnected: Bool, expected: ChargingState)] = [
+            (fullyCharged: false, isCharging: false, externalConnected: false, expected: .discharging),
+            (fullyCharged: true, isCharging: false, externalConnected: false, expected: .discharging),
+            (fullyCharged: true, isCharging: true, externalConnected: false, expected: .discharging),
+            // isCharging true with externalConnected false: the gauge's flags
+            // contradicting the cable, which the corpus shows gauges do (9 of
+            // 257 charging machines report a negative amperage). The cable
+            // check still wins; the charging flag does not override it.
+            (fullyCharged: false, isCharging: true, externalConnected: false, expected: .discharging),
+            (fullyCharged: true, isCharging: true, externalConnected: true, expected: .full),
+            (fullyCharged: true, isCharging: false, externalConnected: true, expected: .full),
+            (fullyCharged: false, isCharging: true, externalConnected: true, expected: .charging),
+            (fullyCharged: false, isCharging: false, externalConnected: true, expected: .acNoCharge),
+        ]
+        for testCase in cases {
+            let battery = AppleSmartBattery(
+                batteryInstalled: true,
+                isCharging: testCase.isCharging,
+                fullyCharged: testCase.fullyCharged,
+                externalConnected: testCase.externalConnected
+            )
+            XCTAssertEqual(BatterySnapshotBuilder.chargingState(for: battery), testCase.expected, "\(testCase)")
+        }
+    }
+
     func testHealthUsesNominalNotMaxCapacity() {
         // maxCapacity is a percentage on Apple Silicon; health must ignore it.
         let battery = AppleSmartBattery(

@@ -57,7 +57,7 @@ public enum AppleSmartBatteryMapper {
             virtualTemperature: plausibleCentiCelsius(d["VirtualTemperature"]) ?? 0,
             isCharging: boolVal(d["IsCharging"]),
             fullyCharged: boolVal(d["FullyCharged"]),
-            externalConnected: boolVal(d["ExternalConnected"]) || boolVal(d["AppleRawExternalConnected"]),
+            externalConnected: externalConnected(from: d),
             atCriticalLevel: boolVal(d["AtCriticalLevel"]),
             timeToFullMinutes: intVal(d["AvgTimeToFull"]),
             timeToEmptyMinutes: intVal(d["AvgTimeToEmpty"]),
@@ -105,6 +105,30 @@ public enum AppleSmartBatteryMapper {
     }
 
     // MARK: - Sub-parsers
+
+    /// Whether the battery is on external power. Prefers the dictionary's own
+    /// answer, but the pre-A11 `AppleARMPMUCharger` fallback path's real key
+    /// shape is unknown (no corpus dumps of it exist), so when NEITHER
+    /// external-connected key is present at all, infer from `IsCharging`
+    /// instead: a battery cannot be charging without a power source, so that
+    /// is a safe stand-in for a missing cable signal. This is a fallback on
+    /// KEY PRESENCE, not on value: an explicit `ExternalConnected: false`
+    /// always wins, including the corpus-documented anomaly where a Mac
+    /// reports charging with a momentarily negative amperage while genuinely
+    /// unplugged; the mapper must not override a real answer just because it
+    /// looks surprising.
+    ///
+    /// Deliberately NOT inferred from `FullyCharged`: a full pack stays
+    /// "fully charged" for a while after the cable is pulled, so treating
+    /// that flag as a power signal would recreate the stuck-on-power bug
+    /// `BatterySnapshotBuilder.chargingState`'s cable-first ordering exists
+    /// to fix, just moved into the mapper instead.
+    private static func externalConnected(from d: [String: Any]) -> Bool {
+        guard d["ExternalConnected"] != nil || d["AppleRawExternalConnected"] != nil else {
+            return boolVal(d["IsCharging"])
+        }
+        return boolVal(d["ExternalConnected"]) || boolVal(d["AppleRawExternalConnected"])
+    }
 
     /// A relay temperature in centi-Celsius, or nil when it is absent or outside
     /// the band a battery could actually be at.

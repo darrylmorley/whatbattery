@@ -48,6 +48,11 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
             "Amperage": 1504,
             "InstantAmperage": 1491,
             "IsCharging": true,
+            // Trimmed from the original capture, which is why chargingState's
+            // cable-first ordering (DAR fix) exposed the gap: a real charging
+            // phone is always externally connected, but the fixture omitted
+            // the key entirely, so it silently relied on IsCharging alone.
+            "AppleRawExternalConnected": true,
             "AtCriticalLevel": false,
             "BatteryData": [
                 "CellVoltage": [4205],
@@ -448,5 +453,49 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         d["Serial"] = "SMART"
         d["BatterySerialNumber"] = "PMU"
         XCTAssertEqual(AppleSmartBatteryMapper.from(dictionary: d)?.serial, "SMART")
+    }
+
+    /// Under `BatterySnapshotBuilder.chargingState`'s cable-first ordering, a
+    /// dictionary that never mentions ExternalConnected or
+    /// AppleRawExternalConnected at all (the pre-A11 PMU fallback path's real
+    /// key shape is unknown) must not silently read as unplugged. IsCharging
+    /// is the fallback cable signal because a battery cannot charge without
+    /// one; a non-charging read with the same key gap falls back to
+    /// discharging, which is the only honest answer without a real signal.
+    func testMissingExternalConnectedKeysInferFromIsCharging() throws {
+        var charging = Self.minimalBattery
+        charging["IsCharging"] = true
+        let chargingBattery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: charging))
+        XCTAssertTrue(chargingBattery.externalConnected, "charging implies a power source")
+        let chargingSnapshot = BatterySnapshotBuilder.build(
+            battery: chargingBattery, deviceModel: "x", smcDischargeWatts: nil, now: Date(timeIntervalSince1970: 0)
+        )
+        XCTAssertEqual(chargingSnapshot.chargingState, .charging)
+
+        var notCharging = Self.minimalBattery
+        notCharging["IsCharging"] = false
+        let notChargingBattery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: notCharging))
+        XCTAssertFalse(notChargingBattery.externalConnected)
+        let notChargingSnapshot = BatterySnapshotBuilder.build(
+            battery: notChargingBattery, deviceModel: "x", smcDischargeWatts: nil, now: Date(timeIntervalSince1970: 0)
+        )
+        XCTAssertEqual(notChargingSnapshot.chargingState, .discharging)
+    }
+
+    /// An explicit ExternalConnected: false must win over the IsCharging
+    /// inference, not be overridden by it. Gauges do contradict themselves
+    /// (the corpus has 9 of 257 charging machines reporting a negative
+    /// amperage), so the mapper must pass a real answer through unchanged
+    /// rather than "fixing" it.
+    func testExplicitExternalConnectedFalseWinsOverIsChargingInference() throws {
+        var d = Self.minimalBattery
+        d["IsCharging"] = true
+        d["ExternalConnected"] = false
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: d))
+        XCTAssertFalse(battery.externalConnected, "an explicit false must not be inferred away")
+        let snapshot = BatterySnapshotBuilder.build(
+            battery: battery, deviceModel: "x", smcDischargeWatts: nil, now: Date(timeIntervalSince1970: 0)
+        )
+        XCTAssertEqual(snapshot.chargingState, .discharging)
     }
 }

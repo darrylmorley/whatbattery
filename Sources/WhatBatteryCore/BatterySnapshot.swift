@@ -248,10 +248,13 @@ public enum BatterySnapshotBuilder {
     }
 
     static func chargingState(for battery: AppleSmartBattery) -> ChargingState {
+        // FullyCharged describes the battery, not the cable: it stays set
+        // for a while after unplugging a full pack, so the cable check must
+        // come first or an unplugged Mac at 100% reads as still on power.
+        if !battery.externalConnected { return .discharging }
         if battery.fullyCharged { return .full }
         if battery.isCharging { return .charging }
-        if battery.externalConnected { return .acNoCharge }
-        return .discharging
+        return .acNoCharge
     }
 
     /// Signed power: positive charging, negative discharging, zero when full or
