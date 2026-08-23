@@ -62,7 +62,12 @@ public enum BatteryFormatter {
             switch snapshot.chargingState {
             case .full: text += ", fully charged"
             case .acNoCharge: text += ", not charging"
-            case .charging, .discharging: break
+            case .charging, .discharging:
+                // Exactly zero on these states is the builder's sign/magnitude
+                // guard rejecting a self-contradicting reading (a genuine
+                // measurement demands a nonzero current), so say that rather
+                // than show a confident 0.0 W beside a live charger label.
+                if snapshot.powerWatts == 0 { text += ", no reading" }
             }
         }
         if includeAdapter, let adapter = snapshot.adapter?.label {

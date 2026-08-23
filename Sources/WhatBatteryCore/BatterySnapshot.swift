@@ -258,21 +258,77 @@ public enum BatterySnapshotBuilder {
     }
 
     /// Signed power: positive charging, negative discharging, zero when full or
-    /// holding on AC. Charging power prefers the charger's negotiated V*A;
-    /// discharge power prefers the SMC's live battery rail (PPBR) because the
-    /// fuel gauge's own figure sits stale on Apple Silicon.
+    /// holding on AC. Both directions are computed from the pack's own voltage
+    /// and current; discharge prefers the SMC's live battery rail (PPBR) because
+    /// the fuel gauge's own power figure sits stale on Apple Silicon.
+    ///
+    /// Charging used to multiply `ChargerData.ChargingVoltage` by
+    /// `ChargingCurrent`, which understated charge power by the cell count:
+    /// **`ChargingVoltage` is a per-cell figure on Apple Silicon**, around 4.05 V
+    /// on a pack sitting at 12.0 V. A 65 W charge read as 23 W before this.
+    ///
+    /// The field cannot be rescued by multiplying by the cell count, because its
+    /// scale is not universal. Across the 816 probe-corpus machines carrying
+    /// `ChargerData`, pack voltage divided by `ChargingVoltage` is:
+    ///
+    /// - Apple Silicon, 3 cells (738 machines): median 2.96, so per-cell.
+    /// - Intel, 3 cells (69 machines): median 0.97, so pack-level.
+    ///
+    /// `Voltage` and `Amperage` are pack-level on both, so they are what we use.
+    ///
+    /// Sanity anchor, on the 224 Apple Silicon Macs in the corpus that were
+    /// charging with an adapter wattage on the label (the `Watts` inside the
+    /// live `AdapterDetails` dict, not the `AppleRawAdapterDetails` log, which
+    /// is a different number): this figure is a median 49% of the rating and
+    /// tops out at 87%, never above. The old formula sat at a median 20% and
+    /// came out above the adapter's rating outright on 10 of the 187 machines
+    /// carrying `ChargerData`, peaking at 421%, so it was not even reliably low.
     static func powerWatts(for battery: AppleSmartBattery, state: ChargingState, smcDischargeWatts: Double?) -> Double {
         let gaugeMagnitude = abs(Double(battery.voltage) / 1000 * Double(battery.amperage) / 1000)
         switch state {
         case .charging:
-            if let charger = battery.chargerData, charger.chargingVoltageMV > 0, charger.chargingCurrentMA > 0 {
-                return Double(charger.chargingVoltageMV) / 1000 * Double(charger.chargingCurrentMA) / 1000
-            }
+            // The gauge's state and its current can disagree for a moment: the
+            // corpus holds machines reporting IsCharging with the current still
+            // flowing out. `abs()` would turn that into confident charge power
+            // and, worse, into a lifetime peak that never washes out. A reading
+            // that contradicts itself is not a measurement.
+            guard battery.amperage > 0, isPlausibleCurrent(battery.amperage) else { return 0 }
             return gaugeMagnitude
         case .discharging:
-            return -(smcDischargeWatts ?? gaugeMagnitude)
+            // The SMC rail is measured independently of the gauge, so it wins
+            // when it is there.
+            if let smcDischargeWatts { return -smcDischargeWatts }
+            // Same guard as charging, mirrored. The contradiction happens in
+            // this direction too: 3 of 179 discharging machines in the corpus
+            // report a positive current. Without the sign check, one of them
+            // computes a confident -42.9 W the moment the SMC read is
+            // unavailable (a refused AppleSMC open, a missing PPBR key, a value
+            // outside the reader's sanity band), and that lands in
+            // `LifetimeSummary.maxDischargeW`, which only ever takes a maximum.
+            guard battery.amperage < 0, isPlausibleCurrent(battery.amperage) else { return 0 }
+            return -gaugeMagnitude
         case .full, .acNoCharge:
             return 0
         }
+    }
+
+    /// A ceiling on the pack current we will turn into watts.
+    ///
+    /// Not observed in the wild: across the 1105 corpus machines reporting
+    /// `Amperage`, every value is either already signed or inside a sane range,
+    /// and none sits in the 16-bit or 64-bit unsigned wrap ranges that other
+    /// fields on this node do use (`BatteryPower` and `MaximumDischargeCurrent`
+    /// both arrive wrapped). The guard is here because the failure is silent and
+    /// permanent rather than because it has happened: a wrapped -2000 mA read as
+    /// 63536 would price a 12 V pack at 762 W, and that single sample would
+    /// become the lifetime and session peak with nothing to wash it out.
+    ///
+    /// The biggest real figures in the corpus are a 7716 mA charge and a 5089 mA
+    /// draw, so 25 A clears reality by 3.2x: comfortably above any pack while
+    /// still an order of magnitude below what a wrap produces.
+    static func isPlausibleCurrent(_ milliamps: Int) -> Bool {
+        // .magnitude, not abs(): abs(Int.min) traps, and a value that malformed
+        // is exactly what this guard exists to reject rather than crash on.
+        milliamps.magnitude <= 25_000
     }
 }

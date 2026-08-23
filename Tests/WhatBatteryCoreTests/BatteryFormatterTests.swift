@@ -177,11 +177,28 @@ final class BatteryFormatterTests: XCTestCase {
     }
 
     /// Discharging at a rate that rounds to 0.0 W must not claim to be charged:
-    /// only the on-AC states earn an explanation.
+    /// a real (nonzero) reading stays bare however small it is.
     func testPowerLineDoesNotExplainZeroWhileDischarging() {
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: -0.01, state: .discharging, adapter: nil), locale: posixLocale),
             "-0.0 W"
+        )
+    }
+
+    /// Exactly zero on a charging or discharging state is the builder's sign
+    /// guard rejecting a self-contradicting reading, never a measurement (a
+    /// measurement demands a nonzero current). Rendering it as a confident
+    /// "+0.0 W" beside a live charger label read as a fault, so it says what
+    /// it is. A real near-zero (the test above) is unaffected.
+    func testPowerLineNamesARejectedReading() {
+        let charger = AdapterInfo(watts: 100, name: "pd charger")
+        XCTAssertEqual(
+            BatteryFormatter.powerLine(snapshot(watts: 0, state: .charging, adapter: charger), locale: posixLocale),
+            "0.0 W, no reading  (100W pd charger)"
+        )
+        XCTAssertEqual(
+            BatteryFormatter.powerLine(snapshot(watts: 0, state: .discharging, adapter: nil), locale: posixLocale),
+            "0.0 W, no reading"
         )
     }
 
