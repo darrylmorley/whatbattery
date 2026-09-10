@@ -1,3 +1,4 @@
+import { indexablePages } from "./site/seo.js";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 
@@ -8,6 +9,7 @@ export default async function (eleventyConfig) {
   const styleVersion = shortHash(readFileSync("src/css/style.css"));
 
   eleventyConfig.addGlobalData("styleVersion", styleVersion);
+  eleventyConfig.addFilter("indexablePages", indexablePages);
   eleventyConfig.addPassthroughCopy("src/css");
   eleventyConfig.addPassthroughCopy("src/img");
   eleventyConfig.addPassthroughCopy("src/press");

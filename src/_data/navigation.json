@@ -1,0 +1,7 @@
+[
+  { "name": "Features", "url": "/features/", "section": true },
+  { "name": "Pro", "url": "/pro/" },
+  { "name": "Guides", "url": "/docs/", "section": true },
+  { "name": "CLI", "url": "/cli/" },
+  { "name": "Blog", "url": "/blog/", "section": true }
+]

@@ -1,0 +1,5 @@
+{% for item in navigation %}
+  <a href="{{ item.url | escape }}"{% if page.url == item.url %} aria-current="page"{% elif item.section and page.url.startsWith(item.url) %} aria-current="location"{% endif %}>{{ item.name | escape }}</a>
+{% endfor %}
+<a href="{{ site.repo | escape }}">GitHub</a>
+<a class="button nav-cta" href="{{ site.download | escape }}">Download free</a>

@@ -3,9 +3,11 @@ layout: base.njk
 title: Mac charging watts explained
 permalink: /blog/mac-charging-watts/
 description: Understand Mac charger wattage, USB-C power negotiation, why a charger does not always deliver its maximum rating, and when it is genuinely undersized.
+breadcrumbLabel: "Charging watts"
+articleType: BlogPosting
 ---
 
-<header class="page-hero"><div class="wrap"><nav class="breadcrumbs" aria-label="Breadcrumb"><a href="/">Home</a><span>/</span><a href="/blog/">Blog</a><span>/</span><span>Charging watts</span></nav><span class="section-tag">Charging power</span><h1>Mac charging watts explained.</h1><p class="lede">The number printed on the charger is a capability, not a promise that the Mac will draw that amount every second.</p></div></header>
+<header class="page-hero"><div class="wrap">{% include "breadcrumbs.njk" %}<span class="section-tag">Charging power</span><h1>Mac charging watts explained.</h1><p class="article-byline">By <a href="https://www.darrylmorley.co.uk/" rel="author">Darryl</a></p><p class="lede">The number printed on the charger is a capability, not a promise that the Mac will draw that amount every second.</p></div></header>
 
 <article class="prose-section"><div class="wrap prose">
   <h2>Three different wattages can all be correct</h2><p>A charging setup has at least three relevant limits: what the charger can offer, what the cable can carry, and what the Mac is prepared to request. The lowest applicable limit constrains the connection.</p><p>Even after negotiation, the Mac controls the moment-to-moment draw. Battery charge level, temperature, system load, Optimized Battery Charging, and the normal taper near full all affect how much power moves into the battery.</p>

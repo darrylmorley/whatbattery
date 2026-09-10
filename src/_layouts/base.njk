@@ -3,74 +3,32 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}: know your battery's real health and where it's heading{% endif %}</title>
-    <meta name="description" content="{{ description or site.tagline }}" />
-    <link rel="canonical" href="{{ site.url }}{{ page.url }}" />
+    <title>{{ seo.title | escape }}</title>
+    <meta name="description" content="{{ seo.description | escape }}" />
+    <link rel="canonical" href="{{ seo.canonical | escape }}" />
+    {% if noindex %}<meta name="robots" content="noindex, follow" />{% endif %}
     <link rel="icon" href="/img/favicon.ico" sizes="any" />
     <link rel="icon" href="/img/icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/img/icon.png" />
 
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="{{ site.url }}{{ page.url }}" />
-    <meta property="og:title" content="{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}: know your battery's real health and where it's heading{% endif %}" />
-    <meta property="og:description" content="{{ description or site.tagline }}" />
-    <meta property="og:image" content="{{ site.url }}/img/og-whatbattery.png" />
+    <meta property="og:type" content="{{ seo.ogType }}" />
+    <meta property="og:site_name" content="{{ site.name | escape }}" />
+    <meta property="og:locale" content="en_GB" />
+    <meta property="og:url" content="{{ seo.canonical | escape }}" />
+    <meta property="og:title" content="{{ seo.title | escape }}" />
+    <meta property="og:description" content="{{ seo.description | escape }}" />
+    <meta property="og:image" content="{{ seo.image | escape }}" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1536" />
+    <meta property="og:image:height" content="1024" />
+    <meta property="og:image:alt" content="WhatBattery — battery health, health trends and live power on your Mac" />
+    {% if articleType %}<meta property="article:author" content="https://www.darrylmorley.co.uk/" />{% endif %}
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="{% if title %}{{ title }} · {{ site.name }}{% else %}{{ site.name }}{% endif %}" />
-    <meta name="twitter:description" content="{{ description or site.tagline }}" />
-    <meta name="twitter:image" content="{{ site.url }}/img/og-whatbattery.png" />
-
-{% if page.url == '/' or page.url == '/pro/' %}
-    {# One entity, emitted on the two pages that sell the app. The shared @id
-       tells a parser these are the same thing described twice, not two apps.
-       softwareVersion comes from site.json, which scripts/release.sh patches
-       in the same commit as the app's own version: a literal here would be
-       stale from the first release after it was written. Note the site builds
-       on the public mirror, where scripts/ does not exist, so the version has
-       to travel in mirrored data rather than be read from the release script. #}
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "@id": "{{ site.url }}/#app",
-      "name": "WhatBattery",
-      "softwareVersion": "{{ site.version }}",
-      "operatingSystem": "macOS 14 or later, Apple Silicon",
-      "applicationCategory": "UtilitiesApplication",
-      "applicationSubCategory": "Battery health and power monitoring",
-      "url": "{{ site.url }}/",
-      "downloadUrl": "{{ site.download }}",
-      "installUrl": "{{ site.url }}/#install",
-      "releaseNotes": "{{ site.releases }}",
-      "description": "{{ site.tagline | safe }}",
-      "image": "{{ site.url }}/img/og-whatbattery.png",
-      "screenshot": [
-        "{{ site.url }}/img/screenshot-mac.png",
-        "{{ site.url }}/img/screenshot-sleep.png",
-        "{{ site.url }}/img/screenshot-apps.png",
-        "{{ site.url }}/img/screenshot-charging.png",
-        "{{ site.url }}/img/screenshot-history.png"
-      ],
-      "featureList": [
-        "Battery health estimated from reported capacity, with the service condition macOS reports",
-        "Live charge and discharge power in watts, with the connected adapter",
-        "Battery runway: wear rate and a projected replacement window",
-        "Sleep and wake diagnosis: overnight drain, wake reasons, and what is holding the Mac awake",
-        "Per-app power use in real watts, live and historical",
-        "Charging sessions with a verdict on each charger",
-        "Per-cell voltage, capacity and resistance from the pack",
-        "Long-term health history for Macs, iPhones and iPads",
-        "Bluetooth accessory battery levels with time-to-empty estimates",
-        "PDF report and CSV or JSON export"
-      ],
-      "author": { "@type": "Person", "name": "Darryl" },
-      "offers": [
-        { "@type": "Offer", "name": "WhatBattery", "price": "0", "priceCurrency": "GBP" },
-        { "@type": "Offer", "name": "WhatBattery Pro", "price": "9.99", "priceCurrency": "GBP", "url": "{{ site.url }}/pro/" }
-      ]
-    }
-    </script>
-{% endif %}
+    <meta name="twitter:title" content="{{ seo.title | escape }}" />
+    <meta name="twitter:description" content="{{ seo.description | escape }}" />
+    <meta name="twitter:image" content="{{ seo.image | escape }}" />
+    <meta name="twitter:image:alt" content="WhatBattery — battery health, health trends and live power on your Mac" />
+    {% if seo.schema %}<script type="application/ld+json">{{ seo.schema | safe }}</script>{% endif %}
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -86,14 +44,20 @@
           <span>{{ site.name }}</span>
         </a>
         <div class="nav-links">
-          <a href="/features/">Features</a>
-          <a href="/pro/">Pro</a>
-          <a href="/docs/">Guides</a>
-          <a href="/cli/">CLI</a>
-          <a href="/blog/">Blog</a>
-          <a href="{{ site.repo }}">GitHub</a>
-          <a class="button nav-cta" href="{{ site.download }}">Download free</a>
+          {% include "nav-items.njk" %}
         </div>
+        <details class="mobile-nav" data-mobile-nav>
+          <summary aria-controls="mobile-nav-links">
+            <span>Menu</span>
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+              <path class="menu-bars" d="M4 6h16M4 12h16M4 18h16" />
+              <path class="menu-close" d="m6 6 12 12M18 6 6 18" />
+            </svg>
+          </summary>
+          <div class="mobile-nav-links" id="mobile-nav-links">
+            {% include "nav-items.njk" %}
+          </div>
+        </details>
       </div>
     </nav>
 
@@ -139,6 +103,29 @@
         <span>Apple Silicon · macOS 14+</span>
       </div>
     </footer>
+
+    <script>
+      // Native details keeps navigation usable before JavaScript loads, or without it.
+      (function () {
+        var menu = document.querySelector("[data-mobile-nav]");
+        var trigger = menu.querySelector("summary");
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && menu.open) {
+            menu.open = false;
+            trigger.focus();
+          }
+        });
+        document.addEventListener("click", function (event) {
+          if (!menu.contains(event.target) || event.target.closest("a")) menu.open = false;
+        });
+        document.addEventListener("focusin", function (event) {
+          if (menu.open && !menu.contains(event.target)) menu.open = false;
+        });
+        window.matchMedia("(min-width: 981px)").addEventListener("change", function (event) {
+          if (event.matches) menu.open = false;
+        });
+      })();
+    </script>
 
     <script>
       (function () {

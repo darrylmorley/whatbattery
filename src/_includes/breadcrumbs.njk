@@ -1,0 +1,8 @@
+{% if seo.breadcrumbs.length %}
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  {% for crumb in seo.breadcrumbs %}
+    {% if not loop.first %}<span aria-hidden="true">/</span>{% endif %}
+    {% if loop.last %}<span aria-current="page">{{ crumb.name | escape }}</span>{% else %}<a href="{{ crumb.url | escape }}">{{ crumb.name | escape }}</a>{% endif %}
+  {% endfor %}
+</nav>
+{% endif %}
