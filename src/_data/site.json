@@ -1,7 +1,7 @@
 {
   "name": "WhatBattery",
   "version": "1.6.5",
-  "tagline": "Know your Mac, iPhone, and iPad's real battery health, live power use, and where each battery is heading. Read-only and open source.",
+  "tagline": "Understand battery drain, charging and health on your Mac. Start with free battery monitoring; Pro adds sleep insights, history and connected-device checks.",
   "domain": "whatbattery.app",
   "url": "https://www.whatbattery.app",
   "repo": "https://github.com/darrylmorley/whatbattery",

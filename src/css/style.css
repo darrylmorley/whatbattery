@@ -83,6 +83,36 @@ h3 { font-size: 18px; line-height: 1.25; letter-spacing: -.015em; }
 .hero-visual::before { content: ""; position: absolute; width: 390px; height: 390px; border-radius: 50%; background: linear-gradient(145deg, #ddebff, #f4f9ff); box-shadow: inset 0 0 0 1px rgba(22,119,255,.08); }
 .hero-visual img { position: relative; max-height: 500px; width: auto; filter: drop-shadow(0 24px 34px rgba(15,23,42,.18)); }
 
+.home-hero { padding: 64px 0 52px; }
+.home-hero h1 { font-size: clamp(40px, 4.5vw, 60px); text-wrap: balance; }
+.home-hero .hero-grid { gap: 56px; }
+.home-hero .hero-visual { min-height: 0; }
+.home-hero .hero-visual img { width: auto; height: auto; max-height: 460px; }
+.home-hero .support-line + .support-line { margin-top: 6px; }
+.home-preview { min-width: 0; }
+.home-preview figcaption { margin-top: 18px; color: var(--muted); font-size: 13px; text-align: center; }
+.problem-nav { padding: 28px 0 0; }
+.problem-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.problem-links a { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); font-size: 15px; font-weight: 700; }
+.problem-links a:hover { border-color: var(--accent); color: var(--accent-strong); }
+.problem-links a:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.problem-links a > span:last-child { color: var(--accent); }
+.home-stories .story[id], #plans, #install { scroll-margin-top: 90px; }
+.home-stories h2 { font-size: clamp(28px, 3vw, 40px); }
+.home-stories .story-media img { height: auto; }
+.home-plans { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.home-plan { display: flex; flex-direction: column; padding: 32px; border: 1px solid var(--line-strong); border-radius: 18px; background: var(--panel); }
+.home-plan-pro { border-color: #bad2f1; background: linear-gradient(160deg, #f0f6ff, #fff); }
+.home-plan h3 { font-size: 22px; }
+.plan-price { margin-top: 20px; font-size: 46px; line-height: 1.1; letter-spacing: -.04em; font-weight: 800; }
+.plan-price span { font-size: 16px; letter-spacing: 0; font-weight: 500; color: var(--muted); }
+.plan-summary { margin-top: 14px; color: var(--ink-soft); }
+.home-plan .benefit-list { flex: 1; margin-bottom: 28px; }
+.home-plan .button { width: 100%; }
+.plan-note { margin-top: 14px; color: var(--muted); font-size: 13px; text-align: center; }
+.plans-detail { margin-top: 24px; text-align: center; }
+.family-intro { margin: 18px 0; color: var(--ink-soft); }
+
 .trust-strip { padding: 24px 0; background: var(--panel); border-bottom: 1px solid var(--line); }
 .trust-row { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 16px 32px; color: var(--ink-soft); font-size: 14px; font-weight: 600; }
 .trust-item { display: inline-flex; align-items: center; gap: 8px; }
@@ -272,6 +302,13 @@ section { padding: 88px 0; }
   .cta-grid { align-items: flex-start; flex-direction: column; }
   .page-hero { padding: 54px 0 45px; }
   .page-hero h1 { font-size: 38px; }
+  .home-hero { padding: 40px 0; }
+  .home-hero .hero-grid { gap: 36px; }
+  .home-hero .hero-visual img { max-height: 360px; }
+  .problem-links, .home-plans { grid-template-columns: 1fr; }
+  .problem-links { gap: 10px; }
+  .problem-links a { padding: 16px 18px; }
+  .home-plan { padding: 25px; }
   .pro-hero { padding-top: 32px; }
   .pro-hero .lede { font-size: 18px; }
   .pro-hero-grid { gap: 32px; }
