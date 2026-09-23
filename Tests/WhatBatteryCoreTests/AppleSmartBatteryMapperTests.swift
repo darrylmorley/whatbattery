@@ -203,6 +203,107 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         XCTAssertNil(AppleSmartBatteryMapper.from(dictionary: ["SomethingElse": 1]))
     }
 
+    // MARK: - macOS 27 / iPadOS 27 BatteryData capacity fallback
+
+    /// A real iPad13,4 read on iPadOS 27, numbers only (no serial or other
+    /// identifiers). macOS 27 / iPadOS 27 dropped DesignCapacity and
+    /// NominalChargeCapacity from the node's top level; they now live only in
+    /// BatteryData. AppleRawMaxCapacity is gone entirely, so the mapper must
+    /// fall back to BatteryData to recognise this as a usable battery at all.
+    private func iPadOS27Fixture() -> [String: Any] {
+        [
+            "CurrentCapacity": 32,
+            "MaxCapacity": 100,
+            "CycleCount": 580,
+            "Voltage": 3720,
+            "Amperage": -1274,
+            "IsCharging": false,
+            "ExternalConnected": false,
+            "BatteryData": [
+                "DesignCapacity": 7596,
+                "NominalChargeCapacity": 6891,
+                "FullChargeCapacity": 6700,
+                "MaxCapacity": 100,
+                "CurrentCapacity": 32,
+            ] as [String: Any],
+        ]
+    }
+
+    func testIPadOS27FallsBackToBatteryDataCapacity() throws {
+        XCTAssertTrue(AppleSmartBatteryMapper.hasUsableCapacity(iPadOS27Fixture()))
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: iPadOS27Fixture()))
+        XCTAssertEqual(battery.designCapacity, 7596)
+        XCTAssertEqual(battery.fullChargeCapacitymAh, 6891, "NominalChargeCapacity from BatteryData, not FullChargeCapacity")
+        XCTAssertTrue(battery.isPlausible)
+        let health = try XCTUnwrap(BatteryHealth.healthPercent(
+            fullChargemAh: battery.fullChargeCapacitymAh,
+            designmAh: battery.designCapacity
+        ))
+        XCTAssertEqual(health, 90.72, accuracy: 0.01)
+    }
+
+    /// The macOS 27 Mac shape, from corpus folder a18pro_macos27.0: no
+    /// top-level capacity keys at all, only BatteryData. FullChargeCapacity
+    /// (9665) must NOT be used for full-charge; NominalChargeCapacity (9439)
+    /// is the field `fullChargeCapacitymAh` already prefers.
+    func testMacOS27FallsBackToBatteryDataCapacity() throws {
+        let d: [String: Any] = [
+            "CurrentCapacity": 54,
+            "MaxCapacity": 100,
+            "CycleCount": 100,
+            "BatteryData": [
+                "DesignCapacity": 9516,
+                "NominalChargeCapacity": 9439,
+                "FullChargeCapacity": 9665,
+                "MaxCapacity": 100,
+                "CurrentCapacity": 54,
+            ] as [String: Any],
+        ]
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: d))
+        XCTAssertEqual(battery.designCapacity, 9516)
+        XCTAssertEqual(battery.fullChargeCapacitymAh, 9439, "must be NominalChargeCapacity, not FullChargeCapacity")
+    }
+
+    /// The shared helper, tested directly against all four combinations: a
+    /// positive top-level value always wins, and BatteryData is consulted only
+    /// when the top level is missing or non-positive.
+    func testCapacityHelperPrefersTopLevelThenFallsBackToBatteryData() {
+        let batteryData: [String: Any] = ["DesignCapacity": 500]
+        XCTAssertEqual(
+            AppleSmartBatteryMapper.capacity(topLevel: 900, batteryData: batteryData, key: "DesignCapacity"), 900,
+            "top-level positive value wins"
+        )
+        XCTAssertEqual(
+            AppleSmartBatteryMapper.capacity(topLevel: nil, batteryData: batteryData, key: "DesignCapacity"), 500,
+            "top-level missing falls back to BatteryData"
+        )
+        XCTAssertEqual(
+            AppleSmartBatteryMapper.capacity(topLevel: 0, batteryData: batteryData, key: "DesignCapacity"), 500,
+            "top-level 0 falls back to BatteryData"
+        )
+        XCTAssertEqual(
+            AppleSmartBatteryMapper.capacity(topLevel: nil, batteryData: nil, key: "DesignCapacity"), 0,
+            "both missing gives 0"
+        )
+    }
+
+    /// A top-level value, even a small one, always wins over BatteryData: older
+    /// OS behaviour must be unchanged by this fallback.
+    func testTopLevelCapacityWinsOverBatteryData() throws {
+        let d: [String: Any] = [
+            "DesignCapacity": 8694,
+            "NominalChargeCapacity": 8266,
+            "CurrentCapacity": 50,
+            "BatteryData": [
+                "DesignCapacity": 1,
+                "NominalChargeCapacity": 1,
+            ] as [String: Any],
+        ]
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: d))
+        XCTAssertEqual(battery.designCapacity, 8694)
+        XCTAssertEqual(battery.fullChargeCapacitymAh, 8266)
+    }
+
     func testRealIDeviceReadIsPlausible() throws {
         let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: iPhone11Fixture()))
         XCTAssertTrue(battery.isPlausible)

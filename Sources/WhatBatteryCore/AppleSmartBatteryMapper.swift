@@ -23,9 +23,10 @@ public enum AppleSmartBatteryMapper {
         // A real battery node always reports a design capacity. Bail otherwise so
         // a stray dictionary does not become a bogus zero-capacity battery.
         guard hasUsableCapacity(d) else { return nil }
-        let design = intVal(d["DesignCapacity"])
+        let batteryData = d["BatteryData"] as? [String: Any]
+        let design = capacity(topLevel: d["DesignCapacity"], batteryData: batteryData, key: "DesignCapacity")
         let rawMax = intVal(d["AppleRawMaxCapacity"])
-        let nominal = intVal(d["NominalChargeCapacity"])
+        let nominal = capacity(topLevel: d["NominalChargeCapacity"], batteryData: batteryData, key: "NominalChargeCapacity")
 
         return AppleSmartBattery(
             batteryInstalled: true,
@@ -79,7 +80,7 @@ public enum AppleSmartBatteryMapper {
             // needs the scale resolution as much as an M1 does. Pinned in
             // AppleSmartBatteryMapperTests.
             packDetail: BatteryPackDetail.from(
-                batteryData: d["BatteryData"] as? [String: Any],
+                batteryData: batteryData,
                 // Optional, not intVal: a missing key must arrive as "unknown",
                 // not as 0°C. A relay that renames or drops this key between iOS
                 // versions would otherwise fail the cross-check against every
@@ -99,9 +100,21 @@ public enum AppleSmartBatteryMapper {
     /// with `DesignCapacity: 0` stopped the fallback from trying the next
     /// query, then mapped to nil anyway.
     public static func hasUsableCapacity(_ d: [String: Any]) -> Bool {
-        intVal(d["DesignCapacity"]) > 0
+        let batteryData = d["BatteryData"] as? [String: Any]
+        return capacity(topLevel: d["DesignCapacity"], batteryData: batteryData, key: "DesignCapacity") > 0
             || intVal(d["AppleRawMaxCapacity"]) > 0
-            || intVal(d["NominalChargeCapacity"]) > 0
+            || capacity(topLevel: d["NominalChargeCapacity"], batteryData: batteryData, key: "NominalChargeCapacity") > 0
+    }
+
+    /// macOS 27 / iPadOS 27 moved `DesignCapacity` and `NominalChargeCapacity`
+    /// out of the node's top level into the `BatteryData` sub-dictionary
+    /// (confirmed on 220 corpus machines carrying the new shape).
+    /// `AppleRawMaxCapacity` has no such fallback: it is gone entirely on those
+    /// OSes, not relocated. The top-level value always wins when it is present
+    /// and positive, so behaviour on every earlier OS is unchanged.
+    public static func capacity(topLevel: Any?, batteryData: [String: Any]?, key: String) -> Int {
+        let top = intVal(topLevel)
+        return top > 0 ? top : intVal(batteryData?[key])
     }
 
     // MARK: - Sub-parsers

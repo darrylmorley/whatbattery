@@ -60,12 +60,24 @@ public enum AppleSmartBatteryReader {
             .flatMap { BatteryHealth.centiCelsius(fromDeciKelvin: $0) }
             ?? virtualCentiC
 
+        // Read once, before building the model: macOS 27 moved DesignCapacity
+        // and NominalChargeCapacity out of the top level into this dictionary
+        // (AppleSmartBatteryMapper.capacity falls back into it), and
+        // BatteryPackDetail.from needs the same dictionary for the pack/cell
+        // detail below. Reading it twice would just do the same IOKit call
+        // again for no reason.
+        let batteryData = read("BatteryData") as? [String: Any]
+
         let battery = AppleSmartBattery(
             batteryInstalled: true,
             deviceName: (read("DeviceName") as? String) ?? "",
             serial: (read("Serial") as? String) ?? "",
-            designCapacity: intVal(read("DesignCapacity")),
-            nominalChargeCapacity: intVal(read("NominalChargeCapacity")),
+            designCapacity: AppleSmartBatteryMapper.capacity(
+                topLevel: read("DesignCapacity"), batteryData: batteryData, key: "DesignCapacity"
+            ),
+            nominalChargeCapacity: AppleSmartBatteryMapper.capacity(
+                topLevel: read("NominalChargeCapacity"), batteryData: batteryData, key: "NominalChargeCapacity"
+            ),
             rawMaxCapacity: intVal(read("AppleRawMaxCapacity")),
             rawCurrentCapacity: intVal(read("AppleRawCurrentCapacity")),
             currentCapacity: intVal(read("CurrentCapacity")),
@@ -89,7 +101,7 @@ public enum AppleSmartBatteryReader {
             chargerData: parseChargerData(read("ChargerData")),
             adapter: parseAdapterDetails(read("AdapterDetails")),
             packDetail: BatteryPackDetail.from(
-                batteryData: read("BatteryData") as? [String: Any],
+                batteryData: batteryData,
                 // The node's own thermometer, in a scale we know, so the pack's
                 // undeclared lifetime temperatures can be checked against it.
                 // Absent stays absent: 0 would read as 0°C and veto every real
