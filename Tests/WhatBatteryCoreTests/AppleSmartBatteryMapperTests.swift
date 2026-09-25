@@ -599,4 +599,13 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         )
         XCTAssertEqual(snapshot.chargingState, .discharging)
     }
+
+    /// A relay reply carrying the key where every real dump has it. Before the
+    /// field map this read nil: the parser looked at `BatteryData`'s top level.
+    func testCycleCountAtLastQmaxReadFromLifetimeData() throws {
+        var fixture = iPhone11Fixture()
+        fixture["BatteryData"] = ["LifetimeData": ["CycleCountLastQmax": 45]] as [String: Any]
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: fixture))
+        XCTAssertEqual(battery.packDetail?.cycleCountAtLastQmax, 45)
+    }
 }

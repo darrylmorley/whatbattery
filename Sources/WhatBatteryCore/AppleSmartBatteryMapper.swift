@@ -87,7 +87,10 @@ public enum AppleSmartBatteryMapper {
                 // real range and suppress the row, on exactly the devices that
                 // need it, since the iPhone measured here reports its lifetime
                 // extremes in deci-degrees.
-                currentTemperatureCentiC: plausibleCentiCelsius(d["Temperature"])
+                currentTemperatureCentiC: plausibleCentiCelsius(d["Temperature"]),
+                cycleCountAtLastQmax: BatteryFieldResolver.resolve(
+                    BatteryFieldMap.cycleCountAtLastQmax, in: BatteryTree(battery: d)
+                ).value
             ),
             isPMUSourced: isPMUSourced
         )

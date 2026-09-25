@@ -81,9 +81,15 @@ public struct BatteryPackDetail: Equatable, Sendable {
     /// scale we know. It is passed in because the lifetime temperatures do not
     /// declare theirs, and a reading of known scale is the only independent
     /// check available: see `BatteryLifetime.temperatureRange`.
+    ///
+    /// `cycleCountAtLastQmax` is resolved by the caller through
+    /// `BatteryFieldMap`: the key sits in `LifetimeData` on the node or the
+    /// pack depending on the OS, never at this dictionary's top level, which is
+    /// where this parser used to look for it.
     public static func from(
         batteryData: [String: Any]?,
-        currentTemperatureCentiC: Int? = nil
+        currentTemperatureCentiC: Int? = nil,
+        cycleCountAtLastQmax: Int? = nil
     ) -> BatteryPackDetail? {
         guard let data = batteryData else { return nil }
         let detail = BatteryPackDetail(
@@ -92,7 +98,7 @@ public struct BatteryPackDetail: Equatable, Sendable {
             cellResistance: intArray(data["WeightedRa"]),
             dailyMinSoc: percentValue(data["DailyMinSoc"]),
             dailyMaxSoc: percentValue(data["DailyMaxSoc"]),
-            cycleCountAtLastQmax: positiveInt(data["CycleCountLastQmax"]),
+            cycleCountAtLastQmax: cycleCountAtLastQmax,
             lifetime: BatteryLifetime.from(
                 lifetimeData: data["LifetimeData"] as? [String: Any],
                 currentTemperatureC: currentTemperatureCentiC.map { Double($0) / 100 }

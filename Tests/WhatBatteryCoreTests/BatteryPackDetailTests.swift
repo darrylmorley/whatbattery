@@ -13,8 +13,8 @@ final class BatteryPackDetailTests: XCTestCase {
             "WeightedRa": [37, 27, 31],
             "DailyMinSoc": 99,
             "DailyMaxSoc": 100,
-            "CycleCountLastQmax": 55,
             "LifetimeData": [
+                "CycleCountLastQmax": 55,
                 "MinimumTemperature": 11,
                 "MaximumTemperature": 41,
                 "AverageTemperature": 211,
@@ -28,7 +28,7 @@ final class BatteryPackDetailTests: XCTestCase {
     }
 
     func testParsesRealPackData() throws {
-        let detail = try XCTUnwrap(BatteryPackDetail.from(batteryData: realBatteryData()))
+        let detail = try XCTUnwrap(BatteryPackDetail.from(batteryData: realBatteryData(), cycleCountAtLastQmax: 55))
         XCTAssertEqual(detail.cellVoltagesMV, [4409, 4408, 4411])
         XCTAssertEqual(detail.cellQmax, [6288, 6280, 6311])
         XCTAssertEqual(detail.cellResistance, [37, 27, 31])
@@ -351,5 +351,12 @@ final class BatteryPackDetailTests: XCTestCase {
         ] as [String: Any]
         let lifetime = try XCTUnwrap(BatteryPackDetail.from(batteryData: data)?.lifetime)
         XCTAssertNil(lifetime.averageTemperatureC)
+    }
+
+    /// The count is resolved by the caller through `BatteryFieldMap`; the
+    /// parser itself must not read it from a guessed path.
+    func testCycleCountAtLastQmaxComesOnlyFromTheCaller() throws {
+        let detail = try XCTUnwrap(BatteryPackDetail.from(batteryData: realBatteryData()))
+        XCTAssertNil(detail.cycleCountAtLastQmax)
     }
 }
