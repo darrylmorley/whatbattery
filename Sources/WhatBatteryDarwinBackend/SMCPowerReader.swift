@@ -119,12 +119,18 @@ public final class SMCPowerReader {
     // MARK: - SMC ABI
 
     private func readKey(_ key: String) -> [UInt8]? {
-        guard let fourCC = Self.fourCC(key) else { return nil }
+        Self.readKey(key, call: callDriver)
+    }
+
+    /// The two-step read (key info, then the value) with the driver call
+    /// injected, so the logic is unit-testable without SMC hardware.
+    static func readKey(_ key: String, call: (inout SMCParamStruct) -> SMCParamStruct?) -> [UInt8]? {
+        guard let fourCC = fourCC(key) else { return nil }
 
         var info = SMCParamStruct()
         info.key = fourCC
-        info.data8 = Self.cmdGetKeyInfo
-        guard let infoOut = callDriver(&info) else { return nil }
+        info.data8 = cmdGetKeyInfo
+        guard let infoOut = call(&info), smcCallSucceeded(infoOut) else { return nil }
         let size = infoOut.keyInfo.dataSize
         guard size > 0 else { return nil }
 
@@ -132,13 +138,17 @@ public final class SMCPowerReader {
         read.key = fourCC
         read.keyInfo.dataSize = size
         read.keyInfo.dataType = infoOut.keyInfo.dataType
-        read.data8 = Self.cmdReadKey
-        guard let readOut = callDriver(&read) else { return nil }
+        read.data8 = cmdReadKey
+        guard let readOut = call(&read), smcCallSucceeded(readOut) else { return nil }
 
         let count = Int(min(size, 32))
         var value = readOut.bytes
         return withUnsafeBytes(of: &value) { Array($0.prefix(count)) }
     }
+
+    /// The SMC reports its own errors (e.g. 0x84 key not found) in `result`
+    /// even when the IOKit call returns KERN_SUCCESS, leaving the payload zeroed.
+    static func smcCallSucceeded(_ output: SMCParamStruct) -> Bool { output.result == 0 }
 
     private func callDriver(_ input: inout SMCParamStruct) -> SMCParamStruct? {
         guard connection != 0 else { return nil }
@@ -178,7 +188,7 @@ public final class SMCPowerReader {
 // Field order and types must not change: the kernel reads this struct at fixed
 // offsets. `MemoryLayout<SMCParamStruct>.stride` must be 80 bytes.
 
-private struct SMCVersion {
+struct SMCVersion {
     var major: UInt8 = 0
     var minor: UInt8 = 0
     var build: UInt8 = 0
@@ -186,7 +196,7 @@ private struct SMCVersion {
     var release: UInt16 = 0
 }
 
-private struct SMCPLimitData {
+struct SMCPLimitData {
     var version: UInt16 = 0
     var length: UInt16 = 0
     var cpuPLimit: UInt32 = 0
@@ -194,21 +204,21 @@ private struct SMCPLimitData {
     var memPLimit: UInt32 = 0
 }
 
-private struct SMCKeyInfoData {
+struct SMCKeyInfoData {
     var dataSize: UInt32 = 0
     var dataType: UInt32 = 0
     var dataAttributes: UInt8 = 0
 }
 
 /// A 32-byte payload buffer as a homogeneous tuple (the C `char bytes[32]`).
-private typealias SMCBytes = (
+typealias SMCBytes = (
     UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
     UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
     UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8,
     UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8, UInt8
 )
 
-private struct SMCParamStruct {
+struct SMCParamStruct {
     var key: UInt32 = 0
     var vers = SMCVersion()
     var pLimit = SMCPLimitData()
