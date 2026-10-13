@@ -70,7 +70,7 @@ struct MainWindowView: View {
         }
         // Built against the macOS 27 SDK, TabView draws its tab bar flush
         // against the title bar; the 26 SDK left a gap. This puts it back.
-        .padding(.top, 8)
+        .padding(.top, 12)
         // 840 fits seven tab labels; 760 was sized for six, 680 for five, 600
         // for four.
         .frame(minWidth: 840, minHeight: 440)
