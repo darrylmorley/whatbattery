@@ -11,12 +11,15 @@ struct WhatBatteryApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        // The menu bar status item, its popover, and the main window are all
-        // managed in AppKit by the delegate (SwiftUI's MenuBarExtra can't do a
-        // right-click menu). The only SwiftUI scene is Settings, which does not
-        // auto-open a window at launch, so the app starts as a quiet menu bar app.
-        Settings {
-            SettingsView()
+        // The menu bar status item, its popover, the main window and the
+        // settings window are all managed in AppKit by the delegate (SwiftUI's
+        // MenuBarExtra can't do a right-click menu). `App` still needs one
+        // scene, so this is a MenuBarExtra that is never inserted: it shows no
+        // icon and no window. It used to be an unused `Settings` scene, but
+        // built with the macOS 27 SDK that opens its window at launch, on
+        // macOS 26 as well as 27.
+        MenuBarExtra("WhatBattery", isInserted: .constant(false)) {
+            EmptyView()
         }
     }
 }
