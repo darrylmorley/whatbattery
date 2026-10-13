@@ -39,6 +39,12 @@ enum MobileDeviceBridge {
         /// exactly, from which of `batteryRequests` answered: see
         /// `readBatteryDictionary`. False whenever `batteryDictionary` is nil.
         let batteryIsPMUSourced: Bool
+        /// The `AppleSmartBatteryPack` entry's `BatteryData`, where iOS/iPadOS
+        /// 27 publishes the temperatures the node no longer carries. Nil when
+        /// the node has a temperature of its own (iOS 26 and earlier, so the
+        /// pack is never asked for), when there is no pack entry, and whenever
+        /// the battery came from the PMU fallback.
+        let packBatteryData: [String: Any]?
     }
 
     /// One relay query and what came back, verbatim, for the diagnostic dump.
@@ -302,7 +308,7 @@ enum MobileDeviceBridge {
         defer { _ = s.invalidate(conn) }
 
         var dumps: [QueryDump] = []
-        for request in batteryRequests {
+        for request in batteryRequests + childEntryRequests {
             let label = request
                 .filter { $0.key != "Request" }
                 .map { "\($0.key)=\($0.value)" }
@@ -370,7 +376,7 @@ enum MobileDeviceBridge {
         guard s.connect(dev) == 0 else {
             return RawDevice(udid: udid, productType: "", productVersion: "", deviceName: "",
                              serial: "", connectionType: connection, reached: false,
-                             batteryDictionary: nil, batteryIsPMUSourced: false)
+                             batteryDictionary: nil, batteryIsPMUSourced: false, packBatteryData: nil)
         }
         defer { _ = s.disconnect(dev) }
 
@@ -397,7 +403,8 @@ enum MobileDeviceBridge {
             // much of its identity it was willing to hand over.
             reached: sessionOK,
             batteryDictionary: battery?.dictionary,
-            batteryIsPMUSourced: battery?.isPMUSourced ?? false
+            batteryIsPMUSourced: battery?.isPMUSourced ?? false,
+            packBatteryData: battery?.packBatteryData
         )
     }
 
@@ -426,6 +433,7 @@ enum MobileDeviceBridge {
     private struct BatteryDictionaryResult {
         let dictionary: [String: Any]
         let isPMUSourced: Bool
+        var packBatteryData: [String: Any]? = nil
     }
 
     private static func readBatteryDictionary(_ s: Symbols, _ dev: UnsafeMutableRawPointer) -> BatteryDictionaryResult? {
@@ -460,7 +468,16 @@ enum MobileDeviceBridge {
                 continue
             case .entry(let io):
                 if AppleSmartBatteryMapper.hasUsableCapacity(io) {
-                    return BatteryDictionaryResult(dictionary: io, isPMUSourced: isPMUSourced)
+                    return BatteryDictionaryResult(
+                        dictionary: io,
+                        isPMUSourced: isPMUSourced,
+                        // The PMU node predates the pack split, so only an
+                        // AppleSmartBattery answer has a pack to ask for, and
+                        // only one with no temperature of its own needs it.
+                        packBatteryData: !isPMUSourced && AppleSmartBatteryMapper.needsPackTemperature(io)
+                            ? readPackBatteryData(s, conn)
+                            : nil
+                    )
                 }
                 if shapelessFallback == nil {
                     shapelessFallback = BatteryDictionaryResult(dictionary: io, isPMUSourced: isPMUSourced)
@@ -469,6 +486,30 @@ enum MobileDeviceBridge {
         }
         return shapelessFallback
     }
+
+    /// The `AppleSmartBatteryPack` entry's `BatteryData`, or nil. Asked only
+    /// after the battery itself answered without a temperature, and any
+    /// failure here costs only the pack's figures, never the reading in hand. A transport failure
+    /// leaves the connection unusable, which is fine: this is the last query
+    /// on it and the caller tears it down.
+    private static func readPackBatteryData(_ s: Symbols, _ conn: UnsafeMutableRawPointer) -> [String: Any]? {
+        guard case .entry(let io) = queryIORegistry(s, conn, packRequest) else { return nil }
+        return io["BatteryData"] as? [String: Any]
+    }
+
+    private static let packRequest: [String: Any] = ["Request": "IORegistry", "EntryClass": "AppleSmartBatteryPack"]
+
+    /// The battery's registry children as of iOS/iPadOS 27 (all answered on an
+    /// iPad16,8 on iPadOS 27.0.1; none exist on iOS 26.7). Only the pack is read
+    /// in production; the rest are asked by `--idevice-raw` so a capture from a
+    /// user's device shows what moved where without another build.
+    private static let childEntryRequests: [[String: Any]] = [
+        packRequest,
+        ["Request": "IORegistry", "EntryClass": "AppleSmartBatteryBank"],
+        ["Request": "IORegistry", "EntryClass": "AppleSmartBatteryCell"],
+        ["Request": "IORegistry", "EntryClass": "AppleChargerData"],
+        ["Request": "IORegistry", "EntryClass": "AppleSmartBatteryManager"],
+    ]
 
     /// The battery queries, in preference order. Pre-A11 hardware (e.g. the
     /// A10X iPad Pro 10,5", last supported by iPadOS 17) has no

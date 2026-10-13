@@ -264,6 +264,160 @@ final class AppleSmartBatteryMapperTests: XCTestCase {
         XCTAssertEqual(battery.fullChargeCapacitymAh, 9439, "must be NominalChargeCapacity, not FullChargeCapacity")
     }
 
+    // MARK: - iOS / iPadOS 27 pack temperature
+
+    /// A real iPad16,8 read on iPadOS 27.0.1 over USB, charging, numbers only.
+    /// The AppleSmartBattery node has no `Temperature` or `VirtualTemperature`
+    /// at all on 27; both moved to the `AppleSmartBatteryPack` entry's
+    /// `BatteryData`, in centi-Celsius, the same move macOS 27 made.
+    private func iPadOS27NodeWithoutTemperature() -> [String: Any] {
+        [
+            "CurrentCapacity": 81,
+            "MaxCapacity": 100,
+            "CycleCount": 11,
+            "Voltage": 4164,
+            "Amperage": 2139,
+            "IsCharging": true,
+            "ExternalConnected": true,
+            "BatteryData": [
+                "DesignCapacity": 7544,
+                "NominalChargeCapacity": 7913,
+            ] as [String: Any],
+        ]
+    }
+
+    private func iPadOS27PackBatteryData() -> [String: Any] {
+        ["Temperature": 3350, "VirtualTemperature": 3350, "Voltage": 4164]
+    }
+
+    func testIPadOS27TemperatureComesFromThePack() throws {
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(
+            dictionary: iPadOS27NodeWithoutTemperature(),
+            packBatteryData: iPadOS27PackBatteryData()
+        ))
+        XCTAssertEqual(battery.temperature, 3350, "33.5 C from the pack, centi-Celsius")
+        XCTAssertEqual(battery.virtualTemperature, 3350)
+        let snapshot = BatterySnapshotBuilder.build(
+            battery: battery, deviceModel: "iPad", smcDischargeWatts: nil, now: Date()
+        )
+        XCTAssertEqual(try XCTUnwrap(snapshot.temperatureCelsius), 33.5, accuracy: 0.001)
+    }
+
+    func testIPadOS27WithoutPackStillHasNoTemperature() throws {
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: iPadOS27NodeWithoutTemperature()))
+        XCTAssertEqual(battery.temperature, 0, "nothing to read, so unknown rather than invented")
+    }
+
+    /// Only `Temperature` on the pack: still centi-Celsius, never deci-Kelvin
+    /// (3350 as deci-Kelvin would be 61.9 C).
+    func testPackTemperatureUsedWhenPackHasNoVirtualTemperature() throws {
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(
+            dictionary: iPadOS27NodeWithoutTemperature(),
+            packBatteryData: ["Temperature": 3350]
+        ))
+        XCTAssertEqual(battery.temperature, 3350)
+    }
+
+    /// iOS 26 and earlier carry the node's own readings, which always win.
+    func testNodeTemperatureWinsOverPack() throws {
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(
+            dictionary: iPhone15Fixture(),
+            packBatteryData: ["Temperature": 4000, "VirtualTemperature": 4000]
+        ))
+        XCTAssertEqual(battery.temperature, 2809)
+        XCTAssertEqual(battery.virtualTemperature, 2550)
+    }
+
+    /// A zero left on the node is a stale placeholder, not a battery at 0 C
+    /// (0 already displays as unknown), so it must not hide the pack's reading.
+    func testNodeZeroTemperatureFallsThroughToPack() throws {
+        var node = iPadOS27NodeWithoutTemperature()
+        node["Temperature"] = 0
+        node["VirtualTemperature"] = 0
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(
+            dictionary: node,
+            packBatteryData: iPadOS27PackBatteryData()
+        ))
+        XCTAssertEqual(battery.temperature, 3350)
+        XCTAssertEqual(battery.virtualTemperature, 3350)
+    }
+
+    func testImplausiblePackTemperatureIsIgnored() throws {
+        for (temperature, virtual) in [(20_000, 65_535), (-5_000, 65_535), (65_535, 20_000)] {
+            let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(
+                dictionary: iPadOS27NodeWithoutTemperature(),
+                packBatteryData: ["Temperature": temperature, "VirtualTemperature": virtual]
+            ))
+            XCTAssertEqual(battery.temperature, 0, "pack \(temperature)/\(virtual) must read as unknown")
+            XCTAssertEqual(battery.virtualTemperature, 0, "pack \(temperature)/\(virtual) must read as unknown")
+        }
+    }
+
+    /// The pack reading is the lifetime range's cross-check too. 50 C fits
+    /// neither scale of an 86..452 range (8.6..45.2 or 86..452), so the range is
+    /// unresolved and hidden. Without the pack reading, magnitude alone would
+    /// have shown 9 to 45 C.
+    func testPackTemperatureFeedsTheLifetimeCrossCheck() throws {
+        var node = iPadOS27NodeWithoutTemperature()
+        node["BatteryData"] = [
+            "DesignCapacity": 7544,
+            "NominalChargeCapacity": 7913,
+            "LifetimeData": ["MinimumTemperature": 86, "MaximumTemperature": 452] as [String: Any],
+        ] as [String: Any]
+        let withoutPack = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: node))
+        XCTAssertEqual(withoutPack.packDetail?.lifetime?.maximumTemperatureC, 45, "control: magnitude alone")
+
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(
+            dictionary: node,
+            packBatteryData: ["VirtualTemperature": 5000]
+        ))
+        XCTAssertNil(battery.packDetail?.lifetime?.maximumTemperatureC)
+    }
+
+    /// The bridge asks the relay for the pack only when this is true, so iOS 26
+    /// and earlier, whose node carries `Temperature`, send exactly the queries
+    /// they always did.
+    func testPackIsNeededOnlyWhenTheNodeHasNoTemperature() {
+        XCTAssertFalse(AppleSmartBatteryMapper.needsPackTemperature(iPhone15Fixture()))
+        XCTAssertFalse(AppleSmartBatteryMapper.needsPackTemperature(iPhone11Fixture()))
+        XCTAssertTrue(AppleSmartBatteryMapper.needsPackTemperature(iPadOS27NodeWithoutTemperature()))
+
+        var zero = iPadOS27NodeWithoutTemperature()
+        zero["Temperature"] = 0
+        XCTAssertTrue(AppleSmartBatteryMapper.needsPackTemperature(zero), "a stale zero is no reading")
+
+        var implausible = iPadOS27NodeWithoutTemperature()
+        implausible["Temperature"] = 65_535
+        XCTAssertTrue(AppleSmartBatteryMapper.needsPackTemperature(implausible))
+
+        var virtualOnly = iPadOS27NodeWithoutTemperature()
+        virtualOnly["VirtualTemperature"] = 2550
+        XCTAssertFalse(
+            AppleSmartBatteryMapper.needsPackTemperature(virtualOnly),
+            "the node's own VirtualTemperature is a reading, so the pack is not asked for"
+        )
+    }
+
+    /// Same rule as the Mac: with no `Temperature`, the node's own
+    /// `VirtualTemperature` is the displayed figure.
+    func testNodeVirtualTemperatureStandsInForMissingTemperature() throws {
+        var node = iPadOS27NodeWithoutTemperature()
+        node["VirtualTemperature"] = 2550
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(dictionary: node))
+        XCTAssertEqual(battery.temperature, 2550)
+        XCTAssertEqual(battery.virtualTemperature, 2550)
+    }
+
+    /// Within the pack, `VirtualTemperature` (centi-Celsius on every platform)
+    /// comes first; the pack's `Temperature` unit rests on single devices.
+    func testPackVirtualTemperatureWinsOverPackTemperature() throws {
+        let battery = try XCTUnwrap(AppleSmartBatteryMapper.from(
+            dictionary: iPadOS27NodeWithoutTemperature(),
+            packBatteryData: ["Temperature": 3000, "VirtualTemperature": 3350]
+        ))
+        XCTAssertEqual(battery.temperature, 3350)
+    }
+
     /// The shared helper, tested directly against all four combinations: a
     /// positive top-level value always wins, and BatteryData is consulted only
     /// when the top level is missing or non-positive.

@@ -130,6 +130,7 @@ public enum IDeviceBatteryReader {
             switch classify(
                 reached: device.reached,
                 batteryDictionary: device.batteryDictionary,
+                packBatteryData: device.packBatteryData,
                 isPMUSourced: device.batteryIsPMUSourced
             ) {
             case .failure(let reason):
@@ -163,12 +164,15 @@ public enum IDeviceBatteryReader {
     static func classify(
         reached: Bool,
         batteryDictionary: [String: Any]?,
+        packBatteryData: [String: Any]? = nil,
         isPMUSourced: Bool = false
     ) -> Result<AppleSmartBattery, UnreadableReason> {
         guard let dict = batteryDictionary else {
             return .failure(reached ? .relaySilent : .notReached)
         }
-        guard let battery = AppleSmartBatteryMapper.from(dictionary: dict, isPMUSourced: isPMUSourced) else {
+        guard let battery = AppleSmartBatteryMapper.from(
+            dictionary: dict, packBatteryData: packBatteryData, isPMUSourced: isPMUSourced
+        ) else {
             return .failure(.unrecognisedShape)
         }
         guard battery.isPlausible else { return .failure(.implausibleValues) }

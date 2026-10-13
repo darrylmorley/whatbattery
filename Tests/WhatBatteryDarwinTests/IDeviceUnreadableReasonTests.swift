@@ -26,6 +26,19 @@ final class IDeviceUnreadableReasonTests: XCTestCase {
         }
     }
 
+    /// iOS/iPadOS 27 publishes the temperature only on the pack entry, so the
+    /// reader must hand the pack to the mapper or the reading shows Unknown.
+    func testPackTemperatureReachesTheMappedBattery() throws {
+        var node = realBattery()
+        node["Temperature"] = nil
+        guard case .success(let battery) = IDeviceBatteryReader.classify(
+            reached: true,
+            batteryDictionary: node,
+            packBatteryData: ["VirtualTemperature": 3350]
+        ) else { return XCTFail("a usable battery must classify as a success") }
+        XCTAssertEqual(battery.temperature, 3350)
+    }
+
     /// Connect or the lockdown session failed, so the bridge never learned what
     /// the device even is. This is the one that means "locked, or not trusted",
     /// and it is the likeliest cause of a device Finder lists and we do not.

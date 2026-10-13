@@ -13,13 +13,21 @@ public enum AppleSmartBatteryMapper {
     /// Build the model from an `AppleSmartBattery` properties dictionary. Returns
     /// nil if the dictionary clearly is not a battery node (no capacity at all).
     ///
+    /// `packBatteryData` is the `AppleSmartBatteryPack` entry's `BatteryData`,
+    /// nil where the device has no such entry (iOS 26 and earlier). Only the
+    /// temperatures are read from it.
+    ///
     /// `isPMUSourced` must come from the caller, which knows which relay query
     /// actually answered (`MobileDeviceBridge` tries `AppleSmartBattery` first,
     /// then the pre-A11 `AppleARMPMUCharger` fallback). It is deliberately not
     /// inferred here from key presence or value ranges: the two nodes share
     /// most of their keys, so a heuristic would be guessing at exactly the fact
     /// the caller already has for certain. See `AppleSmartBattery.isPMUSourced`.
-    public static func from(dictionary d: [String: Any], isPMUSourced: Bool = false) -> AppleSmartBattery? {
+    public static func from(
+        dictionary d: [String: Any],
+        packBatteryData: [String: Any]? = nil,
+        isPMUSourced: Bool = false
+    ) -> AppleSmartBattery? {
         // A real battery node always reports a design capacity. Bail otherwise so
         // a stray dictionary does not become a bogus zero-capacity battery.
         guard hasUsableCapacity(d) else { return nil }
@@ -27,6 +35,7 @@ public enum AppleSmartBatteryMapper {
         let design = capacity(topLevel: d["DesignCapacity"], batteryData: batteryData, key: "DesignCapacity")
         let rawMax = intVal(d["AppleRawMaxCapacity"])
         let nominal = capacity(topLevel: d["NominalChargeCapacity"], batteryData: batteryData, key: "NominalChargeCapacity")
+        let temperatures = temperatures(node: d, packBatteryData: packBatteryData)
 
         return AppleSmartBattery(
             batteryInstalled: true,
@@ -54,8 +63,8 @@ public enum AppleSmartBatteryMapper {
             // undocumented relay whose keys drift between iOS versions, and an
             // out-of-band value would otherwise reach the display and, worse,
             // become the cross-check that resolves the lifetime scale.
-            temperature: plausibleCentiCelsius(d["Temperature"]) ?? 0,
-            virtualTemperature: plausibleCentiCelsius(d["VirtualTemperature"]) ?? 0,
+            temperature: temperatures.temperatureCentiC ?? 0,
+            virtualTemperature: temperatures.virtualCentiC ?? 0,
             isCharging: boolVal(d["IsCharging"]),
             fullyCharged: boolVal(d["FullyCharged"]),
             externalConnected: externalConnected(from: d),
@@ -87,13 +96,23 @@ public enum AppleSmartBatteryMapper {
                 // real range and suppress the row, on exactly the devices that
                 // need it, since the iPhone measured here reports its lifetime
                 // extremes in deci-degrees.
-                currentTemperatureCentiC: plausibleCentiCelsius(d["Temperature"]),
+                currentTemperatureCentiC: temperatures.temperatureCentiC,
                 cycleCountAtLastQmax: BatteryFieldResolver.resolve(
                     BatteryFieldMap.cycleCountAtLastQmax, in: BatteryTree(battery: d)
                 ).value
             ),
             isPMUSourced: isPMUSourced
         )
+    }
+
+    /// Whether the node has no temperature reading of its own (neither
+    /// `Temperature` nor `VirtualTemperature`), so the relay bridge should also
+    /// ask for the `AppleSmartBatteryPack` entry. False on iOS 26 and earlier,
+    /// whose node carries both, so those devices send exactly the queries they
+    /// always did and a device that is slow to answer an unknown entry cannot
+    /// add a timeout to every poll.
+    public static func needsPackTemperature(_ d: [String: Any]) -> Bool {
+        nodeCentiCelsius(d["Temperature"]) == nil && nodeCentiCelsius(d["VirtualTemperature"]) == nil
     }
 
     /// Whether a relay dictionary carries a capacity value `from(dictionary:)`
@@ -144,6 +163,33 @@ public enum AppleSmartBatteryMapper {
             return boolVal(d["IsCharging"])
         }
         return boolVal(d["ExternalConnected"]) || boolVal(d["AppleRawExternalConnected"])
+    }
+
+    /// The node's own readings win, so iOS 26 and earlier read exactly as
+    /// before; with no `Temperature`, the node's `VirtualTemperature` stands in,
+    /// as on the Mac. iOS/iPadOS 27 dropped both keys from the node and
+    /// publishes them on the `AppleSmartBatteryPack` entry's `BatteryData`
+    /// instead (measured on an iPad16,8 on iPadOS 27.0.1: both 3350 while
+    /// charging), the same move macOS 27 made, so the Mac's pack rule resolves
+    /// them: `VirtualTemperature` first, then `Temperature`, both centi-Celsius.
+    private static func temperatures(
+        node d: [String: Any],
+        packBatteryData: [String: Any]?
+    ) -> (temperatureCentiC: Int?, virtualCentiC: Int?) {
+        let pack = BatteryChildNodes.temperatures(nodeTemperatureRaw: nil, nodeVirtualRaw: nil, pack: packBatteryData)
+        let nodeVirtual = nodeCentiCelsius(d["VirtualTemperature"])
+        return (
+            nodeCentiCelsius(d["Temperature"]) ?? nodeVirtual ?? pack.temperatureCentiC,
+            nodeVirtual ?? pack.virtualCentiC
+        )
+    }
+
+    /// A node reading, where exactly 0 counts as absent: it is the placeholder
+    /// a moved key can leave behind, and 0 already displays as unknown
+    /// (`BatteryHealth.celsiusOrNil`), so treating it as missing loses nothing
+    /// and lets the pack's real reading through.
+    private static func nodeCentiCelsius(_ value: Any?) -> Int? {
+        plausibleCentiCelsius(value).flatMap { $0 == 0 ? nil : $0 }
     }
 
     /// A relay temperature in centi-Celsius, or nil when it is absent or outside
