@@ -6,20 +6,61 @@ import WhatBatteryCore
 import WhatBatteryAppKit
 import WhatBatteryPlugins
 
+/// The menu bar status item, its popover, the main window and the settings
+/// window are all managed in AppKit by the delegate (SwiftUI's MenuBarExtra
+/// can't do a right-click menu). SwiftUI's `App` is kept only to host the
+/// delegate and to supply the main menu, whose Edit items make Cmd-C/V work in
+/// text fields such as the licence key. `App` needs one scene, so it gets an
+/// unused `Settings` scene.
+///
+/// Built with the macOS 27 SDK, that scene opens its window at launch (on
+/// macOS 26 as well as 27), so on macOS 15+ it is suppressed. The modifier
+/// needs macOS 15 and a scene body can't branch on `#available`, hence two
+/// `App` types chosen here. macOS 14's own SwiftUI predates the launch change.
+///
+/// Don't swap the placeholder for a hidden `MenuBarExtra`: SwiftUI still
+/// creates a status item for it, saved as hidden under `Item-0`, which pushes
+/// the real icon to `Item-1` (losing its saved position) and hides the icon of
+/// any older version run afterwards.
 @main
+enum WhatBatteryMain {
+    static func main() {
+        if #available(macOS 15, *) {
+            WhatBatteryLaunchSuppressedApp.main()
+        } else {
+            WhatBatteryApp.main()
+        }
+    }
+}
+
+@available(macOS 15, *)
+struct WhatBatteryLaunchSuppressedApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
+    var body: some Scene {
+        Settings { EmptyView() }
+            .defaultLaunchBehavior(.suppressed)
+            .commands { SettingsCommand() }
+    }
+}
+
 struct WhatBatteryApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        // The menu bar status item, its popover, the main window and the
-        // settings window are all managed in AppKit by the delegate (SwiftUI's
-        // MenuBarExtra can't do a right-click menu). `App` still needs one
-        // scene, so this is a MenuBarExtra that is never inserted: it shows no
-        // icon and no window. It used to be an unused `Settings` scene, but
-        // built with the macOS 27 SDK that opens its window at launch, on
-        // macOS 26 as well as 27.
-        MenuBarExtra("WhatBattery", isInserted: .constant(false)) {
-            EmptyView()
+        Settings { EmptyView() }
+            .commands { SettingsCommand() }
+    }
+}
+
+/// Cmd-, (the app menu's Settings item) would otherwise open the empty
+/// placeholder scene above as a blank "WhatBattery Settings" window. Send it to
+/// the real settings window the delegate owns instead.
+struct SettingsCommand: Commands {
+    var body: some Commands {
+        CommandGroup(replacing: .appSettings) {
+            Button("Settings…") { MenuActions.shared.openSettings() }
+                .keyboardShortcut(",")
         }
     }
 }
