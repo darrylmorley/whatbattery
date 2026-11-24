@@ -525,7 +525,7 @@ private struct OverviewCard: View {
             tile("Temperature", BatteryFormatter.temperature(snapshot.temperatureCelsius, unit: tempUnit))
             tile("Power", power)
             if let adapter = snapshot.adapter?.label {
-                tile("Charger", adapter)
+                tile("Charger", BatteryFormatter.chargerName(adapter))
             }
             tile("Voltage", BatteryFormatter.voltage(snapshot.voltageMillivolts))
             // "Battery current", not "Current": the power reading above comes

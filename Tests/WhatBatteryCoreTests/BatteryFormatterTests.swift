@@ -150,17 +150,17 @@ final class BatteryFormatterTests: XCTestCase {
         )
     }
 
-    /// The reason this exists: "0.0 W  (100W pd charger)" is correct but reads
+    /// The reason this exists: "0.0 W  (100W charger)" is correct but reads
     /// as a fault next to a 100W label, so a zero reading on AC has to say why.
     func testPowerLineExplainsZeroWattsOnAC() {
         let charger = AdapterInfo(watts: 100, name: "pd charger")
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: 0, state: .full, adapter: charger), locale: posixLocale),
-            "0.0 W, fully charged  (100W pd charger)"
+            "0.0 W, fully charged  (100W charger)"
         )
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: 0, state: .acNoCharge, adapter: charger), locale: posixLocale),
-            "0.0 W, not charging  (100W pd charger)"
+            "0.0 W, not charging  (100W charger)"
         )
     }
 
@@ -168,7 +168,7 @@ final class BatteryFormatterTests: XCTestCase {
         let charger = AdapterInfo(watts: 100, name: "pd charger")
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: 58.2, state: .charging, adapter: charger), locale: posixLocale),
-            "+58.2 W  (100W pd charger)"
+            "+58.2 W  (100W charger)"
         )
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: -8.5, state: .discharging, adapter: nil), locale: posixLocale),
@@ -194,7 +194,7 @@ final class BatteryFormatterTests: XCTestCase {
         let charger = AdapterInfo(watts: 100, name: "pd charger")
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: 0, state: .charging, adapter: charger), locale: posixLocale),
-            "0.0 W, no reading  (100W pd charger)"
+            "0.0 W, no reading  (100W charger)"
         )
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: 0, state: .discharging, adapter: nil), locale: posixLocale),
@@ -206,7 +206,7 @@ final class BatteryFormatterTests: XCTestCase {
         let charger = AdapterInfo(watts: 100, name: "pd charger")
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: 58.2, state: .charging, adapter: charger), adapterSeparator: " ", locale: posixLocale),
-            "+58.2 W (100W pd charger)"
+            "+58.2 W (100W charger)"
         )
     }
     func testAbsentTemperatureSaysSoRatherThanPrintingZero() {

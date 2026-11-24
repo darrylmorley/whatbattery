@@ -4,7 +4,24 @@ import Foundation
 /// because the CLI legitimately needs to format too; the SwiftUI app may still
 /// format inline where it wants finer control.
 public enum BatteryFormatter {
-    public enum TemperatureUnit { case celsius, fahrenheit }
+    public enum TemperatureUnit {
+        case celsius, fahrenheit
+
+        /// A Celsius reading in this unit, for plotting.
+        public func value(fromCelsius celsius: Double) -> Double {
+            switch self {
+            case .celsius: return celsius
+            case .fahrenheit: return celsius * 9 / 5 + 32
+            }
+        }
+
+        public var symbol: String {
+            switch self {
+            case .celsius: return "°C"
+            case .fahrenheit: return "°F"
+            }
+        }
+    }
 
     public static func percent(_ value: Double?) -> String {
         guard let value else { return "unknown" }
@@ -40,6 +57,58 @@ public enum BatteryFormatter {
         return String(format: "%@%.1f W", locale: locale, sign, abs(watts))
     }
 
+    /// A measured power rounded to a whole watt, "55 W". Same spacing as
+    /// `power`, so a session's figures and the live reading read alike.
+    public static func wholeWatts(_ watts: Double, locale: Locale = .current) -> String {
+        // + 0 turns a rounded -0.0 into 0.0, so -0.4 prints "0 W", not "-0 W".
+        String(format: "%.0f W", locale: locale, watts.rounded() + 0)
+    }
+
+    /// A charger's display name. The firmware's generic description for a USB
+    /// Power Delivery adapter is a lowercase "pd charger", which means nothing
+    /// to most people, so it reads as plain "charger". Display only: the raw
+    /// label stays the stored key (charging session ids, the adapter-wattage
+    /// parse), so this must never be fed back into either.
+    public static func chargerName(_ label: String) -> String {
+        let trimmed = label.trimmingCharacters(in: .whitespacesAndNewlines)
+        // A case-insensitive search on the string itself, not a character
+        // count taken from a lowercased copy, so the cut lands exactly.
+        guard let match = trimmed.range(of: "pd charger", options: [.caseInsensitive, .backwards, .anchored]) else {
+            return trimmed.isEmpty ? "Charger" : trimmed
+        }
+        // Whole word only: "Upd charger" is somebody's name, not the generic one.
+        if match.lowerBound > trimmed.startIndex, !trimmed[trimmed.index(before: match.lowerBound)].isWhitespace {
+            return trimmed
+        }
+        let prefix = trimmed[..<match.lowerBound].trimmingCharacters(in: .whitespacesAndNewlines)
+        return prefix.isEmpty ? "Charger" : "\(prefix) charger"
+    }
+
+    /// A low-to-high span, "10.6 to 32.8°C". `unit` carries its own leading
+    /// space where the unit takes one (" V"), since degrees do not.
+    public static func range(_ low: Double, _ high: Double, unit: String, decimals: Int, locale: Locale = .current) -> String {
+        let format = "%.\(decimals)f"
+        let lo = String(format: format, locale: locale, low)
+        let hi = String(format: format, locale: locale, high)
+        return "\(lo) to \(hi)\(unit)"
+    }
+
+    /// A calendar day for tables, "24 Nov 2026". Exports keep ISO dates; this
+    /// is for people reading the window.
+    public static func day(_ date: Date, locale: Locale = .current, calendar: Calendar = .autoupdatingCurrent) -> String {
+        let style = Date.FormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone)
+        return date.formatted(style.day().month(.abbreviated).year())
+    }
+
+    /// A calendar month for tables, "Jul 2026".
+    public static func month(year: Int, month: Int, locale: Locale = .current, calendar: Calendar = .autoupdatingCurrent) -> String {
+        guard let date = calendar.date(from: DateComponents(year: year, month: month, day: 15)) else {
+            return String(format: "%04d-%02d", year, month)
+        }
+        let style = Date.FormatStyle(locale: locale, calendar: calendar, timeZone: calendar.timeZone)
+        return date.formatted(style.month(.abbreviated).year())
+    }
+
     /// The full "Power" line: the live wattage, why it is zero when it is, and
     /// the adapter in brackets.
     ///
@@ -71,7 +140,7 @@ public enum BatteryFormatter {
             }
         }
         if includeAdapter, let adapter = snapshot.adapter?.label {
-            text += "\(adapterSeparator)(\(adapter))"
+            text += "\(adapterSeparator)(\(chargerName(adapter)))"
         }
         return text
     }
@@ -133,6 +202,16 @@ public enum BatteryFormatter {
             return String(format: "%.1f°C", locale: locale, celsius)
         case .fahrenheit:
             return String(format: "%.1f°F", locale: locale, celsius * 9 / 5 + 32)
+        }
+    }
+
+    /// A low-to-high temperature span in the user's unit, "10.6 to 32.8°C".
+    public static func temperatureRange(_ lowCelsius: Double, _ highCelsius: Double, unit: TemperatureUnit = .celsius, decimals: Int = 1, locale: Locale = .current) -> String {
+        switch unit {
+        case .celsius:
+            return range(lowCelsius, highCelsius, unit: "°C", decimals: decimals, locale: locale)
+        case .fahrenheit:
+            return range(lowCelsius * 9 / 5 + 32, highCelsius * 9 / 5 + 32, unit: "°F", decimals: decimals, locale: locale)
         }
     }
 

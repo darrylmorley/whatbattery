@@ -101,7 +101,7 @@ struct BatteryMediumView: View {
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                 if let label = snapshot.adapter?.label {
-                    Text(label)
+                    Text(BatteryFormatter.chargerName(label))
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                         .lineLimit(1)

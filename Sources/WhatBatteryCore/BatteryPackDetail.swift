@@ -10,10 +10,17 @@ import Foundation
 public struct BatteryPackDetail: Equatable, Sendable {
     /// Live per-cell voltage in millivolts, in pack order.
     public let cellVoltagesMV: [Int]
-    /// The gauge's learned maximum charge per cell, in mAh.
+    /// The gauge's learned maximum charge per cell, in mAh. TI documents its
+    /// data-flash Qmax in mAh (SLUU313, Qmax Cell 0), and across the corpus
+    /// the per-cell mean sits at a median 1.01x DesignCapacity, as it should
+    /// for cells in series. That this array is the same quantity as
+    /// TI's data-flash value is inferred, not documented.
     public let cellQmax: [Int]
     /// Per-cell internal resistance, in the gauge's own scale. Unitless here on
     /// purpose: the absolute number means little, the spread between cells does.
+    /// `WeightedRa` is Apple's key, not TI's, and no unit for it is published.
+    /// Its scale differs by gauge (corpus medians: bq40z651 69, bq20z451 142,
+    /// SN7038 24), so never compare it across machines.
     public let cellResistance: [Int]
 
     /// Lowest and highest charge the battery has sat at today, in percent.
@@ -144,6 +151,17 @@ public struct BatteryPackDetail: Equatable, Sendable {
 /// Extremes the gauge has recorded across the pack's whole life. Read-only
 /// history that predates WhatBattery being installed, which is the appeal: it
 /// covers the time before we were watching.
+///
+/// Where the units come from. Apple does not rescale these: on all
+/// 954 corpus machines carrying a `Raw` block in `LifetimeData`, each key
+/// equals the gauge's own lifetime block read big-endian in the field order of
+/// TI's bq20z45 Technical Reference (SLUU313, Table B-18). So TI's unit table
+/// applies field by field, with one known exception: temperature, where
+/// Apple's custom gauges depart from the public manual (see
+/// `temperatureRange`). TI documents a public sibling, not Apple's parts, so
+/// each unit below is also checked against the corpus, and the corpus wins.
+/// Re-run `whatx-research/scripts/battery-unit-sweep.py` when new probes
+/// arrive; macOS 27 dumps are not covered yet.
 public struct BatteryLifetime: Equatable, Sendable {
     public let minimumTemperatureC: Int?
     public let maximumTemperatureC: Int?
@@ -151,12 +169,23 @@ public struct BatteryLifetime: Equatable, Sendable {
     /// is resolved at parse time against them rather than assumed.
     public let averageTemperatureC: Double?
 
+    /// mA. Documented (SLUU313 Tables C-133/C-134, signed). Corpus: no live
+    /// charge or discharge current ever exceeds it (249 and 251 machines).
     public let maximumChargeCurrentMA: Int?
     public let maximumDischargeCurrentMA: Int?
+    /// mV, the whole cell stack. Documented (SLUU313 Tables C-131/C-132).
+    /// Corpus: the live pack voltage falls inside the range on 965 of 967
+    /// machines, and the maximum is 3.0x the maximum cell voltage on 945 of
+    /// 950. The two exceptions record a 2-cell stack in a 3-cell Mac; not
+    /// acted on, since two machines is not enough evidence to hide data.
     public let minimumPackVoltageMV: Int?
     public let maximumPackVoltageMV: Int?
 
-    /// Hours the pack has been powered on.
+    /// Hours the pack has been powered on. NOT documented: the key is not in
+    /// TI's lifetime block or Apple's `Raw` copy of it. Hours is inferred from
+    /// the corpus, where it runs at a median 0.986 of the pack's age since its
+    /// decoded manufacture month (minutes would be 60x short). Treat it as
+    /// evidence, not a spec.
     public let totalOperatingTimeHours: Int?
 
     public init(
@@ -216,6 +245,11 @@ public struct BatteryLifetime: Equatable, Sendable {
     /// every machine: 114 of the 746 corpus machines carrying `LifetimeData`
     /// report deci-degrees and 632 report whole ones. Printing them raw is what
     /// told a MacBook Air M1 owner his battery had reached 454°C.
+    ///
+    /// TI's public manual does not settle it either: it documents these as
+    /// whole degrees (SLUU313 Tables C-127/C-128), which the 114 deci machines
+    /// contradict. This is the one lifetime field where Apple's gauges depart
+    /// from the manual.
     ///
     /// There is no field to ask. `LifetimeData` has no unit or version key, and
     /// while the fuel gauge is a strong predictor (every `bq20z451` in the corpus
