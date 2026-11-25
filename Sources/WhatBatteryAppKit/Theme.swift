@@ -33,13 +33,18 @@ public enum Theme {
         case good, warning, critical
     }
 
+    /// Apple's "service recommended" health threshold, in percent. The health
+    /// band below and `HealthBar`'s tick both read it, so they cannot disagree.
+    public static let serviceThresholdPercent: Double = 80
+
     /// Battery-health band, keyed to Apple's service thresholds: warning at
-    /// "service recommended" (80%), critical when the battery is genuinely
-    /// poor (60%). Every health readout shares this so the bands never drift.
+    /// "service recommended" (`serviceThresholdPercent`), critical when the
+    /// battery is genuinely poor (60%). Every health readout shares this so the
+    /// bands never drift.
     public static func healthStatus(_ percent: Double) -> Status {
         switch percent {
         case ..<60: return .critical
-        case ..<80: return .warning
+        case ..<serviceThresholdPercent: return .warning
         default: return .good
         }
     }

@@ -11,8 +11,9 @@ import SwiftUI
 public struct HealthBar: View {
     private let percent: Double
 
-    /// Apple's "service recommended" threshold, matching `Theme.healthStatus`.
-    private static let serviceThreshold = 0.8
+    /// Apple's "service recommended" threshold as a fraction of the bar, from
+    /// the same constant `Theme.healthStatus` uses.
+    private static let serviceThreshold = Theme.serviceThresholdPercent / 100
 
     private static let thresholdText = "\(Int((serviceThreshold * 100).rounded()))%"
 
