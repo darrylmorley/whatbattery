@@ -18,7 +18,10 @@ public struct AppChartStyle: ViewModifier {
     public func body(content: Content) -> some View {
         content
             .chartXAxis {
-                AxisMarks { _ in
+                // .aligned keeps the edge labels inside the plot. The default
+                // let the last date run into the y-axis column and truncate
+                // ("23…", "A…").
+                AxisMarks(preset: .aligned) { _ in
                     AxisTick().foregroundStyle(Color(nsColor: .separatorColor))
                     AxisValueLabel().foregroundStyle(Self.axisLabel)
                 }
