@@ -1,39 +1,31 @@
 import SwiftUI
 
-/// The standard inset section card: padded content on a subtle hierarchical fill
-/// with the shared corner radius. Replaces hand-rolled
-/// `RoundedRectangle(...).fill(Color.secondary.opacity(...))` so every Pro card
-/// (runway, charging) shares one look and adapts to the system's fill levels.
+/// The standard inset card: padded content with the shared corner radius,
+/// used for a card inside a `SectionCard` (or, for the advisory banner, on the
+/// window itself).
+///
+/// It uses the same surface and hairline as `SectionCard`. A grey fill was
+/// designed for cards sitting on the grey window, and once every section moved
+/// onto a white `SectionCard` it rendered as a grey box inside a white one.
+/// The matching surface keeps a nested card as an outlined panel, and a card
+/// on the window as a white card beside the sections.
 public struct CardBackground: ViewModifier {
-    @Environment(\.colorScheme) private var colorScheme
-
     public init() {}
 
     public func body(content: Content) -> some View {
         content
             .padding(12)
-            // Dark keeps the quaternary lift (a lighter card on a darker
-            // window, the platform convention, and it reads well). Light
-            // inverts that convention if given the same fill: quaternary
-            // renders as a flat mid-grey slab on the white window. So light
-            // uses the fainter quinary fill and lets a hairline edge define
-            // the card instead of the grey.
-            .background(
-                colorScheme == .dark ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.quinary),
-                in: .rect(cornerRadius: Theme.cardCornerRadius)
+            .background(Theme.cardSurface, in: .rect(cornerRadius: Theme.cardCornerRadius))
+            .overlay(
+                RoundedRectangle(cornerRadius: Theme.cardCornerRadius)
+                    .strokeBorder(Theme.cardBorder, lineWidth: 1)
             )
-            .overlay {
-                if colorScheme == .light {
-                    RoundedRectangle(cornerRadius: Theme.cardCornerRadius)
-                        .strokeBorder(.separator, lineWidth: 1)
-                }
-            }
     }
 }
 
 public extension View {
-    /// Wraps the view in the standard inset card (padding plus a subtle rounded
-    /// fill). See `CardBackground`.
+    /// Wraps the view in the standard inset card (padding, the card surface and
+    /// a hairline edge). See `CardBackground`.
     func cardBackground() -> some View {
         modifier(CardBackground())
     }
