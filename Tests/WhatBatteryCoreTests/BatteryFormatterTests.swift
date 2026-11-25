@@ -150,17 +150,18 @@ final class BatteryFormatterTests: XCTestCase {
         )
     }
 
-    /// The reason this exists: "0.0 W  (100W charger)" is correct but reads
-    /// as a fault next to a 100W label, so a zero reading on AC has to say why.
-    func testPowerLineExplainsZeroWattsOnAC() {
+    /// A zero reading on AC stays bare: every surface that shows the power
+    /// line also shows the charge line, which already says "fully charged" or
+    /// "on AC (not charging)", so repeating it here printed the state twice.
+    func testPowerLineDoesNotRepeatTheChargeState() {
         let charger = AdapterInfo(watts: 100, name: "pd charger")
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: 0, state: .full, adapter: charger), locale: posixLocale),
-            "0.0 W, fully charged  (100W charger)"
+            "0.0 W  (100W charger)"
         )
         XCTAssertEqual(
             BatteryFormatter.powerLine(snapshot(watts: 0, state: .acNoCharge, adapter: charger), locale: posixLocale),
-            "0.0 W, not charging  (100W charger)"
+            "0.0 W  (100W charger)"
         )
     }
 

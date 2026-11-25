@@ -14,6 +14,8 @@ public struct HealthBar: View {
     /// Apple's "service recommended" threshold, matching `Theme.healthStatus`.
     private static let serviceThreshold = 0.8
 
+    private static let thresholdText = "\(Int((serviceThreshold * 100).rounded()))%"
+
     private static let trackHeight: CGFloat = 6
     private static let tickHeight: CGFloat = 12
     private static let tickWidth: CGFloat = 1.5
@@ -23,6 +25,24 @@ public struct HealthBar: View {
     }
 
     public var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            bar
+            // The tick used to be explained only by a hover tooltip, so most
+            // people saw an unlabelled mark. The caption sits centred under it.
+            TickLabelLayout(fraction: Self.serviceThreshold) {
+                Text(Self.thresholdText)
+                    .scaledFont(.caption2)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+            }
+        }
+        .help("The mark is \(Self.thresholdText), Apple's service threshold.")
+        .accessibilityElement()
+        .accessibilityLabel("Battery health")
+        .accessibilityValue("\(Int(percent.rounded())) percent")
+    }
+
+    private var bar: some View {
         GeometryReader { geo in
             let fraction = min(max(percent, 0), 100) / 100
             ZStack(alignment: .leading) {
@@ -45,9 +65,24 @@ public struct HealthBar: View {
             .frame(height: Self.tickHeight)
         }
         .frame(height: Self.tickHeight)
-        .help("The mark is 80%, Apple's service threshold.")
-        .accessibilityElement()
-        .accessibilityLabel("Battery health")
-        .accessibilityValue("\(Int(percent.rounded())) percent")
+    }
+}
+
+/// Places its single subview centred on `fraction` of the proposed width,
+/// clamped so it never runs past either edge.
+private struct TickLabelLayout: Layout {
+    let fraction: Double
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let size = subviews.first?.sizeThatFits(.unspecified) ?? .zero
+        return CGSize(width: proposal.width ?? size.width, height: size.height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        guard let label = subviews.first else { return }
+        let size = label.sizeThatFits(.unspecified)
+        let centred = bounds.minX + bounds.width * fraction - size.width / 2
+        let x = min(max(centred, bounds.minX), bounds.maxX - size.width)
+        label.place(at: CGPoint(x: x, y: bounds.minY), proposal: ProposedViewSize(size))
     }
 }

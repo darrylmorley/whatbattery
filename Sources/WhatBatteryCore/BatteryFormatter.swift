@@ -109,14 +109,14 @@ public enum BatteryFormatter {
         return date.formatted(style.month(.abbreviated).year())
     }
 
-    /// The full "Power" line: the live wattage, why it is zero when it is, and
-    /// the adapter in brackets.
+    /// The full "Power" line: the live wattage, ", no reading" when a zero is a
+    /// rejected reading rather than a measurement, and the adapter in brackets.
     ///
-    /// A bare "0.0 W  (100W pd charger)" is correct (a full battery draws
-    /// nothing) but reads as a fault sitting next to a 100W label, so a zero
-    /// reading on AC says what it means instead. Shared by the window, the
-    /// popover, the CLI, the report and the iDevice view, which all used to
-    /// build this line separately.
+    /// A zero when full or on AC is left bare ("0.0 W  (100W pd charger)"):
+    /// the charge line shown beside it on every surface already says "fully
+    /// charged" or "on AC (not charging)". Shared by the window, the popover,
+    /// the CLI, the report and the iDevice view, which all used to build this
+    /// line separately.
     /// `includeAdapter: false` leaves the charger off, for layouts that give the
     /// adapter a slot of its own rather than trailing it on the reading.
     public static func powerLine(
@@ -126,18 +126,17 @@ public enum BatteryFormatter {
         locale: Locale = .current
     ) -> String {
         var text = power(snapshot.powerWatts, locale: locale)
-        // power() prints one decimal place, so anything under 0.05 shows as 0.0.
-        if abs(snapshot.powerWatts) < 0.05 {
-            switch snapshot.chargingState {
-            case .full: text += ", fully charged"
-            case .acNoCharge: text += ", not charging"
-            case .charging, .discharging:
-                // Exactly zero on these states is the builder's sign/magnitude
-                // guard rejecting a self-contradicting reading (a genuine
-                // measurement demands a nonzero current), so say that rather
-                // than show a confident 0.0 W beside a live charger label.
-                if snapshot.powerWatts == 0 { text += ", no reading" }
-            }
+        // Exactly zero while charging or discharging is the builder's
+        // sign/magnitude guard rejecting a self-contradicting reading (a genuine
+        // measurement demands a nonzero current), so say that rather than show a
+        // confident 0.0 W beside a live charger label. A zero when full or on AC
+        // stays bare: every caller also shows `chargeLine`, which already names
+        // that state, and repeating it here printed it twice.
+        switch snapshot.chargingState {
+        case .charging, .discharging:
+            if snapshot.powerWatts == 0 { text += ", no reading" }
+        case .full, .acNoCharge:
+            break
         }
         if includeAdapter, let adapter = snapshot.adapter?.label {
             text += "\(adapterSeparator)(\(chargerName(adapter)))"

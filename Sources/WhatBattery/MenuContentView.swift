@@ -20,6 +20,9 @@ struct MenuContentView: View {
     // Which pane the popover shows. Settings opens here as a pane rather than a
     // separate window. Reset to the main pane whenever the popover closes.
     @State private var pane: Pane = .main
+    // The main pane's own height with nothing stretched, measured from a hidden
+    // copy (see `body`). Nil until the first layout.
+    @State private var naturalHeight: CGFloat?
 
     private enum Pane { case main, settings }
 
@@ -34,22 +37,33 @@ struct MenuContentView: View {
             case .settings: settingsPane
             }
         }
-        .padding(12)
+        // A hidden copy of the main pane at its natural height, with the
+        // accessory list unscrolled. Measuring this, rather than estimating row
+        // heights, is what stops the popover leaving a blank gap above the
+        // footer when a row is absent (no time estimate when full or on AC).
+        .background(alignment: .top) {
+            mainPaneContent(scrollsAccessories: false)
+                .fixedSize(horizontal: false, vertical: true)
+                .hidden()
+                .onGeometryChange(for: CGFloat.self, of: { $0.size.height }) { naturalHeight = $0 }
+        }
+        .padding(Self.panePadding)
         // One fixed size for both panes so switching to Settings doesn't resize
         // the popover (NSPopover doesn't animate intrinsic SwiftUI size changes).
-        // The height grows with the accessory list; Settings absorbs any slack
-        // with its Spacer, so the two panes stay the same height.
+        // The height follows the main pane's content; Settings fits itself to it.
         .frame(width: popoverWidth, height: popoverHeight)
         .environment(\.fontScale, FontScale.clamp(fontScale))
     }
 
-    /// Sized to the main pane: tight on the battery section when no accessories
-    /// are connected, growing a row at a time as they are, and capped so a long
-    /// list scrolls instead of running off-screen. The Settings form fits itself
-    /// to whatever height this gives (see `settingsPane`).
+    /// Sized to the main pane's measured content, and capped so a long
+    /// accessory list scrolls instead of running off-screen. The Settings form
+    /// fits itself to whatever height this gives (see `settingsPane`).
     private static let popoverMaxHeight: CGFloat = 560
     private static let popoverBaseWidth: CGFloat = 340
-    private static let batteryPaneHeight: CGFloat = 330
+    /// Inset on every side of both panes. The measured height excludes it.
+    private static let panePadding: CGFloat = 12
+    /// Used only before the first measurement lands.
+    private static let fallbackHeight: CGFloat = 330
 
     /// Every popover dimension is measured at 100% text and multiplied by the
     /// user's font scale. The frame used to be fixed while the slider went to
@@ -60,10 +74,10 @@ struct MenuContentView: View {
     private var popoverWidth: CGFloat { Self.popoverBaseWidth * scale }
 
     private var popoverHeight: CGFloat {
-        let accessories = monitor.accessories.isEmpty
-            ? 0
-            : 26 + CGFloat(monitor.accessories.count) * 24
-        let wanted = min(Self.popoverMaxHeight, Self.batteryPaneHeight + accessories) * scale
+        // `naturalHeight` is measured at the current text size, so only the cap
+        // and the fallback need scaling.
+        let content = naturalHeight.map { $0 + Self.panePadding * 2 } ?? Self.fallbackHeight * scale
+        let wanted = min(Self.popoverMaxHeight * scale, content)
         // The 560 cap is measured at 100% text, so scaling it lets a full
         // accessory list at 140% ask for 784pt, which overflows a short display.
         // The screen gets the final say. Losing height is safe rather than
@@ -71,16 +85,23 @@ struct MenuContentView: View {
         // so a shorter frame shrinks its ScrollView and the battery header and
         // footer stay put.
         guard let visible = availableHeight ?? NSScreen.main?.visibleFrame.height else { return wanted }
-        // No floor above the ceiling: an earlier `max(batteryPaneHeight, ...)`
-        // here re-created the very overflow it was guarding against, since 330
-        // is unscaled and beats `visible - 24` on any display shorter than
-        // 354pt. The screen bound always wins; `max(0,)` only stops a negative.
+        // No floor above the ceiling: an earlier `max(330, ...)` here re-created
+        // the very overflow it was guarding against, since 330 is unscaled and
+        // beats `visible - 24` on any display shorter than 354pt. The screen
+        // bound always wins; `max(0,)` only stops a negative.
         return min(wanted, max(0, visible - 24))
     }
 
     // MARK: - Panes
 
     private var mainPane: some View {
+        mainPaneContent(scrollsAccessories: true)
+            .frame(maxHeight: .infinity, alignment: .top)
+    }
+
+    /// `scrollsAccessories: false` lays the accessory list out in full, for the
+    /// hidden copy that measures the pane's natural height.
+    private func mainPaneContent(scrollsAccessories: Bool) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("WhatBattery")
                 .scaledFont(.headline)
@@ -119,18 +140,21 @@ struct MenuContentView: View {
                 Text("Accessories")
                     .scaledFont(.caption)
                     .foregroundStyle(.secondary)
-                // Scrolls when the list is long, so the battery header above and
-                // the footer below stay put.
-                ScrollView {
+                if scrollsAccessories {
+                    // Scrolls when the list is long, so the battery header above
+                    // and the footer below stay put.
+                    ScrollView {
+                        accessoriesList
+                    }
+                    .frame(maxHeight: .infinity)
+                } else {
                     accessoriesList
                 }
-                .frame(maxHeight: .infinity)
             }
 
             Divider()
             footer
         }
-        .frame(maxHeight: .infinity, alignment: .top)
     }
 
     private var settingsPane: some View {
@@ -237,14 +261,14 @@ struct MenuContentView: View {
             Button(item.title) { item.action() }
                 .buttonStyle(.borderless)
         }
-        HStack(spacing: 16) {
-            iconButton("macwindow", help: "Open WhatBattery") {
+        HStack(spacing: 12) {
+            iconButton("macwindow", title: "Open", help: "Open WhatBattery") {
                 MenuActions.shared.openMainWindow()
             }
-            iconButton("gearshape", help: "Settings") {
+            iconButton("gearshape", title: "Settings", help: "Settings") {
                 showSettings()
             }
-            iconButton("power", help: "Quit WhatBattery") {
+            iconButton("power", title: "Quit", help: "Quit WhatBattery") {
                 NSApplication.shared.terminate(nil)
             }
             Spacer()
@@ -276,17 +300,25 @@ struct MenuContentView: View {
     /// tag, so this links to the releases list instead.
     static var releaseURL: URL { AppInfo.releaseURL }
 
-    // The `help` string is both the tooltip and the VoiceOver label: the button
-    // stays visually icon-only via `.labelStyle(.iconOnly)` while keeping a real
-    // text label for assistive tech.
-    private func iconButton(_ symbol: String, help: String, action: @escaping () -> Void) -> some View {
-        Button(help, systemImage: symbol, action: action)
-            .labelStyle(.iconOnly)
-            .scaledFont(size: 15)
-            .frame(width: 30, height: 24)
+    // An icon with a short caption under it. The icons used to stand alone,
+    // named only by their tooltips. The caption sits under the icon rather than
+    // beside it so the row still fits the "Update to vX" button on the right.
+    // `help` is the tooltip and the VoiceOver label, which keeps the longer name.
+    private func iconButton(_ symbol: String, title: String, help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: symbol)
+                    .scaledFont(size: 15)
+                    .frame(height: 18)
+                Text(title)
+                    .scaledFont(.caption2)
+            }
+            .frame(minWidth: 36)
             .contentShape(.rect)
-            .buttonStyle(.borderless)
-            .help(help)
+        }
+        .buttonStyle(.borderless)
+        .help(help)
+        .accessibilityLabel(help)
     }
 
     // MARK: - Row helper
