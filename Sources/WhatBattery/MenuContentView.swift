@@ -17,6 +17,7 @@ struct MenuContentView: View {
     @ObservedObject private var updates = UpdateChecker.shared
     @AppStorage("temperatureUnit") private var temperatureUnit = "C"
     @AppStorage(FontScale.key) private var fontScale = FontScale.defaultValue
+    @AppStorage(Self.solidBackgroundKey) private var solidBackground = false
     // Which pane the popover shows. Settings opens here as a pane rather than a
     // separate window. Reset to the main pane whenever the popover closes.
     @State private var pane: Pane = .main
@@ -52,6 +53,17 @@ struct MenuContentView: View {
         // the popover (NSPopover doesn't animate intrinsic SwiftUI size changes).
         // The height follows the main pane's content; Settings fits itself to it.
         .frame(width: popoverWidth, height: popoverHeight)
+        // Opt-in solid background, as in WhatCable. The popover's default
+        // backdrop is translucent and picks up the desktop behind it, which
+        // some people dislike. This paints the colour a normal window uses.
+        // It covers the content area only: AppKit draws the arrow outside it,
+        // so the arrow stays translucent. Off by default.
+        .background {
+            if solidBackground {
+                Color(nsColor: .windowBackgroundColor)
+                    .ignoresSafeArea()
+            }
+        }
         .environment(\.fontScale, FontScale.clamp(fontScale))
     }
 
@@ -295,6 +307,9 @@ struct MenuContentView: View {
 
     /// The app version from the bundle, falling back to a dev string.
     static var appVersion: String { AppInfo.version }
+
+    /// UserDefaults key for the solid popover background setting.
+    static let solidBackgroundKey = "solidPopoverBackground"
 
     /// The GitHub release page for this version. A pre-release/dev build has no
     /// tag, so this links to the releases list instead.

@@ -14,6 +14,7 @@ struct SettingsView: View {
     @State private var draggedScale: Double?
     @AppStorage(UpdateChecker.notifyKey) private var notifyOnUpdates = true
     @AppStorage(MenuBarBadge.key) private var menuBarBadge = MenuBarBadge.charge.rawValue
+    @AppStorage(MenuContentView.solidBackgroundKey) private var solidPopoverBackground = false
     @ObservedObject private var updates = UpdateChecker.shared
     @ObservedObject private var launchAtLogin = LaunchAtLogin.shared
     /// When embedded in the menu bar popover, drop the fixed window frame and let
@@ -107,6 +108,7 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+                Toggle("Solid window background", isOn: $solidPopoverBackground)
             }
 
             Section("Software Update") {
