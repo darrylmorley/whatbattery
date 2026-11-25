@@ -474,6 +474,9 @@ private struct OverviewCard: View {
                         .scaledFont(.callout)
                         .foregroundStyle(.secondary)
                 }
+                // On the big figure, where people look when it disagrees with
+                // System Settings, rather than on the small "macOS reports" line.
+                .help(Self.healthHelp)
                 // Capacity detail is a Pro touch; the free app shows the health
                 // percentage only.
                 if isPro, snapshot.fullChargeCapacitymAh > 0, snapshot.designCapacitymAh > 0 {
@@ -574,6 +577,10 @@ private struct OverviewCard: View {
     /// "macOS reports 99%", shown only when Apple's whole-percent figure and our
     /// unrounded one would actually read differently. When they agree there is
     /// nothing to reconcile and the line is noise.
+    /// Same wording as the Health tab's note. Kept here, not shared, because the
+    /// app target cannot reference Pro symbols.
+    private static let healthHelp = "Health is the battery's own estimate of its full-charge capacity, divided by its design capacity. The battery recalculates it as it learns, so daily readings can move a few points. macOS shows its own rounded figure, which can differ."
+
     private var appleLine: String? {
         guard let apple = appleHealth.maximumCapacityPercent else { return nil }
         guard let ours = snapshot.healthPercent, Int(ours.rounded()) != apple else { return nil }
